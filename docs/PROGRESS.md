@@ -17,12 +17,9 @@
   natural paths, leaf-cluster trees + a giant forest tree, a 6×4 reference-style cottage,
   refined explorer with idle breathing, props by the house, stumps and branches, rocky coastal
   ledges, warm palette. The user approved it.
-- **Still open from M4:** discuss the two items the user deferred until after M4:
-  1. **Real-machine performance:** ask the user to run `npm run dev` (or `npm run build` +
-     `npm run preview`), press F3, walk around (including zoomed out) and report the FPS.
-  2. **GitHub:** nothing has been pushed. Remote `origin` has both `master` and `main`; ask
-     which branch to push to (default suggestion: push `master`), then push only on the user's
-     go. After that, pick next features from `docs/ROADMAP.md` with the user.
+- **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
+  the project is pushed to GitHub `origin/master` (`main` on the remote is unused). Push only
+  when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
 
 ## Milestones
 
