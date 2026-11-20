@@ -10,17 +10,28 @@ export interface IslandUiState {
   readonly isDebugOverlayVisible: boolean;
   /** Set once the player first walks; the controls hint fades out after that. */
   readonly hasStartedWalking: boolean;
+  /** Background music muted (the toggle button and M; remembered by the UI across visits). */
+  readonly isMusicMuted: boolean;
   toggleDebugOverlay: () => void;
   markStartedWalking: () => void;
+  setMusicMuted: (muted: boolean) => void;
+  toggleMusicMuted: () => void;
 }
 
 export const useIslandUiStore = create<IslandUiState>()((set) => ({
   isDebugOverlayVisible: false,
   hasStartedWalking: false,
+  isMusicMuted: false,
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
   },
   markStartedWalking: () => {
     set({ hasStartedWalking: true });
+  },
+  setMusicMuted: (muted) => {
+    set({ isMusicMuted: muted });
+  },
+  toggleMusicMuted: () => {
+    set((state) => ({ isMusicMuted: !state.isMusicMuted }));
   },
 }));

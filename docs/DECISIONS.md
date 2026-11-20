@@ -498,3 +498,33 @@ alternatives → consequences.
   within `deadwood.searchRadiusTiles`.
 - **Consequences:** trees, rocks, fence, trails and spawn are identical to Phase 3 after the
   re-bake; only flowers/tufts (placed after the new steps) moved.
+
+## D48 — Smooth player animation driven by distance walked
+
+- **Context:** the user found the idle and walk/run animation sloppy: 3 walk poses on a timer
+  (feet slid), running reused them, and breathing snapped the head down every 0.7 s.
+- **Decision:** 19 frames per direction (stand, breath, blink, 8-frame walk, 8-frame run),
+  composed in `assets/playerFrames.ts` from head/torso/leg parts with a 1 px body bob, new leg
+  poses (lifted knee, run stride, tucked airborne pose) and pumping arms; side-view runs lean
+  forward, and the airborne frames lift the whole figure a pixel above its shadow. The cycle
+  advances with `player.strideDistance` (one cycle per 40 px walking, 60 px running), starting
+  one frame in; pushing against an obstacle walks in place. Idle: a 2.6 s breath (the whole
+  upper body sinks one pixel, proportions unchanged) and a blink every 3.7 s.
+- **Consequences:** `walkFrameSeconds`/`runFrameSeconds`/`breathFrameSeconds` replaced by
+  `walkCyclePx`, `runCyclePx`, `breathCycleSeconds`, `breathHoldSeconds`,
+  `blinkEverySeconds`, `blinkSeconds`; `Player.animationTime` → `strideDistance`.
+
+## D49 — Background music composed in code with Web Audio (user decision)
+
+- **Context:** the user wanted looping chill music with no royalty or copyright issues and a
+  mute button; chose "composed in code" over a CC0 recording, and the top-left corner.
+- **Decision:** an original 16-bar lo-fi loop ("Island Breeze": C major, 72 BPM, swung
+  eighths; electric-piano chords, bass, music-box melody, brushed drums, vinyl crackle) stored
+  as data and synthesized live (`src/shared/audio`). A look-ahead scheduler on the audio clock
+  keeps the loop seamless. It starts on the first key press or click (autoplay rules); the
+  button and M toggle mute with a fade, the choice is kept in `localStorage`, and the audio
+  clock is suspended while muted or while the tab is hidden.
+- **Alternatives:** a CC0 audio file (richer sound, ~3–5 MB, a licence to track). No new
+  dependency either way.
+- **Consequences:** zero download size and no licensing; the sound is synth-like by design.
+  The tune is verified by rendering it offline in Chrome (headless checks can't listen).

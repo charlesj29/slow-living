@@ -1,12 +1,14 @@
-// The player character as pixel maps (16×24, feet on the bottom row), drawn in
-// a chunky handheld-RPG style: a big head and cap (about half the height),
-// visor overhanging the face, short body, swinging arms. Original design in
-// the user's colours: orange cap and jacket, dark brown hair, brown backpack.
+// The player character's body parts as pixel maps (16 px wide), drawn in a
+// chunky handheld-RPG style: a big head and cap (about half the height), visor
+// overhanging the face, short body, swinging arms. Original design in the
+// user's colours: orange cap and jacket, dark brown hair, brown backpack.
+// `playerFrames.ts` assembles the parts into 16×24 animation frames.
 // Each character is one pixel:
 //   . transparent  o outline  L/C/c cap light/base/shade  v visor  y badge/zip
 //   h/H hair/shade  s/S skin/shade  w/W shirt/shade  J/j jacket/shade
 //   b/B backpack/shade  p/P trousers/shade  k shoes
-// A frame = head (rows 0–12) + torso with arms (rows 13–18) + legs (rows 19–23).
+// Parts: head (13 rows, the first 3 empty headroom) + torso with arms (6 rows)
+// + legs (5 rows) = 24 rows.
 
 export const PLAYER_PALETTE: Readonly<Record<string, string>> = {
   o: '#3a2416',
@@ -33,11 +35,12 @@ export const PLAYER_PALETTE: Readonly<Record<string, string>> = {
 export const PLAYER_WIDTH = 16;
 export const PLAYER_HEIGHT = 24;
 
-type Rows = readonly string[];
+export type Rows = readonly string[];
 
-const EMPTY_TOP: Rows = ['................', '................', '................'];
+export const EMPTY_ROW = '................';
+const EMPTY_TOP: Rows = [EMPTY_ROW, EMPTY_ROW, EMPTY_ROW];
 
-const FRONT_HEAD: Rows = [
+export const FRONT_HEAD: Rows = [
   ...EMPTY_TOP,
   '.....oooooo.....',
   '...ooLLCCCCoo...',
@@ -51,7 +54,7 @@ const FRONT_HEAD: Rows = [
   '...osssSSssso...',
 ];
 
-const BACK_HEAD: Rows = [
+export const BACK_HEAD: Rows = [
   ...EMPTY_TOP,
   '.....oooooo.....',
   '...ooLLCCCCoo...',
@@ -66,7 +69,7 @@ const BACK_HEAD: Rows = [
 ];
 
 /** Facing right (the visor juts forward); facing left is the mirror image. */
-const SIDE_HEAD: Rows = [
+export const SIDE_HEAD: Rows = [
   ...EMPTY_TOP,
   '....oooooo......',
   '...oLLCCCCoo....',
@@ -80,7 +83,10 @@ const SIDE_HEAD: Rows = [
   '...ohhssSSso....',
 ];
 
-const FRONT_TORSO = {
+/** Head row of the upper eye pixels; blinking paints them as skin, leaving a closed-eye line. */
+export const EYE_ROW = 10;
+
+export const FRONT_TORSO = {
   stand: [
     '....ojJwwJjo....',
     '..oJbJJyyJJbJo..',
@@ -98,9 +104,18 @@ const FRONT_TORSO = {
     '.osjJJJyyJJJjo..',
     '..ojjjjjjjjjjo..',
   ],
+  // Running: the arms pump further, right hand high, left hand low.
+  pump: [
+    '....ojJwwJjo....',
+    '..oJbJJyyJJbJo..',
+    '.ojJbJJyyJJbJso.',
+    '.ojJbJJyyJJbJo..',
+    '.ojjJJJyyJJJjo..',
+    '.osjjjjjjjjjjo..',
+  ],
 };
 
-const BACK_TORSO = {
+export const BACK_TORSO = {
   stand: [
     '....ojjjjjjo....',
     '..oJbbbbbbbbJo..',
@@ -117,9 +132,17 @@ const BACK_TORSO = {
     '.osbBBBBBBBBbo..',
     '..ojjjjjjjjjjo..',
   ],
+  pump: [
+    '....ojjjjjjo....',
+    '..oJbbbbbbbbJo..',
+    '.ojbBbbbbbbBbso.',
+    '.ojbbbbbbbbbbo..',
+    '.ojbBBBBBBBBbo..',
+    '.osjjjjjjjjjjo..',
+  ],
 };
 
-const SIDE_TORSO = {
+export const SIDE_TORSO = {
   stand: [
     '....oojjwo......',
     '...obbJJJJo.....',
@@ -146,7 +169,8 @@ const SIDE_TORSO = {
   ],
 };
 
-const FRONT_LEGS = {
+/** Front and back views share legs; steps lift the right foot (mirrored for the left). */
+export const FRONT_LEGS = {
   stand: [
     '...oppppppppo...',
     '...opppoopppo...',
@@ -154,7 +178,6 @@ const FRONT_LEGS = {
     '...okkkookkko...',
     '...oooo..oooo...',
   ],
-  // Right foot lifted.
   step: [
     '...oppppppppo...',
     '...opppoopppo...',
@@ -162,9 +185,18 @@ const FRONT_LEGS = {
     '...okkkoooooo...',
     '...oooo.........',
   ],
+  // The knee comes up: the foot is two rows off the ground.
+  stepHigh: [
+    '...oppppppppo...',
+    '...opppookkko...',
+    '...oPPpoooooo...',
+    '...okkko........',
+    '...oooo.........',
+  ],
 };
 
-const SIDE_LEGS = {
+/** Side view, facing right. */
+export const SIDE_LEGS = {
   stand: [
     '...oppppppo.....',
     '....oppppo......',
@@ -179,6 +211,14 @@ const SIDE_LEGS = {
     '..okkko.okkkko..',
     '..ooooo.oooooo..',
   ],
+  // The same stride with the other leg in front (the near leg is the lighter one).
+  strideOther: [
+    '...oppppppo.....',
+    '..opppoopPPo....',
+    '..oppo..oPPo....',
+    '..okkko.okkkko..',
+    '..ooooo.oooooo..',
+  ],
   passing: [
     '...oppppppo.....',
     '....oppppo......',
@@ -186,37 +226,19 @@ const SIDE_LEGS = {
     '...okkkkko......',
     '...ooooooo......',
   ],
-};
-
-const mirror = (rows: Rows): string[] => rows.map((row) => [...row].reverse().join(''));
-
-/** Idle breathing: the head sinks one pixel into the shoulders (the collar row is covered). */
-const HEAD_ROWS = 13;
-function breathing(frame: Rows): string[] {
-  return [EMPTY_TOP[0] ?? '', ...frame.slice(0, HEAD_ROWS), ...frame.slice(HEAD_ROWS + 1)];
-}
-
-/** Front and back views are symmetric, so the other step is the mirrored one. */
-function symmetricFrames(head: Rows, torso: { stand: Rows; swing: Rows }): Rows[] {
-  const stepLeft = [...head, ...torso.swing, ...FRONT_LEGS.step];
-  const standing = [...head, ...torso.stand, ...FRONT_LEGS.stand];
-  return [standing, stepLeft, mirror(stepLeft), breathing(standing)];
-}
-
-const SIDE_STANDING: Rows = [...SIDE_HEAD, ...SIDE_TORSO.stand, ...SIDE_LEGS.stand];
-const SIDE_FRAMES: Rows[] = [
-  SIDE_STANDING,
-  [...SIDE_HEAD, ...SIDE_TORSO.forward, ...SIDE_LEGS.stride],
-  [...SIDE_HEAD, ...SIDE_TORSO.back, ...SIDE_LEGS.passing],
-  breathing(SIDE_STANDING),
-];
-
-/** Pixel maps per direction: [standing, left step, right step, breathing]. */
-export const PLAYER_PIXEL_MAPS: Readonly<
-  Record<'down' | 'up' | 'left' | 'right', readonly Rows[]>
-> = {
-  down: symmetricFrames(FRONT_HEAD, FRONT_TORSO),
-  up: symmetricFrames(BACK_HEAD, BACK_TORSO),
-  right: SIDE_FRAMES,
-  left: SIDE_FRAMES.map(mirror),
+  runStride: [
+    '...oppppppo.....',
+    '..opppo.opppo...',
+    '.oPpo....oppo...',
+    '.okko....okkkko.',
+    '.oooo....oooooo.',
+  ],
+  // Both feet off the ground: back foot tucked up behind, front leg reaching.
+  runAir: [
+    '...oppppppo.....',
+    '...opppPPppo....',
+    '..okkko.oppo....',
+    '..ooooo.okkko...',
+    '........ooooo...',
+  ],
 };

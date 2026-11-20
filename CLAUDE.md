@@ -67,6 +67,11 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 - Dev-only features check `import.meta.env.DEV` (R preview key, `?seed=`,
   `window.__islandRenderer`).
 
+## Audio conventions
+
+- Music is code, not files: `src/shared/audio` (Web Audio, no React) plays a `Song` (plain
+  data, e.g. `assets/chillTune.ts`). Sound starts only after a user gesture; keep it muteable.
+
 ## Rendering conventions
 
 - 1 world unit = 1 source pixel (tile = 16). World y = −(map y px). Use `worldSpace.ts`.

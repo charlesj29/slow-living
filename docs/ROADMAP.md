@@ -7,7 +7,7 @@ architecture is set up so each is a natural addition.
 
 1. Interactions: read the mailbox, open the cabin door (interior scene), sit on the dock
 2. Day/night cycle (time lives in core, render tints the scene)
-3. Ambient audio: waves, birds, footsteps (per ground type), gentle music
+3. Ambient audio: waves, birds, footsteps (per ground type) — background music is done
 4. Inventory and pickups (flowers, shells, wood)
 5. NPCs that wander the trails (A\* in `shared/engine/pathfinding.ts` is ready)
 6. Saving (player position, picked-up items; the world itself is already plain data)

@@ -1,4 +1,5 @@
 import { useMemo, type JSX } from 'react';
+import { CHILL_TUNE } from './assets/chillTune';
 import { ISLAND_CONFIG } from './core/config';
 import { createGameState } from './core/game/gameState';
 import { loadWorld } from './loadWorld';
@@ -7,6 +8,7 @@ import { ControlsHint } from './ui/ControlsHint';
 import { DebugOverlay } from './ui/DebugOverlay';
 import { DevSeedBadge } from './ui/DevSeedBadge';
 import { KeyboardNotice } from './ui/KeyboardNotice';
+import { MusicToggle } from './ui/MusicToggle';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
 
 export interface IslandGameProps {
@@ -42,6 +44,7 @@ export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
       <ControlsHint />
       <DebugOverlay game={game} />
       <KeyboardNotice />
+      <MusicToggle song={CHILL_TUNE} />
       {devSeed !== undefined && <DevSeedBadge seed={devSeed} />}
     </>
   );

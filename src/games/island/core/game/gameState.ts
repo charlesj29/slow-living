@@ -42,7 +42,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   const intent = readMovementIntent(state.input);
   if (intent.facing) player.facing = intent.facing;
   movePlayer(player, intent, state.world, stepSeconds, config.player, config.map.tileSizePx);
-  updatePlayerAnimation(player, stepSeconds);
+  updatePlayerAnimation(player, stepSeconds, config.player, config.map.tileSizePx);
 }
 
 /** Runs the fixed steps owed for this frame and records the interpolation factor. */

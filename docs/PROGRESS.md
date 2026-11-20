@@ -10,12 +10,13 @@
   your tile (dev and production). Dev only: R jumps to a random preview island, `?seed=N`
   previews a seed. Touch devices see "Best played with a keyboard". Every other address
   redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
-  renderer memory stays flat across regenerations. 249 tests.
+  renderer memory stays flat across regenerations. Smooth character animation (walk, run,
+  breathing, blinking) and looping chill music composed in code (top-left mute button / M).
 - **Visual overhaul complete** (user request, `pixel_art_visual_overhaul_prompt.md` + a cozy
   16-bit reference image, style only): soft shadows, calmer grass with dithered patches,
   natural paths, leaf-cluster trees + a giant forest tree, a 6×4 reference-style cottage,
   refined explorer with idle breathing, props by the house, stumps and branches, rocky coastal
-  ledges, warm palette. Wait for the user's feedback on the result.
+  ledges, warm palette. The user approved it.
 - **Still open from M4:** discuss the two items the user deferred until after M4:
   1. **Real-machine performance:** ask the user to run `npm run dev` (or `npm run build` +
      `npm run preview`), press F3, walk around (including zoomed out) and report the FPS.
@@ -67,10 +68,27 @@
 - Visual overhaul (2026-11-21): art stays drawn in code; a 6×4 reference-style cottage (door on
   the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
   the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
+- Background music composed in code (no files, no licences); mute button top-left plus M.
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Smooth character animation and chill music (user request)
+
+- **Why:** the idle and walk/run animation felt sloppy; the user also wanted royalty-free
+  looping music with a mute button (chose: composed in code, button top-left).
+- **Done:**
+  - Animation (D48): `assets/playerFrames.ts` composes 19 frames per direction from the
+    existing parts (`playerPixels.ts`, plus new leg poses and pumping arms); 1 px body bob,
+    lifted knee, airborne run frame, side-view lean; cycles advance by distance walked (no foot
+    sliding; walking in place against obstacles); a slow breath and a blink when idle.
+  - Music (D49): `src/shared/audio` (song timing, synth voices, music player) and
+    `assets/chillTune.ts` (an original 16-bar lo-fi loop); `ui/MusicToggle` (top-left button,
+    M, remembered); "M: music" added to the controls hint.
+- **Verified:** typecheck, lint, tests, build pass; sprite sheets checked frame by frame;
+  browser: the button and M toggle mute and the choice is stored, console clean; the tune
+  rendered offline in Chrome has steady levels (RMS 0.08–0.12), peak 0.46, no gaps.
 
 ### 2026-11-21 — Visual overhaul, Phase 5: test and refine (user request)
 

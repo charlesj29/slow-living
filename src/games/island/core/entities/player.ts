@@ -18,8 +18,8 @@ export interface Player {
   facing: Direction;
   moving: boolean;
   running: boolean;
-  /** Seconds spent moving since the player last stood still (drives the walk cycle). */
-  animationTime: number;
+  /** Pixels walked since the player last stood still (drives the walk / run cycle). */
+  strideDistance: number;
   /** Seconds spent standing still (drives the idle breathing). */
   idleTime: number;
 }
@@ -48,7 +48,7 @@ export function createPlayer(spawn: TilePoint, tileSizePx: number): Player {
     facing: 'down',
     moving: false,
     running: false,
-    animationTime: 0,
+    strideDistance: 0,
     idleTime: 0,
   };
 }

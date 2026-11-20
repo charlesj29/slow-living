@@ -3,7 +3,11 @@ import { useIslandUiStore } from './state';
 
 describe('island UI store', () => {
   beforeEach(() => {
-    useIslandUiStore.setState({ isDebugOverlayVisible: false, hasStartedWalking: false });
+    useIslandUiStore.setState({
+      isDebugOverlayVisible: false,
+      hasStartedWalking: false,
+      isMusicMuted: false,
+    });
   });
 
   it('toggles the debug overlay', () => {
@@ -11,6 +15,15 @@ describe('island UI store', () => {
     expect(useIslandUiStore.getState().isDebugOverlayVisible).toBe(true);
     useIslandUiStore.getState().toggleDebugOverlay();
     expect(useIslandUiStore.getState().isDebugOverlayVisible).toBe(false);
+  });
+
+  it('mutes and unmutes the music', () => {
+    useIslandUiStore.getState().toggleMusicMuted();
+    expect(useIslandUiStore.getState().isMusicMuted).toBe(true);
+    useIslandUiStore.getState().toggleMusicMuted();
+    expect(useIslandUiStore.getState().isMusicMuted).toBe(false);
+    useIslandUiStore.getState().setMusicMuted(true);
+    expect(useIslandUiStore.getState().isMusicMuted).toBe(true);
   });
 
   it('remembers that the player has started walking', () => {

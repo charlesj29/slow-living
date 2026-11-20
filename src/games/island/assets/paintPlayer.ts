@@ -5,9 +5,10 @@ import {
   setPixel,
   type PixelCanvas,
 } from '@/shared/render/pixelCanvas';
-import { PLAYER_HEIGHT, PLAYER_PALETTE, PLAYER_PIXEL_MAPS, PLAYER_WIDTH } from './playerPixels';
+import { PLAYER_PIXEL_MAPS } from './playerFrames';
+import { PLAYER_HEIGHT, PLAYER_PALETTE, PLAYER_WIDTH } from './playerPixels';
 
-/** Atlas key of the player's animation strip for a direction (frames: stand, left step, right step). */
+/** Atlas key of the player's animation strip for a direction (frames in `PLAYER_FRAMES` order). */
 export function playerSpriteKey(direction: keyof typeof PLAYER_PIXEL_MAPS): string {
   return `player_${direction}`;
 }

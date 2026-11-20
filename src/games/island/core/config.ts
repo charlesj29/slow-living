@@ -138,10 +138,20 @@ export interface IslandConfig {
     readonly hitboxHeightPx: number;
     /** When walking into an obstacle's corner by up to this many px, slide around it. */
     readonly cornerSlidePx: number;
-    readonly walkFrameSeconds: number;
-    readonly runFrameSeconds: number;
-    /** Idle breathing: each half of the cycle. */
-    readonly breathFrameSeconds: number;
+    /** Distance one full walk / run cycle (two steps) covers, so the feet don't slide. */
+    readonly walkCyclePx: number;
+    readonly runCyclePx: number;
+    /** Idle: one slow breath (standing for breathHoldSeconds, then sinking a pixel). */
+    readonly breathCycleSeconds: number;
+    readonly breathHoldSeconds: number;
+    /** A blink of blinkSeconds every blinkEverySeconds (not a multiple of the breath, so they drift). */
+    readonly blinkEverySeconds: number;
+    readonly blinkSeconds: number;
+  };
+  readonly music: {
+    /** 0..1 master volume: background music should sit under the game, not over it. */
+    readonly volume: number;
+    readonly fadeSeconds: number;
   };
   readonly debug: {
     /** How quickly the FPS readout follows frame-time changes (higher = jumpier). */
@@ -254,10 +264,14 @@ export const ISLAND_CONFIG: IslandConfig = {
     hitboxWidthPx: 10,
     hitboxHeightPx: 6,
     cornerSlidePx: 5,
-    walkFrameSeconds: 0.16,
-    runFrameSeconds: 0.1,
-    breathFrameSeconds: 0.7,
+    walkCyclePx: 40,
+    runCyclePx: 60,
+    breathCycleSeconds: 2.6,
+    breathHoldSeconds: 1.5,
+    blinkEverySeconds: 3.7,
+    blinkSeconds: 0.14,
   },
+  music: { volume: 0.5, fadeSeconds: 0.4 },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
   render: {
     targetTilesAcross: 20,

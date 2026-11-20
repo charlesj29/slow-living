@@ -1,33 +1,71 @@
 import type { Player } from '../entities/player';
 
-/** Sprite frames per direction: 0 = standing, 1 = left step, 2 = right step, 3 = breathing. */
-export const PLAYER_FRAME_COUNT = 4;
-const BREATHING_FRAME = 3;
-/** Walking alternates steps with the standing pose in between. */
-const WALK_CYCLE = [1, 0, 2, 0] as const;
+/**
+ * Frame layout of each direction's sprite strip: three idle frames, then an
+ * 8-frame walk cycle and an 8-frame run cycle (two steps each).
+ */
+export const PLAYER_FRAMES = {
+  stand: 0,
+  breath: 1,
+  blink: 2,
+  walkStart: 3,
+  runStart: 11,
+  cycleLength: 8,
+} as const;
+export const PLAYER_FRAME_COUNT = PLAYER_FRAMES.runStart + PLAYER_FRAMES.cycleLength;
 
 export interface AnimationSettings {
-  readonly walkFrameSeconds: number;
-  readonly runFrameSeconds: number;
-  /** How long each half of the idle breathing cycle lasts. */
-  readonly breathFrameSeconds: number;
-}
-
-export function updatePlayerAnimation(player: Player, stepSeconds: number): void {
-  player.animationTime = player.moving ? player.animationTime + stepSeconds : 0;
-  player.idleTime = player.moving ? 0 : player.idleTime + stepSeconds;
+  /** Distance covered by one full walk cycle (two steps), so feet don't slide. */
+  readonly walkCyclePx: number;
+  readonly runCyclePx: number;
+  /** One breath: standing, then sinking a pixel for the rest of the cycle. */
+  readonly breathCycleSeconds: number;
+  readonly breathHoldSeconds: number;
+  readonly blinkEverySeconds: number;
+  readonly blinkSeconds: number;
+  readonly walkSpeedTilesPerSecond: number;
 }
 
 /**
- * Which sprite frame to show: the walk cycle while moving (faster when
- * running); standing still alternates standing and breathing.
+ * Advances the step cycle by the distance actually walked (so strides match
+ * the ground), or by walking speed when pushing against an obstacle (walking
+ * in place). Standing still resets it and counts idle time instead.
+ */
+export function updatePlayerAnimation(
+  player: Player,
+  stepSeconds: number,
+  settings: AnimationSettings,
+  tileSizePx: number,
+): void {
+  if (!player.moving) {
+    player.strideDistance = 0;
+    player.idleTime += stepSeconds;
+    return;
+  }
+  player.idleTime = 0;
+  const moved = Math.hypot(player.x - player.previousX, player.y - player.previousY);
+  const inPlace = settings.walkSpeedTilesPerSecond * tileSizePx * stepSeconds;
+  player.strideDistance += moved > 0 ? moved : inPlace;
+}
+
+function idleFrame(idleTime: number, settings: AnimationSettings): number {
+  const inBreath = idleTime % settings.breathCycleSeconds;
+  if (inBreath >= settings.breathHoldSeconds) return PLAYER_FRAMES.breath;
+  const sinceBlink = idleTime % settings.blinkEverySeconds;
+  return sinceBlink >= settings.blinkEverySeconds - settings.blinkSeconds
+    ? PLAYER_FRAMES.blink
+    : PLAYER_FRAMES.stand;
+}
+
+/**
+ * Which sprite frame to show. Moving: the walk or run cycle at the point the
+ * stride has reached; it starts one frame in, so the first step shows at once.
+ * Standing: a slow breath with the occasional blink.
  */
 export function playerFrameIndex(player: Player, settings: AnimationSettings): number {
-  if (!player.moving) {
-    return Math.floor(player.idleTime / settings.breathFrameSeconds) % 2 === 1
-      ? BREATHING_FRAME
-      : 0;
-  }
-  const frameSeconds = player.running ? settings.runFrameSeconds : settings.walkFrameSeconds;
-  return WALK_CYCLE[Math.floor(player.animationTime / frameSeconds) % WALK_CYCLE.length] ?? 0;
+  if (!player.moving) return idleFrame(player.idleTime, settings);
+  const cyclePx = player.running ? settings.runCyclePx : settings.walkCyclePx;
+  const { cycleLength } = PLAYER_FRAMES;
+  const phase = (Math.floor((player.strideDistance / cyclePx) * cycleLength) + 1) % cycleLength;
+  return (player.running ? PLAYER_FRAMES.runStart : PLAYER_FRAMES.walkStart) + phase;
 }
