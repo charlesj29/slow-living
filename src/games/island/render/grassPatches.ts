@@ -20,9 +20,13 @@ export interface GrassPatchSettings {
 const BYTE = 255;
 const CHANNELS = 4;
 
-/** Sprites the patches apply to: grass tiles and grass edges over other ground. */
+/**
+ * Sprites the patches apply to: grass tiles, grass edges over other ground and
+ * rocky ledges (their grass lip must shade with the meadow above; a touch of
+ * shade on the rock is invisible, a seam would not be).
+ */
 export function isGrassSprite(key: string): boolean {
-  return /^(tile_grass|edge_grass_|corner_grass_)/.test(key);
+  return /^(tile_grass|edge_grass_|corner_grass_|tile_cliff)/.test(key);
 }
 
 /** One 0..255 patch value per tile, deterministic for the map size. */

@@ -12,12 +12,9 @@
   redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
   renderer memory stays flat across regenerations. 249 tests.
 - **Visual overhaul in progress** (user request, `pixel_art_visual_overhaul_prompt.md` + a
-  cozy 16-bit reference image): Phase 2 (foundation) and Phase 3 (trees, cottage, explorer)
-  done; **next: Phase 4** — props by the house (barrels, flower pots, sign, wood pile,
-  stepping stones; never blocking paths), sparse stumps and fallen branches, rocky coastal
-  ledges where grass meets the beach (impassable, beaches still reachable — new validation
-  - tests, re-bake from the same seed). Then Phase 5 (refine, before/after screenshots,
-    final summary).
+  cozy 16-bit reference image): Phases 2–4 done (foundation; trees, cottage, explorer; props,
+  stumps/branches, rocky coastal ledges). **Next: Phase 5** — refine against the reference,
+  before/after screenshots, final summary (asset list, limitations, gameplay preserved).
 - **Still open from M4:** discuss the two items the user deferred until after M4:
   1. **Real-machine performance:** ask the user to run `npm run dev` (or `npm run build` +
      `npm run preview`), press F3, walk around (including zoomed out) and report the FPS.
@@ -70,6 +67,23 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Visual overhaul, Phase 4 (user request)
+
+- **Done:**
+  - Props by the cottage (`assets/paintProps.ts`): bush and flower pot beside the door,
+    barrel, wooden sign by the trail, two stepping-stone tiles, wood pile beside the wing.
+    Placed by `decorateCabin` on free grass in the reserved area only.
+  - Woodland litter (`assets/paintDeadwood.ts`, `steps/scatterDeadwood.ts`): 35 stumps and
+    74 fallen branches among trees.
+  - Rocky ledges: new `Cliff` tile, `steps/placeLedges.ts`, `assets/paintCliff.ts` (boulder
+    face, grass lip, shaded beach foot, ends rounded against grass or sand), validation
+    `beach-cut-off`. A first brick-like face read as a wall and was redrawn as boulders.
+  - Map re-baked from seed 1: terrain differs only by 43 ledge tiles; trees, rocks, fence,
+    trails, dock and spawn unchanged.
+- **Decisions:** D46–D47.
+- **Verified:** typecheck, lint, 281 tests, build pass; screenshots of a ledge (close and
+  default zoom) and the cottage yard; console clean; ~240 FPS on GPU.
 
 ### 2026-11-21 — Visual overhaul, Phase 3 (user request)
 

@@ -2,6 +2,7 @@
 // shoreline overlays from higher neighbours, then any top sprite (dock planks).
 // Pure: no Three.js, so the rules are unit-tested.
 import { isInBounds, toIndex, type GridSize } from '@/shared/engine/grid';
+import { cliffPieceKey, type CliffSide } from '../assets/paintCliff';
 import { getTileDefinition, isLandTile, TileId, type TileDefinition } from '../core/world/tiles';
 
 export interface TerrainView extends GridSize {
@@ -48,6 +49,16 @@ function dockSpriteKey(view: TerrainView, x: number, y: number): string {
   return runsEastWest ? 'tile_dock_h' : 'tile_dock_v';
 }
 
+function cliffSideAt(view: TerrainView, x: number, y: number): CliffSide {
+  const id = tileIdAt(view, x, y);
+  return id === TileId.Cliff ? 'ledge' : id === TileId.Sand ? 'sand' : 'grass';
+}
+
+/** A ledge run's ends round off against the grass or beach beside them. */
+function cliffSpriteKey(view: TerrainView, x: number, y: number): string {
+  return cliffPieceKey(cliffSideAt(view, x - 1, y), cliffSideAt(view, x + 1, y));
+}
+
 export function tileLayersAt(
   view: TerrainView,
   x: number,
@@ -56,13 +67,16 @@ export function tileLayersAt(
 ): string[] {
   const ownId = tileIdAt(view, x, y) ?? TileId.DeepSea;
   const own = surfaceOf(ownId);
-  const layers = [sprites.variantAt(own.spriteKey, x, y)];
+  const baseKey = ownId === TileId.Cliff ? cliffSpriteKey(view, x, y) : own.spriteKey;
+  const layers = [sprites.variantAt(baseKey, x, y)];
 
   const higherAt = (dx: number, dy: number): TileDefinition | null => {
     const id = tileIdAt(view, x + dx, y + dy);
     if (id === undefined) return null;
     const neighbor = surfaceOf(id);
-    return neighbor.edgePriority > own.edgePriority ? neighbor : null;
+    // Only materials with edge art spill over (a ledge outranks sand but draws its own foot).
+    const spills = sprites.has(`edge_${neighbor.key}_n`);
+    return spills && neighbor.edgePriority > own.edgePriority ? neighbor : null;
   };
 
   const overlays: { priority: number; key: string }[] = [];

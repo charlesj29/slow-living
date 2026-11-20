@@ -121,22 +121,25 @@ flowchart LR
 ## Generation pipeline (authoring tool)
 
 `shapeIsland → assignTerrain → carveLake → placeCabin → placeDock → layPaths → decorateCabin →
-scatterRocks → scatterTrees → scatterFlowers → chooseSpawn → validate`
+scatterRocks → scatterTrees → placeLedges → scatterDeadwood → scatterFlowers → chooseSpawn →
+validate`
 
-| Step             | What it does                                                                                                                                                                                                               |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shapeIsland`    | Elevation = fractal noise blended with a radial gradient (`radialWeight`)                                                                                                                                                  |
-| `assignTerrain`  | Thresholds → deep/shallow sea, sand, grass; deep-sea edge band; keep the largest landmass; fill water not connected to the edge                                                                                            |
-| `carveLake`      | Noise-bent blob where the coast distance leaves room for lake + shore + gap; 8-way shallows rim and sand shore                                                                                                             |
-| `placeCabin`     | Site where footprint + margin + front clearance are grass, away from water, preferably near the lake (or nearest the `cabin.anchor` authoring hint); reserves the area                                                     |
-| `placeDock`      | Straight dock from a lake-shore sand tile into open water, on the side closest to the cabin door                                                                                                                           |
-| `layPaths`       | A* trails from the door to the dock and to beaches (closest, then farthest), noise-perturbed costs so they wind, existing trail is cheap so trails merge; trail tiles reserved                                             |
-| `decorateCabin`  | Fence around the cabin's front yard (trail tiles left open = gate) and a mailbox beside the door                                                                                                                           |
-| `scatterRocks`   | Rock outcrops from cluster noise plus lone rocks, on free grass/sand                                                                                                                                                       |
-| `scatterTrees`   | Dense canopy (big trees on a staggered 2-tile grid) where forest cores meet a "dense" character noise; loose big/small mix elsewhere in forests; rare meadow trees and bushes; crowns never overhang reserved tiles        |
-| `scatterFlowers` | Patch noise → flower patches (colour from a colour noise), scattered flowers, grass tufts                                                                                                                                  |
-| `chooseSpawn`    | Tile in front of the cabin door if walkable                                                                                                                                                                                |
-| `validate`       | `validateMap` (works on generation contexts and loaded maps): deep-sea borders, land share, one lake not touching the sea, a dock, cabin on land, door + every trail/dock tile reachable from spawn, enough reachable land |
+| Step              | What it does                                                                                                                                                                                                                                                    |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shapeIsland`     | Elevation = fractal noise blended with a radial gradient (`radialWeight`)                                                                                                                                                                                       |
+| `assignTerrain`   | Thresholds → deep/shallow sea, sand, grass; deep-sea edge band; keep the largest landmass; fill water not connected to the edge                                                                                                                                 |
+| `carveLake`       | Noise-bent blob where the coast distance leaves room for lake + shore + gap; 8-way shallows rim and sand shore                                                                                                                                                  |
+| `placeCabin`      | Site where footprint + margin + front clearance are grass, away from water, preferably near the lake (or nearest the `cabin.anchor` authoring hint); reserves the area                                                                                          |
+| `placeDock`       | Straight dock from a lake-shore sand tile into open water, on the side closest to the cabin door                                                                                                                                                                |
+| `layPaths`        | A* trails from the door to the dock and to beaches (closest, then farthest), noise-perturbed costs so they wind, existing trail is cheap so trails merge; trail tiles reserved                                                                                  |
+| `decorateCabin`   | Fence around the cabin's front yard (trail tiles left open = gate), a mailbox beside the door, and props (bush, flower pot, barrel, sign, stepping stones, wood pile) on free grass inside the reserved area                                                    |
+| `scatterRocks`    | Rock outcrops from cluster noise plus lone rocks, on free grass/sand                                                                                                                                                                                            |
+| `scatterTrees`    | Dense canopy (big trees on a staggered 2-tile grid) where forest cores meet a "dense" character noise; loose big/small mix elsewhere in forests; rare meadow trees and bushes; crowns never overhang reserved tiles                                             |
+| `placeLedges`     | Rocky ledges (`Cliff` terrain) in noise-picked runs on south-facing sea coasts: grass above, sea-connected beach below, grass/sand beside, away from trails; runs that would cut a beach off from the door are dropped                                          |
+| `scatterDeadwood` | Sparse stumps (block) and fallen branches (flat) on free grass with enough trees nearby, outside reserved areas                                                                                                                                                 |
+| `scatterFlowers`  | Patch noise → flower patches (colour from a colour noise), scattered flowers, grass tufts                                                                                                                                                                       |
+| `chooseSpawn`     | Tile in front of the cabin door if walkable                                                                                                                                                                                                                     |
+| `validate`        | `validateMap` (works on generation contexts and loaded maps): deep-sea borders, land share, one lake not touching the sea, a dock, cabin on land, door + every trail/dock tile reachable from spawn, enough reachable land, every beach below a ledge reachable |
 
 - Each step is a pure `(context) => context` function; it copies the arrays it changes.
 - Each step draws from its own RNG stream, `createRng(deriveSeed(seed, stepName))`.
@@ -199,12 +202,14 @@ flowchart LR
 - **Atlas:** sprites are painted in code into `PixelCanvas` buffers (`assets/`), packed by
   `layoutAtlas` (power-of-two, 1 px extruded borders) and uploaded as one nearest-filtered
   `DataTexture`. Keys: `tile_<tile key>.N` (variants), `edge_<material>_<n|e|s|w>`,
-  `corner_<material>_<ne|se|sw|nw>`, `tile_dock_h|v`, `<object spriteKey>[.N]`, `cabin`.
+  `corner_<material>_<ne|se|sw|nw>`, `tile_dock_h|v`, `tile_cliff[_<w><e>].N` (ledge pieces by
+  what is beside them: c ledge, g grass, s sand), `<object spriteKey>[.N]`, `cabin`.
   Variants are picked per position with `hashCoords`, so the same spot always looks the same.
 - **Terrain:** `tileLayersAt` returns the sprites for a tile, bottom to top: base (the
-  underlay's sprite for the dock), overlays from higher-`edgePriority` neighbours (edges for
+  underlay's sprite for the dock), overlays from higher-`edgePriority` neighbours that have edge art (edges for
   touching sides, rounded corners for diagonal-only contact, lowest priority first), then the
-  dock planks. `buildChunkGeometryData` turns a chunk into quads; animated water quads carry a
+  dock planks. Ledges rank with grass and have no edge art: they paint their own grass lip
+  and beach foot, and nothing spills over them. `buildChunkGeometryData` turns a chunk into quads; animated water quads carry a
   u stride and the shader adds `stride × uFrame`.
 - **Objects:** `objectSpriteKey` picks each object's sprite (fence pieces by neighbouring
   fences, otherwise a stable variant); `placeObjectSprites` stands sprites on the bottom edge
@@ -235,7 +240,7 @@ flowchart LR
   strict depth test, so overlapping shadows never get darker and anything standing hides
   the shadow beneath it. The player has its own shadow mesh.
 - **Grass patches:** `createTilemapMaterial` shades grass quads (vertex flag `patchable`,
-  set for `tile_grass*`/`edge_grass_*`/`corner_grass_*`) where a bilinear-sampled per-tile
+  set for `tile_grass*`/`edge_grass_*`/`corner_grass_*` and ledges, whose lip is grass) where a bilinear-sampled per-tile
   noise texture plus a 4×4 Bayer dither per art pixel passes a threshold: organic,
   pixel-dithered patches with no tile seams.
 - **Colour:** the canvas is `flat` + `linear`, so painted colours reach the screen unchanged
@@ -310,7 +315,7 @@ dither). Edge and corner sprites are generated for all directions automatically.
 2. Place it from a step (`isAreaFree` / `addObject` in `generation/objectLayer.ts`) or add it
    to the map file by hand.
 3. Paint its sprite under `spriteKey` (taller than the footprint is fine — it extends
-   upwards; tree crowns are kept off reserved tiles). Flowers/tufts are flat decorations; everything else
+   upwards; tree crowns are kept off reserved tiles). Categories `flower`, `grass` and `ground` (branches, stepping stones) are flat decorations; everything else
    stands and is depth-sorted by its footprint's bottom edge.
 
 ### Add a generation step

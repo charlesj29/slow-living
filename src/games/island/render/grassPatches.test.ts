@@ -8,6 +8,7 @@ describe('grass patches', () => {
     expect(isGrassSprite('tile_grass.2')).toBe(true);
     expect(isGrassSprite('edge_grass_n.1')).toBe(true);
     expect(isGrassSprite('corner_grass_se.0')).toBe(true);
+    expect(isGrassSprite('tile_cliff_gc.1')).toBe(true);
     expect(isGrassSprite('tile_sand.0')).toBe(false);
     expect(isGrassSprite('edge_sand_n.0')).toBe(false);
     expect(isGrassSprite('tile_path.1')).toBe(false);

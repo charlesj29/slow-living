@@ -15,6 +15,11 @@ function view(rows: readonly string[]): TerrainView {
 }
 
 const catalog: SpriteCatalog = { has: () => true, variantAt: (base) => base };
+/** Like the real atlas: ledges have no edge art. */
+const withoutCliffEdges: SpriteCatalog = {
+  has: (key) => !key.startsWith('edge_cliff'),
+  variantAt: (base) => base,
+};
 
 describe('tileLayersAt', () => {
   it('draws a plain tile when no neighbour is higher', () => {
@@ -40,6 +45,25 @@ describe('tileLayersAt', () => {
     // Deep sea with shallow water to the west and sand to the north.
     const layers = tileLayersAt(view(['~.~', '-~~', '~~~']), 1, 1, catalog);
     expect(layers.slice(1)).toEqual(['edge_shallow_sea_w', 'edge_sand_n']);
+  });
+
+  it('picks ledge pieces by what is beside them, with nothing spilling over a ledge', () => {
+    const rows = [',,,,,', ',^^^,', '.....'];
+    expect(tileLayersAt(view(rows), 1, 1, withoutCliffEdges)).toEqual(['tile_cliff_gc']);
+    expect(tileLayersAt(view(rows), 2, 1, withoutCliffEdges)).toEqual(['tile_cliff']);
+    expect(tileLayersAt(view(rows), 3, 1, withoutCliffEdges)).toEqual(['tile_cliff_cg']);
+    expect(tileLayersAt(view([',,,', ',^,', '...']), 1, 1, catalog)[0]).toBe('tile_cliff_gg');
+    // A run ending against the beach rounds off onto sand.
+    expect(tileLayersAt(view([',,,', '.^^', '...']), 1, 1, catalog)[0]).toBe('tile_cliff_sc');
+  });
+
+  it('keeps the beach below a ledge plain, but rounds grass corners beside it', () => {
+    const rows = [',,,,,', ',^^^,', '.....'];
+    expect(tileLayersAt(view(rows), 2, 2, withoutCliffEdges)).toEqual(['tile_sand']);
+    expect(tileLayersAt(view(rows), 1, 2, withoutCliffEdges)).toEqual([
+      'tile_sand',
+      'corner_grass_nw',
+    ]);
   });
 
   it('draws the dock over lake shallows, boards across the run direction', () => {

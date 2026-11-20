@@ -1,5 +1,5 @@
 import { isInBounds, toIndex } from '@/shared/engine/grid';
-import { OBJECT_REGISTRY } from '../../world/objects';
+import { OBJECT_REGISTRY, type ObjectKind } from '../../world/objects';
 import { TileId } from '../../world/tiles';
 import { getDoorFrontTile, NO_OBJECT } from '../../world/world';
 import type { GenerationContext, GenerationStep } from '../context';
@@ -17,7 +17,23 @@ function isFreeGrass(
 }
 
 /**
- * A small fenced front yard with a mailbox. The fence runs along the sides and
+ * Cosy clutter around the cottage, as offsets from the footprint's top-left
+ * (the door is at x 2 on the bottom row, so y = height is the row in front of
+ * it). All spots lie inside the cabin's reserved area, off the trail; a spot
+ * that isn't free grass is simply skipped, so props never block the way.
+ */
+const HOUSE_PROPS: readonly { kind: ObjectKind; dx: number; dy: number }[] = [
+  { kind: 'bush', dx: 0, dy: 4 },
+  { kind: 'flower_pot', dx: 1, dy: 4 },
+  { kind: 'barrel', dx: 5, dy: 4 },
+  { kind: 'wood_pile', dx: 6, dy: 3 },
+  { kind: 'sign', dx: 1, dy: 5 },
+  { kind: 'stepping_stone', dx: 3, dy: 5 },
+  { kind: 'stepping_stone', dx: 4, dy: 5 },
+];
+
+/**
+ * A small fenced front yard with a mailbox and props. The fence runs along the sides and
  * front of the cleared area in front of the cabin; trail tiles are left open,
  * so the fence never blocks the way out.
  */
@@ -48,6 +64,12 @@ export const decorateCabin: GenerationStep = (context) => {
   ];
   const spot = mailboxSpots.find(({ x, y }) => isFreeGrass(context, layer, x, y));
   if (spot) addObject(layer, 'mailbox', spot.x, spot.y);
+
+  for (const { kind, dx, dy } of HOUSE_PROPS) {
+    const x = cabin.x + dx;
+    const y = cabin.y + dy;
+    if (isFreeGrass(context, layer, x, y)) addObject(layer, kind, x, y);
+  }
 
   return { ...context, objects: layer.objects, occupancy: layer.occupancy };
 };

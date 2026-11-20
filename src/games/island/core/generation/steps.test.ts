@@ -54,12 +54,21 @@ describe('carveLake', () => {
 });
 
 describe('placeCabin', () => {
-  it('keeps trees and rocks out of the front yard and the door step clear', () => {
+  it('keeps scattered trees and rocks out of the front yard and the door step clear', () => {
     const context = validContext(13);
     const cabin = context.cabin;
     if (!cabin) throw new Error('fixture needs a cabin');
     const { footprint } = OBJECT_REGISTRY.cabin;
-    const yardKinds = new Set(['fence', 'mailbox']);
+    // Only the yard's own furnishings (decorateCabin) stand there.
+    const yardKinds = new Set([
+      'fence',
+      'mailbox',
+      'bush',
+      'flower_pot',
+      'barrel',
+      'sign',
+      'stepping_stone',
+    ]);
     for (let row = 1; row <= ISLAND_CONFIG.cabin.frontClearanceTiles; row++) {
       for (let dx = -1; dx <= footprint.width; dx++) {
         const index = toIndex(context.size, cabin.x + dx, cabin.y + footprint.height - 1 + row);
@@ -166,5 +175,79 @@ describe('layPaths', () => {
     context.terrain.forEach((id, i) => {
       if (id === TileId.Path) expect(context.occupancy[i]).toBe(NO_OBJECT);
     });
+  });
+});
+
+describe('house props', () => {
+  it('furnish the yard on free grass inside the cabin area, never on the trail', () => {
+    const context = validContext(13);
+    const props = context.objects.filter((o) =>
+      ['barrel', 'flower_pot', 'sign', 'wood_pile', 'stepping_stone'].includes(o.kind),
+    );
+    expect(props.length).toBeGreaterThan(2);
+    for (const prop of props) {
+      const index = toIndex(context.size, prop.x, prop.y);
+      expect(context.terrain[index], prop.kind).toBe(TileId.Grass);
+      expect(context.reserved[index], prop.kind).toBe(1);
+    }
+  });
+});
+
+describe('placeLedges', () => {
+  const contexts = [13, 2024, 7, 99].map(validContext);
+
+  it('puts some ledges on the island', () => {
+    const ledges = contexts.map((c) => c.terrain.filter((id) => id === TileId.Cliff).length);
+    expect(Math.max(...ledges)).toBeGreaterThan(0);
+  });
+
+  it('only builds ledges between grass above and beach below, in runs, away from trails and water', () => {
+    for (const context of contexts) {
+      const { size, terrain } = context;
+      const at = (x: number, y: number): number | undefined => terrain[toIndex(size, x, y)];
+      for (let y = 1; y < size.height - 1; y++) {
+        let run = 0;
+        for (let x = 1; x < size.width; x++) {
+          if (at(x, y) !== TileId.Cliff) {
+            if (run > 0) expect(run).toBeGreaterThanOrEqual(ISLAND_CONFIG.ledges.minRunTiles);
+            run = 0;
+            continue;
+          }
+          run++;
+          expect(at(x, y - 1)).toBe(TileId.Grass);
+          expect(at(x, y + 1)).toBe(TileId.Sand);
+          for (const side of [at(x - 1, y), at(x + 1, y)]) {
+            expect([TileId.Grass, TileId.Sand, TileId.Cliff]).toContain(side);
+          }
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) expect(at(x + dx, y + dy)).not.toBe(TileId.Path);
+          }
+        }
+      }
+    }
+  });
+});
+
+describe('scatterDeadwood', () => {
+  it('drops stumps and branches on free grass among trees, outside the cabin area', () => {
+    const context = validContext(13);
+    const { size } = context;
+    const radius = ISLAND_CONFIG.deadwood.searchRadiusTiles;
+    const deadwood = context.objects.filter((o) => o.kind === 'stump' || o.kind === 'branch');
+    expect(deadwood.length).toBeGreaterThan(0);
+    for (const piece of deadwood) {
+      const index = toIndex(size, piece.x, piece.y);
+      expect(context.terrain[index]).toBe(TileId.Grass);
+      expect(context.reserved[index]).toBe(0);
+      const trees = new Set<number>();
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          const id = context.occupancy[toIndex(size, piece.x + dx, piece.y + dy)] ?? NO_OBJECT;
+          const kind = context.objects[id]?.kind;
+          if (kind && TREE_KINDS.includes(kind)) trees.add(id);
+        }
+      }
+      expect(trees.size).toBeGreaterThanOrEqual(ISLAND_CONFIG.deadwood.minNearbyTrees);
+    }
   });
 });

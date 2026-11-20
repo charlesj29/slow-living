@@ -14,15 +14,23 @@ export const OBJECT_KINDS = [
   'flower_white',
   'grass_tuft',
   'rock',
+  'stump',
+  'branch',
   'fence',
   'mailbox',
+  'barrel',
+  'flower_pot',
+  'sign',
+  'wood_pile',
+  'stepping_stone',
   'cabin',
 ] as const;
 
 export type ObjectKind = (typeof OBJECT_KINDS)[number];
 
+/** `ground` = flat things lying on the ground (drawn under everything standing). */
 export type ObjectCategory =
-  'tree' | 'bush' | 'flower' | 'grass' | 'rock' | 'structure' | 'building';
+  'tree' | 'bush' | 'flower' | 'grass' | 'ground' | 'rock' | 'deadwood' | 'structure' | 'building';
 
 export interface ObjectDefinition {
   readonly kind: ObjectKind;
@@ -86,8 +94,15 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   flower_white: decoration('flower_white', 'White flowers', 'flower', '#f4f4f4'),
   grass_tuft: decoration('grass_tuft', 'Grass tuft', 'grass', '#86c46c'),
   rock: solid('rock', 'Rock', 'rock', '#8d8f94'),
+  stump: solid('stump', 'Tree stump', 'deadwood', '#7a5430'),
+  branch: decoration('branch', 'Fallen branch', 'ground', '#6c4a28'),
   fence: solid('fence', 'Wooden fence', 'structure', '#d8bc8c'),
   mailbox: solid('mailbox', 'Mailbox', 'structure', '#d04040'),
+  barrel: solid('barrel', 'Barrel', 'structure', '#9a6436'),
+  flower_pot: solid('flower_pot', 'Flower pot', 'structure', '#cc6c3c'),
+  sign: solid('sign', 'Wooden sign', 'structure', '#b8844c'),
+  wood_pile: solid('wood_pile', 'Wood pile', 'structure', '#8a5a30'),
+  stepping_stone: decoration('stepping_stone', 'Stepping stones', 'ground', '#a8a8b0'),
   cabin: {
     kind: 'cabin',
     name: 'Cottage',

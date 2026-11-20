@@ -22,7 +22,12 @@ export const SHADOW_SPECS: Partial<Readonly<Record<ObjectKind, ShadowSpec>>> = {
   tree_small: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   bush: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   rock: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -2 },
+  stump: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -2 },
   mailbox: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
+  barrel: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
+  flower_pot: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
+  sign: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
+  wood_pile: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   // The block covers the footprint, shifted right and down so it shows along those sides.
   cabin: { key: SHADOW_KEYS.cabin, offsetX: 10, offsetY: -27 },
 };

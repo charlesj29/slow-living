@@ -16,7 +16,7 @@ export interface SpriteSize {
   readonly height: number;
 }
 
-const FLAT_CATEGORIES = new Set(['flower', 'grass']);
+const FLAT_CATEGORIES = new Set(['flower', 'grass', 'ground']);
 
 /**
  * Sprites stand on the bottom edge of their footprint, centred horizontally,

@@ -468,3 +468,33 @@ alternatives → consequences.
   `player.breathFrameSeconds` (0.7 s). Outlines softened to dark brown; the player gets a
   soft shadow like every other standing thing (D41).
 - **Consequences:** `PLAYER_FRAME_COUNT = 4`; walking resets the idle timer.
+
+## D46 — Rocky ledges as a terrain tile on south-facing sea coasts
+
+- **Context:** the overhaul asked for rocky ledges where grass meets the beach, impassable,
+  with beaches still reachable (user decision). No raised plateaus or stairs.
+- **Decision:** a new tile `Cliff` (`^` in map files, not walkable, land). `placeLedges`
+  runs after the trees (so forests aren't reshuffled) and turns noise-picked runs (≥ 2 tiles)
+  of free coastal grass into ledges where the beach below is connected to the sea (never the
+  lake shore), away from trails. Runs that would cut a beach off are dropped; validation adds
+  `beach-cut-off`. Ledges rank with grass (priority 3) and have no edge art: each piece paints
+  its own grass lip, a face of top-left-lit boulders (`paintClumps`, painted on a padded canvas
+  so runs join without seams) and its shaded beach foot; ends round off against grass or sand
+  (`cliffPieceKey`). `tileLayersAt` now treats a higher neighbour as spilling over only if it
+  has edge art, so beach corners beside a ledge still round off.
+- **Alternatives:** a ledge object over grass (the grass edge on the beach below would show a
+  green rim under the rock); letting the grass edge drape over a lower-priority ledge (ate a
+  third of the face's 16 px).
+- **Consequences:** the face is one tile high; seed 1 has 43 ledge tiles.
+
+## D47 — House props and woodland litter
+
+- **Context:** the overhaul asked for props by the house and sparse stumps and fallen branches.
+- **Decision:** `decorateCabin` places a fixed yard layout (bush, flower pot, barrel, sign,
+  stepping stones, wood pile) relative to the cottage, only on free grass inside the reserved
+  cabin area, so trails stay clear and no later step's random stream shifts.
+  `scatterDeadwood` (after the trees) drops stumps (block, like rocks) and branches (flat,
+  walkable, new `ground` category) on free grass with at least `deadwood.minNearbyTrees` trees
+  within `deadwood.searchRadiusTiles`.
+- **Consequences:** trees, rocks, fence, trails and spawn are identical to Phase 3 after the
+  re-bake; only flowers/tufts (placed after the new steps) moved.

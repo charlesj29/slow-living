@@ -42,6 +42,11 @@ export const PALETTE = {
   pine: ramp('#143c28', '#1f5a38', '#2c7848', '#40965a', '#6cbc7a'),
   leafy: ramp('#1f4a26', '#327a3a', '#479c46', '#66bb56', '#9ad878'),
   rock: ramp('#36363e', '#66666e', '#8e8e98', '#b4b4be', '#dedee6'),
+  /** Warm sandstone for coastal ledges, so they sit between the grass and the beach. */
+  cliff: ramp('#4a362a', '#7a6250', '#9c8670', '#bba68a', '#d8c8aa'),
+  terracotta: ramp('#5a2818', '#a24a2a', '#c8663a', '#e08a58', '#f2b07e'),
+  /** Freshly cut wood: log ends and stump tops. */
+  heartwood: ramp('#6a4420', '#b88a52', '#d8b07a', '#ead09e', '#f6e6c4'),
   shadow: c('#4a9040'),
   /** Soft cast shadows: a dark green-blue drawn semi-transparently over the ground. */
   castShadow: { core: hexToRgba('#14301e', 110), edge: hexToRgba('#14301e', 70) },

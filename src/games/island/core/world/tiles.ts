@@ -10,6 +10,7 @@ export const TileId = {
   LakeShallow: 5,
   Path: 6,
   Dock: 7,
+  Cliff: 8,
 } as const;
 
 export type TileId = (typeof TileId)[keyof typeof TileId];
@@ -53,6 +54,8 @@ const water = (waterBody: WaterBody, mapColor: string, mapChar: string) =>
   ({ isWalkable: false, waterBody, mapColor, mapChar }) as const;
 const ground = (mapColor: string, mapChar: string) =>
   ({ isWalkable: true, waterBody: null, mapColor, mapChar }) as const;
+const solidGround = (mapColor: string, mapChar: string) =>
+  ({ isWalkable: false, waterBody: null, mapColor, mapChar }) as const;
 
 /** Indexed by TileId (verified by tests). */
 export const TILE_DEFINITIONS: readonly TileDefinition[] = [
@@ -65,6 +68,9 @@ export const TILE_DEFINITIONS: readonly TileDefinition[] = [
   tile(TileId.Path, 'path', 'Dirt path', ground('#b08a5a', '='), 2),
   // Planks over water: walkable and not part of any water body.
   tile(TileId.Dock, 'dock', 'Wooden dock', ground('#8a6238', '#'), 1, TileId.LakeShallow),
+  // A rock face where the grass drops to the beach. It paints its own grass lip and
+  // beach foot, so it ranks with grass and has no edge art: nothing spills over it.
+  tile(TileId.Cliff, 'cliff', 'Rocky ledge', solidGround('#8c7c6c', '^'), 3),
 ];
 
 export function getTileDefinition(id: number): TileDefinition {

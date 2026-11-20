@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { OBJECT_KINDS, OBJECT_REGISTRY } from '../core/world/objects';
 import { TILE_DEFINITIONS } from '../core/world/tiles';
+import { cliffPieceKey } from './paintCliff';
 import { createIslandAtlas, paintIslandSprites } from './islandSprites';
 import { TILE_PX } from './paint';
 import { PLAYER_FRAME_COUNT } from '../core/systems/animation';
@@ -76,7 +77,7 @@ describe('island sprites', () => {
   it('animates only water, flowers and the player, each with its frame count', () => {
     for (const source of paintIslandSprites()) {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
-      const isFlower = source.key.startsWith('flower_');
+      const isFlower = /^flower_(red|yellow|blue|white)$/.test(source.key);
       const isPlayer = source.key.startsWith('player_');
       const expected = isWater
         ? WATER_FRAME_COUNT
@@ -86,6 +87,16 @@ describe('island sprites', () => {
             ? PLAYER_FRAME_COUNT
             : 1;
       expect(source.frames.length, source.key).toBe(expected);
+    }
+  });
+
+  it('has a rocky ledge piece for every combination of neighbours', () => {
+    const sides = ['ledge', 'grass', 'sand'] as const;
+    for (const west of sides) {
+      for (const east of sides) {
+        const key = cliffPieceKey(west, east);
+        expect(atlas.variants(key)[0], key).not.toBe(key);
+      }
     }
   });
 

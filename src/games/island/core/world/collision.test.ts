@@ -22,6 +22,7 @@ describe('computeBlockedMask', () => {
     ['lake shallows', TileId.LakeShallow, 1],
     ['sand', TileId.Sand, 0],
     ['grass', TileId.Grass, 0],
+    ['rocky ledge', TileId.Cliff, 1],
   ] as const)('%s tiles have blocked = %d', (_name, tile, expected) => {
     const blocked = computeBlockedMask(size, terrainOf(tile), []);
     expect(blocked.every((value) => value === expected)).toBe(true);
@@ -34,14 +35,22 @@ describe('computeBlockedMask', () => {
     expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(2);
   });
 
-  it.each(['tree_small', 'bush', 'rock', 'fence', 'mailbox'] as const)(
-    'blocks a %s tile',
-    (kind) => {
-      const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt(kind, 2, 1)]);
-      expect(blocked[1 * size.width + 2]).toBe(1);
-      expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(1);
-    },
-  );
+  it.each([
+    'tree_small',
+    'bush',
+    'rock',
+    'stump',
+    'fence',
+    'mailbox',
+    'barrel',
+    'flower_pot',
+    'sign',
+    'wood_pile',
+  ] as const)('blocks a %s tile', (kind) => {
+    const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt(kind, 2, 1)]);
+    expect(blocked[1 * size.width + 2]).toBe(1);
+    expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(1);
+  });
 
   it('blocks the whole cabin footprint', () => {
     const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt('cabin', 0, 0)]);
@@ -50,11 +59,13 @@ describe('computeBlockedMask', () => {
     expect(blocked[0 * size.width + 6]).toBe(0); // beside the cottage
   });
 
-  it('keeps flowers and grass tufts walkable', () => {
+  it('keeps flowers, tufts, branches and stepping stones walkable', () => {
     const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [
       objectAt('flower_red', 0, 0),
       objectAt('flower_blue', 1, 0),
       objectAt('grass_tuft', 2, 0),
+      objectAt('branch', 3, 0),
+      objectAt('stepping_stone', 4, 0),
     ]);
     expect(blocked.every((value) => value === 0)).toBe(true);
   });

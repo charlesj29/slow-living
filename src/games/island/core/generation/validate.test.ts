@@ -73,6 +73,25 @@ describe('validateGeneration', () => {
     expect(codes(broken)).toContain('dock-missing');
   });
 
+  it('rejects a beach that a ledge cuts off', () => {
+    const { width } = base.size;
+    // A beach tile below the grass, walled in by rocks on its other sides, under a new ledge.
+    const beach = base.terrain.findIndex(
+      (id, i) => id === TileId.Sand && base.terrain[i - width] === TileId.Grass,
+    );
+    const rocks: WorldObject[] = [beach - 1, beach + 1, beach + width].map((i, n) => ({
+      id: base.objects.length + n,
+      kind: 'rock',
+      x: i % width,
+      y: Math.floor(i / width),
+    }));
+    const broken = withTerrain(
+      { ...base, objects: [...base.objects, ...rocks] },
+      (t) => (t[beach - width] = TileId.Cliff),
+    );
+    expect(codes(broken)).toContain('beach-cut-off');
+  });
+
   describe('with the spawn boxed in by rocks', () => {
     const spawn = base.spawn ?? { x: 0, y: 0 };
     const fence: WorldObject[] = [

@@ -27,6 +27,7 @@ export type ValidationIssueCode =
   | 'spawn-missing'
   | 'door-unreachable'
   | 'trail-unreachable'
+  | 'beach-cut-off'
   | 'reachable-area-too-small';
 
 export interface ValidationIssue {
@@ -108,7 +109,10 @@ const checkCabin: Check = ({ size, terrain, cabin }) => {
   return null;
 };
 
-/** BFS from the spawn: door, every trail and dock plank reachable; player not boxed in. */
+/**
+ * BFS from the spawn: door, every trail and dock plank reachable; player not
+ * boxed in; and every beach tile below a ledge still reachable.
+ */
 const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rules) => {
   if (!spawn || !cabin) {
     return issue('spawn-missing', 'No walkable spawn tile in front of the door');
@@ -128,9 +132,23 @@ const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rule
   }
   const share =
     reached.reduce((sum, v) => sum + v, 0) / Math.max(1, countWhere(terrain, isWalkableTile));
-  return share < rules.minReachableShare
-    ? issue('reachable-area-too-small', `Only ${(share * 100).toFixed(1)}% of land is reachable`)
-    : null;
+  if (share < rules.minReachableShare) {
+    return issue(
+      'reachable-area-too-small',
+      `Only ${(share * 100).toFixed(1)}% of land is reachable`,
+    );
+  }
+  // Ledges are impassable: the beach below one must still be reachable around its ends.
+  const cutOffBeach = terrain.findIndex(
+    (id, i) =>
+      id === TileId.Sand &&
+      blocked[i] === 0 &&
+      reached[i] !== 1 &&
+      terrain[i - size.width] === TileId.Cliff,
+  );
+  return cutOffBeach === -1
+    ? null
+    : issue('beach-cut-off', 'A beach below a rocky ledge cannot be reached');
 };
 
 const CHECKS: readonly Check[] = [

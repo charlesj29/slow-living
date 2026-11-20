@@ -99,6 +99,22 @@ export interface IslandConfig {
     /** Low-frequency noise that groups oaks and pines into stands. */
     readonly speciesNoise: FractalNoiseOptions;
   };
+  /** Rocky ledges where the grass drops straight down to a beach (south-facing coasts). */
+  readonly ledges: {
+    /** Runs of ledge follow this noise along the coast. */
+    readonly noise: FractalNoiseOptions;
+    readonly threshold: number;
+    /** Shorter runs are dropped (a lone ledge tile looks like a mistake). */
+    readonly minRunTiles: number;
+  };
+  /** Stumps and fallen branches near trees. */
+  readonly deadwood: {
+    readonly searchRadiusTiles: number;
+    /** Trees within the radius needed before a tile counts as woodland. */
+    readonly minNearbyTrees: number;
+    readonly stumpChance: number;
+    readonly branchChance: number;
+  };
   readonly decorations: {
     readonly flowerPatchNoise: FractalNoiseOptions;
     readonly flowerPatchThreshold: number;
@@ -221,6 +237,8 @@ export const ISLAND_CONFIG: IslandConfig = {
     meadowBushChance: 0.008,
     speciesNoise: noise(0.022),
   },
+  ledges: { noise: noise(0.05, 2), threshold: 0.35, minRunTiles: 2 },
+  deadwood: { searchRadiusTiles: 2, minNearbyTrees: 2, stumpChance: 0.015, branchChance: 0.03 },
   decorations: {
     flowerPatchNoise: noise(0.07, 2),
     flowerPatchThreshold: 0.66,
