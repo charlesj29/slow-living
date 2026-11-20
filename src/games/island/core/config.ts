@@ -90,6 +90,15 @@ export interface IslandConfig {
     readonly flowerColorNoise: FractalNoiseOptions;
     readonly grassTuftChance: number;
   };
+  readonly render: {
+    /** Target CSS pixels per source pixel; rounded to whole device pixels for crispness. */
+    readonly cssPixelScale: number;
+    readonly minPixelScale: number;
+    readonly maxPixelScale: number;
+    readonly waterFrameSeconds: number;
+    /** Temporary free-look camera (until the player follow camera in M3). */
+    readonly lookSpeedTilesPerSecond: number;
+  };
   readonly validation: {
     readonly minLandShare: number;
     readonly maxLandShare: number;
@@ -154,6 +163,13 @@ export const ISLAND_CONFIG: IslandConfig = {
     scatteredFlowerChance: 0.01,
     flowerColorNoise: noise(0.04),
     grassTuftChance: 0.05,
+  },
+  render: {
+    cssPixelScale: 3,
+    minPixelScale: 1,
+    maxPixelScale: 8,
+    waterFrameSeconds: 0.5,
+    lookSpeedTilesPerSecond: 14,
   },
   validation: { minLandShare: 0.2, maxLandShare: 0.65, minReachableShare: 0.3 },
 };

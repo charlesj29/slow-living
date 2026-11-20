@@ -55,6 +55,16 @@ committed to the repo (readable: one character per tile, see `docs/ARCHITECTURE.
 
 ## Browser check (dev only)
 
-With `npm run dev` running, `node scripts/browser-check.mjs http://localhost:5173/games/island?seed=1234 shot.png`
-loads the page in headless Chrome, saves a screenshot and prints all console output. Set
+With `npm run dev` running:
+
+```sh
+node scripts/browser-check.mjs http://localhost:5173/ shot.png 1500 "ArrowDown:900,Minus"
+```
+
+loads the page in headless Chrome, optionally holds/taps keys, saves a screenshot and prints an
+FPS sample plus all console output. Set `CHROME_ANGLE=d3d11` to render on the GPU, and
 `CHROME_PATH` if Chrome is not in the default Windows location.
+
+## Controls (temporary)
+
+Until the player arrives (M3): arrow keys / WASD look around, `+` / `-` zoom.

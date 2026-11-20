@@ -1,29 +1,58 @@
 import { Canvas } from '@react-three/fiber';
-import type { JSX } from 'react';
+import { useEffect, useMemo, type JSX } from 'react';
+import { createIslandAtlas } from '../assets/islandSprites';
+import { WATER_FRAME_COUNT } from '../assets/paintTiles';
 import { ISLAND_CONFIG } from '../core/config';
-import { getTileDefinition, TileId } from '../core/world/tiles';
 import type { World } from '../core/world/world';
-import { FitMapCamera } from './FitMapCamera';
-import { WorldColorMap } from './WorldColorMap';
+import { FreeLookCamera } from './FreeLookCamera';
+import { Tilemap } from './Tilemap';
+import { WorldObjects } from './WorldObjects';
+import { worldYFromMapPx } from './worldSpace';
 
-// The canvas background matches deep sea so the map blends into the margin.
-const BACKGROUND_COLOR = getTileDefinition(TileId.DeepSea).mapColor;
+const BACKGROUND_COLOR = '#1f4e79';
 
 interface GameCanvasProps {
   readonly world: World;
 }
 
 /**
- * Root Three.js canvas for the island. 1 world unit = 1 source pixel, so a
- * tile is `tileSizePx` units wide. Antialiasing is off because it blurs pixel art.
+ * Root Three.js canvas for the island. 1 world unit = 1 source pixel.
+ * `flat` + `linear` turn off tone mapping and colour-space conversion, so
+ * painted palette colours reach the screen unchanged; antialiasing is off
+ * because it blurs pixel art.
  */
 export function GameCanvas({ world }: GameCanvasProps): JSX.Element {
-  const { tileSizePx } = ISLAND_CONFIG.map;
+  const { tileSizePx, chunkSizeTiles } = ISLAND_CONFIG.map;
+  const atlas = useMemo(() => createIslandAtlas(), []);
+  useEffect(() => () => atlas.dispose(), [atlas]);
+
+  const mapWidthPx = world.width * tileSizePx;
+  const mapHeightPx = world.height * tileSizePx;
+  const bounds = useMemo(
+    () => ({ minX: 0, maxX: mapWidthPx, minY: worldYFromMapPx(mapHeightPx), maxY: 0 }),
+    [mapWidthPx, mapHeightPx],
+  );
+  const start = useMemo(
+    () => ({
+      x: (world.spawn.x + 0.5) * tileSizePx,
+      y: worldYFromMapPx((world.spawn.y + 0.5) * tileSizePx),
+    }),
+    [world, tileSizePx],
+  );
+
   return (
-    <Canvas flat gl={{ antialias: false }}>
+    <Canvas flat linear gl={{ antialias: false }}>
       <color attach="background" args={[BACKGROUND_COLOR]} />
-      <FitMapCamera mapWidthPx={world.width * tileSizePx} mapHeightPx={world.height * tileSizePx} />
-      <WorldColorMap world={world} tileSizePx={tileSizePx} />
+      <FreeLookCamera start={start} bounds={bounds} tileSizePx={tileSizePx} />
+      <Tilemap
+        world={world}
+        atlas={atlas}
+        tileSizePx={tileSizePx}
+        chunkSizeTiles={chunkSizeTiles}
+        waterFrameSeconds={ISLAND_CONFIG.render.waterFrameSeconds}
+        waterFrameCount={WATER_FRAME_COUNT}
+      />
+      <WorldObjects world={world} atlas={atlas} tileSizePx={tileSizePx} />
     </Canvas>
   );
 }

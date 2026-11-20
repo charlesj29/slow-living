@@ -52,6 +52,23 @@ describe('layer import rules', () => {
     expect(await restrictedImportCount(RENDER_FILE, "import { x } from '../core/config';")).toBe(0);
   });
 
+  it('assets (render layer) reject UI imports but allow core and shared render', async () => {
+    const ASSETS_FILE = 'src/games/island/assets/example.ts';
+    expect(await restrictedImportCount(ASSETS_FILE, "import { x } from '../ui/Hud';")).toBe(1);
+    expect(
+      await restrictedImportCount(ASSETS_FILE, "import { x } from '@/shared/render/pixelCanvas';"),
+    ).toBe(0);
+  });
+
+  it('shared render rejects game imports', async () => {
+    expect(
+      await restrictedImportCount(
+        'src/shared/render/Example.tsx',
+        "import { x } from '@/games/island';",
+      ),
+    ).toBe(1);
+  });
+
   it('ui rejects render imports but allows core and state', async () => {
     expect(await restrictedImportCount(UI_FILE, "import { x } from '../render/Tilemap';")).toBe(1);
     expect(await restrictedImportCount(UI_FILE, "import { x } from '../state';")).toBe(0);

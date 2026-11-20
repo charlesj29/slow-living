@@ -172,3 +172,73 @@ alternatives → consequences.
 - **Alternatives:** a stream from the lake to the sea — rejected, it breaks the brief's "lake
   does not touch the sea" invariant; a spring-fed stream into the lake looked unmotivated.
 - **Consequences:** `shared/engine/pathfinding.ts` (A*) is available for NPCs later.
+
+## D18 — Sprites painted into pixel buffers, one DataTexture atlas, exact colours
+
+- **Context:** the brief asks for code-generated placeholder art behind an atlas interface
+  that real sprite sheets can replace later.
+- **Decision:** sprites are painted into a pure-TS `PixelCanvas` (no DOM canvas, so painting
+  is unit-tested and deterministic), shelf-packed into one power-of-two image with a 1 px
+  extruded border (no seams with nearest filtering), uploaded as a `DataTexture`. Rendering
+  asks `atlas.frame(key)`; variants use `base.N` keys; animations are horizontal strips.
+  The canvas uses R3F's `flat` + `linear` modes so palette colours reach the screen unchanged.
+- **Alternatives:** HTML canvas 2D (DOM-only, not testable in Node); per-sprite textures
+  (many texture binds, no batching); sRGB pipeline (colours shift slightly unless carefully
+  managed).
+- **Consequences:** swapping in PNG sheets = produce `SpriteSource`s from images with the same
+  keys.
+
+## D19 — Chunked tilemap geometry; water animated in the shader
+
+- **Context:** 192×192 tiles with up to several layers each; must hit 60 FPS.
+- **Decision:** one merged `BufferGeometry` per 32×32-tile chunk (36 meshes, frustum-culled),
+  one quad per tile layer, a single `ShaderMaterial`. Animated tiles carry a per-vertex u
+  stride; one `uFrame` uniform advances all water — no per-frame CPU work or buffer updates.
+- **Alternatives:** one mesh per tile (far too many draw calls); a tile-index texture with a
+  custom tile shader (fewer vertices but autotile layering gets complex); updating UVs on the
+  CPU every frame.
+- **Consequences:** ~240 FPS on GPU in headless Chrome. Every animated strip must have
+  `WATER_FRAME_COUNT` frames (tested).
+
+## D20 — Smooth shorelines with edge/corner overlays
+
+- **Context:** square terrain edges look blocky; the user delegated "smooth shorelines".
+- **Decision:** each tile has an `edgePriority` (grass 3 > sand/path 2 > shallow water 1 >
+  deep water 0). A tile gets transparent overlays of each higher neighbour's material: an edge
+  piece per touching side and a rounded corner piece for diagonal-only contact. Overlays are
+  painted once facing north and rotated. Sand onto water gets a foam fringe, grass a darker
+  rim, water-on-water a dither. The dock uses `underlay` (it behaves like lake shallows for
+  edges and draws its planks on top).
+- **Alternatives:** full 47-tile blob autotiling or marching-squares sets per material pair
+  (much more art); dual-grid tiling.
+- **Consequences:** adding a material that should spill = an `edgePriority` plus an entry in
+  `EDGE_STYLES`. Inner corners are square (two edges overlapping) — acceptable.
+
+## D21 — Objects: instanced meshes, depth from the sprite's base
+
+- **Context:** ~4,000 objects; characters must pass behind tree crowns when above them.
+- **Decision:** one `InstancedMesh` per sprite key (about a dozen draw calls), one shared
+  `MeshBasicMaterial` with `alphaTest`. Standing sprites get `z = 1 + footYPx × 0.01`
+  (`standingSpriteZ`), so the depth buffer orders them by where they touch the ground; flat
+  decorations (flowers, tufts) sit at a fixed z under everything standing. No sorting needed.
+- **Alternatives:** sorting transparent sprites every frame; render order by y.
+- **Consequences:** the player (M3) just uses `standingSpriteZ(feet)`.
+
+## D22 — Pixel-perfect camera: whole device pixels per source pixel
+
+- **Context:** sprites must not blur or shimmer.
+- **Decision:** `pixelScale = round(cssPixelScale × devicePixelRatio)` device pixels per world
+  unit (zoom = pixelScale / dpr); camera position snapped to `1 / pixelScale` with a half
+  device pixel shift when the drawing buffer has an odd size; view clamped to the map. Lives
+  in `shared/render` (`pixelPerfect.ts`, `PixelPerfectCamera.tsx`) for other games.
+- **Alternatives:** dpr = 1 with CSS `image-rendering: pixelated` (uneven pixels at
+  fractional dpr); fractional zoom (blur).
+- **Consequences:** zoom changes in whole steps (+/−).
+
+## D23 — Temporary free-look camera in M2
+
+- **Context:** M2 has no player yet, but the whole island must be viewable.
+- **Decision:** `FreeLookCamera` (arrow keys/WASD pan, +/− zoom) starting at the spawn, with an
+  on-screen hint. Keyboard handling lives in the render layer only because it is temporary.
+- **Consequences:** M3 replaces it with core input + a follow camera and deletes
+  `FreeLookCamera.tsx` and `ui/LookAroundHint.tsx`.

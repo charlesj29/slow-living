@@ -28,6 +28,13 @@ export interface TileDefinition {
   readonly mapColor: string;
   /** Single character used for this tile in map files (readable, diff-friendly). */
   readonly mapChar: string;
+  /**
+   * Smooth shorelines: where two tiles meet, the one with the higher priority
+   * spills a rounded edge over the lower one (grass over sand, sand over water).
+   */
+  readonly edgePriority: number;
+  /** Drawn on top of this tile (e.g. dock planks over lake shallows); edges use the underlay. */
+  readonly underlay?: TileId;
 }
 
 function tile(
@@ -35,8 +42,11 @@ function tile(
   key: string,
   name: string,
   traits: Pick<TileDefinition, 'isWalkable' | 'waterBody' | 'mapColor' | 'mapChar'>,
+  edgePriority: number,
+  underlay?: TileId,
 ): TileDefinition {
-  return { id, key, name, spriteKey: `tile_${key}`, ...traits };
+  const definition = { id, key, name, spriteKey: `tile_${key}`, edgePriority, ...traits };
+  return underlay === undefined ? definition : { ...definition, underlay };
 }
 
 const water = (waterBody: WaterBody, mapColor: string, mapChar: string) =>
@@ -46,15 +56,15 @@ const ground = (mapColor: string, mapChar: string) =>
 
 /** Indexed by TileId (verified by tests). */
 export const TILE_DEFINITIONS: readonly TileDefinition[] = [
-  tile(TileId.DeepSea, 'deep_sea', 'Deep sea', water('sea', '#1f4e79', '~')),
-  tile(TileId.ShallowSea, 'shallow_sea', 'Shallow sea', water('sea', '#3f86c4', '-')),
-  tile(TileId.Sand, 'sand', 'Sand', ground('#e3d29b', '.')),
-  tile(TileId.Grass, 'grass', 'Grass', ground('#6aa84f', ',')),
-  tile(TileId.LakeWater, 'lake_water', 'Lake water', water('lake', '#25808f', 'L')),
-  tile(TileId.LakeShallow, 'lake_shallow', 'Lake shallows', water('lake', '#4fb0b8', 'l')),
-  tile(TileId.Path, 'path', 'Dirt path', ground('#b08a5a', '=')),
+  tile(TileId.DeepSea, 'deep_sea', 'Deep sea', water('sea', '#1f4e79', '~'), 0),
+  tile(TileId.ShallowSea, 'shallow_sea', 'Shallow sea', water('sea', '#3f86c4', '-'), 1),
+  tile(TileId.Sand, 'sand', 'Sand', ground('#e3d29b', '.'), 2),
+  tile(TileId.Grass, 'grass', 'Grass', ground('#6aa84f', ','), 3),
+  tile(TileId.LakeWater, 'lake_water', 'Lake water', water('lake', '#25808f', 'L'), 0),
+  tile(TileId.LakeShallow, 'lake_shallow', 'Lake shallows', water('lake', '#4fb0b8', 'l'), 1),
+  tile(TileId.Path, 'path', 'Dirt path', ground('#b08a5a', '='), 2),
   // Planks over water: walkable and not part of any water body.
-  tile(TileId.Dock, 'dock', 'Wooden dock', ground('#8a6238', '#')),
+  tile(TileId.Dock, 'dock', 'Wooden dock', ground('#8a6238', '#'), 1, TileId.LakeShallow),
 ];
 
 export function getTileDefinition(id: number): TileDefinition {

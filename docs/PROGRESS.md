@@ -2,27 +2,25 @@
 
 ## Current status
 
-- **Milestone:** M1.5 — Fixed world ✅ complete. Next: **M2 — Visuals** (plan already approved
-  by the user on 2026-11-20, including smooth shorelines / autotiling).
-- **What works:** opening the site (`/`) shows a full-screen loading screen, then the island,
-  full screen, with a small "Games" menu. The island is the same on every visit: it is loaded
-  from the committed, baked map file `src/games/island/data/island.map.json` (192×192, seed
-  1, chunked, human-readable). It has a natural coastline, a forested peninsula, one lake with
-  shallows, sand shore and a wooden dock, a cabin beside the lake, dirt trails from the cabin
-  door to the dock and to two beaches, rocks, clustered forests, flower patches and grass
-  tufts. `/games` lists the game; `/games/island` redirects to `/`. Dev only: `/?seed=N`
-  previews a generated island (badge "Dev preview · seed N"). Still drawn as the flat-colour
-  preview. 142 tests.
-- **Exact next step:** start M2 (no new plan approval needed; user said "fix this first then
-  continue for M2"). Approved M2 plan: procedural pixel-art sprite atlas (sprites painted into
-  pixel buffers, packed into one texture, looked up by key; pure packing/lookup in
-  `shared/render`), placeholder art 16×16 with tile variants and 3 water frames, trees 16×32
-  with collision on the trunk tile, flowers/tufts/rocks/cabin/dock/path sprites; chunked
-  tilemap (32×32-tile chunks, merged geometry, atlas UVs); animated water via a time uniform;
-  instanced meshes per object sprite; depth from the sprite's base row (depth buffer, no
-  sorting); autotiled shorelines (sand↔water, grass↔sand, path edges); pixel-perfect camera
-  (integer zoom, snapped position) plus a temporary dev-only pan/zoom (arrows, +/−) until
-  M3's follow camera. Tests for packing, lookup, chunk geometry, depth, autotile rules.
+- **Milestone:** M2 — Visuals ✅ complete. Next: **M3 — Player**.
+- **What works:** the site (`/`) opens on the baked 192×192 island rendered as crisp pixel
+  art: procedurally painted sprites in one atlas, chunked tilemap (36 chunks), animated water
+  (3 frames), smooth shorelines (foam-edged sand, grass rims, soft water steps), a wooden dock,
+  oak/pine trees with crowns that overlap things behind them, rocks, flowers, grass tufts and
+  a log cabin with a red roof. Pixel-perfect orthographic camera (whole device pixels per
+  source pixel, snapped, clamped to the map). A temporary free-look camera starts at the cabin
+  door: arrow keys/WASD pan, +/− zoom (hint shown at the bottom). ~240 FPS with GPU in
+  headless Chrome; production console is empty. 185 tests.
+- **Exact next step:** present the M3 plan to the user and wait for OK. Expected M3 scope:
+  core input mapping (keyboard → movement intent, testable), fixed-timestep loop in
+  `shared/engine` (accumulator), player entity (plain mutable object) with position in map
+  pixels, 4-direction facing and walk animation state, movement + tile collision with wall
+  sliding (axis-separated AABB vs `world.blocked`, small feet hitbox), spawn at `world.spawn`,
+  player sprite sheet painted in `assets/` (4 directions × walk frames), player drawn with
+  `standingSpriteZ(feet)` so trees and the cabin occlude correctly, smooth follow camera
+  (snapped, clamped) replacing `FreeLookCamera` + `LookAroundHint`. Tests: collision
+  (water/tree/cabin/rock block; grass/flowers/sand/path/dock walkable), sliding, fixed-step
+  determinism, input mapping, animation state.
 
 ## Milestones
 
@@ -32,7 +30,7 @@
       validation, tests, coloured-tile render
 - [x] **M1.5 — Fixed world (user request):** site opens into the world; world loaded from a
       baked, chunked map file; 192×192; trails, dock, rocks; seed tools dev-only
-- [ ] **M2 — Visuals:** procedural sprite atlas, chunked tilemap, autotiled shorelines,
+- [x] **M2 — Visuals:** procedural sprite atlas, chunked tilemap, autotiled shorelines,
       sprites for trees/flowers/rocks/cabin/dock, depth ordering, animated water, pixel-perfect
       ortho camera
 - [ ] **M3 — Player:** input, 4-direction walk animation, movement + collision with sliding,
@@ -52,6 +50,38 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-20 — M2 Visuals
+
+- **Done:**
+  - `shared/render`: `pixelCanvas` (pure RGBA painting, rotate, blit), `atlasLayout` (shelf
+    packing into a power-of-two image, 1 px border extrusion, animation strips, UVs),
+    `spriteAtlas` (DataTexture with nearest filtering, lookup by key, `base.N` variants),
+    `pixelPerfect` (pixel scale, zoom, snapping with odd-buffer half-pixel fix, clamping),
+    `PixelPerfectCamera` (drei orthographic camera driven by a focus callback).
+  - `games/island/assets`: palette, paint helpers, tiles (3 ground variants, 2 water variants ×
+    3 frames, dock h/v), shoreline overlays (edge + corner × 4 directions for sand, grass,
+    shallow sea, lake shallows), trees 16×32 (2 variants each), flowers, tuft, rocks, cabin
+    48×64.
+  - Tile registry: `edgePriority` and `underlay` (dock over lake shallows).
+  - `games/island/render`: `worldSpace` (map↔world coords, depth), `tileLayers` (base +
+    shoreline overlays + dock planks per tile), `tilemapGeometry` (chunk vertex data),
+    `tilemapMaterial` (ShaderMaterial; water animated by one `uFrame` uniform), `Tilemap`,
+    `objectSprites` + `WorldObjects` (one InstancedMesh per sprite), `spriteCatalog`,
+    temporary `FreeLookCamera` + `ui/LookAroundHint`. M1 preview renderer removed.
+  - `scripts/browser-check.mjs`: key presses (`ArrowDown:900,Minus`), FPS sample,
+    `CHROME_ANGLE=d3d11` for GPU rendering.
+- **Decisions:** D18–D23 in `docs/DECISIONS.md`.
+- **Verified:** typecheck, lint, 185 tests, build, format:check pass. Browser: dev and
+  production preview render the island; production console has no messages at all;
+  production ignores `?seed=`; `/games/island` redirects; free-look panning/zoom works via
+  simulated keys; GPU render ~240 FPS at default zoom and fully zoomed out (software render
+  ~35–40 FPS).
+- **Known issues / notes:**
+  - Trails are 4-connected, so diagonal stretches look like staircases (ROADMAP: smoothing).
+  - A rock directly behind a tree shows only its top outline above the crown — correct depth
+    behaviour, but it can read as a grey arc.
+  - World chunk is ~1.03 MB (266 kB gzip), under the 1200 kB warning limit.
 
 ### 2026-11-20 — M1.5 Fixed world
 

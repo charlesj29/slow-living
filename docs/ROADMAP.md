@@ -36,3 +36,6 @@ architecture should make each a natural addition.
 - New regions as extra chunks (a second beach, a hill area, a small village)
 - A stream with a bridge (needs a rule change: the lake must stay isolated from the sea)
 - Landmarks along the trails (benches, signposts, a lighthouse on the peninsula)
+- Smoother trails: allow diagonal steps or post-process staircases into gentle curves
+- Real sprite sheets (PNG) loaded into the same atlas keys; richer tiles (inner-corner
+  shoreline pieces, more grass/sand variety, animated foam)

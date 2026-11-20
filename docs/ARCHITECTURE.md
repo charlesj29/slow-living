@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: M1.5 (fixed world). Sections marked _(planned)_ describe the design the next
+> Status: M2 (visuals). Sections marked _(planned)_ describe the design the next
 > milestones will implement; update them as the code lands.
 
 ## Layers
@@ -35,7 +35,7 @@ src/
   pages/                    # WorldPage (/), GamesIndexPage, IslandRedirectPage, loading/error/404
   shared/
     engine/                 # Pure TS: math, random, noise, grid, pathfinding (A*)
-    render/                 # (planned, M2) reusable R3F pieces: pixel-perfect camera, sprite atlas
+    render/                 # pixelCanvas, atlasLayout, spriteAtlas, pixelPerfect, PixelPerfectCamera
     ui/                     # (planned) shared UI components
   games/
     catalog.ts              # Plain metadata for every game (used by the games list)
@@ -52,9 +52,11 @@ src/
         generation/         # authoring tool: context, steps/*, validate, pipeline,
                             #   generateWorld, bakeIslandMap
         systems/            # (planned, M3) movement, collision response, animation
-      render/               # GameCanvas, FitMapCamera, WorldColorMap (+ texture builder)
-      assets/               # (planned, M2) procedural sprite atlas
-      ui/                   # DevSeedBadge, WorldErrorPanel, islandUi.css
+      render/               # GameCanvas, Tilemap (+ tileLayers, tilemapGeometry, tilemapMaterial),
+                            #   WorldObjects (+ objectSprites), worldSpace, spriteCatalog,
+                            #   FreeLookCamera (temporary, M2)
+      assets/               # palette, paint helpers, paintTiles/Transitions/Objects/Cabin, islandSprites
+      ui/                   # DevSeedBadge, WorldErrorPanel, LookAroundHint (temporary), islandUi.css
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
   bake-island-map.mjs       # npm run bake:island [-- seed]: generator -> data/island.map.json
@@ -140,12 +142,43 @@ scatterTrees → scatterFlowers → chooseSpawn → validate`
 
 ## Rendering
 
-- **Now (preview):** one plane with a `DataTexture` of one texel per tile (nearest filtering);
-  drei `OrthographicCamera` zoomed to fit. 1 world unit = 1 source pixel.
-- **(planned, M2):** sprite atlas by key, chunked tilemap, autotiled shorelines, instanced
-  decorations, y-sorted depth, animated water, pixel-perfect camera.
-- Textures created by hand are disposed in an effect cleanup; JSX-declared geometries and
-  materials are disposed by R3F.
+```mermaid
+flowchart LR
+  Paint["assets/*<br/>paint sprites (PixelCanvas)"] --> Atlas["shared/render<br/>layoutAtlas → SpriteAtlas (DataTexture)"]
+  World["World"] --> Layers["tileLayers<br/>base + shoreline overlays + dock"]
+  Layers --> Geo["tilemapGeometry<br/>quads per 32×32 chunk"]
+  Atlas --> Geo
+  Geo --> Tilemap["Tilemap<br/>36 meshes, 1 ShaderMaterial (uFrame)"]
+  World --> Objs["objectSprites<br/>positions + depth"]
+  Atlas --> Objs
+  Objs --> Inst["WorldObjects<br/>1 InstancedMesh per sprite"]
+  Cam["PixelPerfectCamera<br/>(FreeLookCamera in M2)"] --> Canvas["GameCanvas (flat, linear)"]
+  Tilemap --> Canvas
+  Inst --> Canvas
+```
+
+- **Units:** 1 world unit = 1 source pixel; a tile is 16 units. World y = −(map y in px).
+- **Atlas:** sprites are painted in code into `PixelCanvas` buffers (`assets/`), packed by
+  `layoutAtlas` (power-of-two, 1 px extruded borders) and uploaded as one nearest-filtered
+  `DataTexture`. Keys: `tile_<tile key>.N` (variants), `edge_<material>_<n|e|s|w>`,
+  `corner_<material>_<ne|se|sw|nw>`, `tile_dock_h|v`, `<object spriteKey>[.N]`, `cabin`.
+  Variants are picked per position with `hashCoords`, so the same spot always looks the same.
+- **Terrain:** `tileLayersAt` returns the sprites for a tile, bottom to top: base (the
+  underlay's sprite for the dock), overlays from higher-`edgePriority` neighbours (edges for
+  touching sides, rounded corners for diagonal-only contact, lowest priority first), then the
+  dock planks. `buildChunkGeometryData` turns a chunk into quads; animated water quads carry a
+  u stride and the shader adds `stride × uFrame`.
+- **Depth:** terrain z = 0 (layers draw in index order), flat decorations z = 0.5, standing
+  sprites `standingSpriteZ(footYPx) = 1 + footYPx × 0.01` — the depth buffer puts things lower
+  on the map in front, so crowns and the cabin roof cover whatever stands behind them. All
+  materials use hard alpha (`alphaTest` / `discard`), so nothing needs sorting.
+- **Camera:** `PixelPerfectCamera` (shared) keeps whole device pixels per source pixel, snaps
+  to the device-pixel grid (half-pixel fix for odd buffers) and clamps to the map. In M2 it is
+  driven by the temporary `FreeLookCamera` (arrows/WASD, +/−); M3 replaces that with a follow
+  camera.
+- **Colour:** the canvas is `flat` + `linear`, so painted colours reach the screen unchanged.
+- **Cleanup:** the atlas texture, chunk geometries, the tilemap material, sprite geometries and
+  the object material are disposed in effect cleanups; R3F disposes JSX-declared objects.
 
 ## How-to guides
 
@@ -169,6 +202,20 @@ rectangle must exist. Growing east/south only needs new chunks; growing west/nor
 shifting chunk coordinates (and `spawn`) by the added amount. If the world gets large,
 the next step is loading chunks on demand instead of one JSON import (see ROADMAP).
 
+### Add or change a sprite
+
+1. Paint it in the matching `assets/paint*.ts` file (16×16 per tile; standing sprites keep
+   their feet on the bottom row and may be taller, e.g. trees 16×32, the cabin 48×64).
+2. Return it as a `SpriteSource` with the key the registry uses (`spriteKey`, or `key.N` for
+   variants; several frames = an animation strip with `WATER_FRAME_COUNT` frames).
+3. `islandSprites.test.ts` checks every registry entry has its sprite.
+
+### Add a shoreline material
+
+Give the tile a higher `edgePriority` than the tiles it should spill onto and add an
+`EDGE_STYLES` entry in `assets/paintTransitions.ts` (depth, colours, optional fringe/rim/
+dither). Edge and corner sprites are generated for all directions automatically.
+
 ### Add a page
 
 1. Create `src/pages/MyPage.tsx` exporting `MyPage(): JSX.Element`.
@@ -188,8 +235,9 @@ the next step is loading chunks on demand instead of one JSON import (see ROADMA
 1. Add an id to `TileId` and a definition to `TILE_DEFINITIONS` (same index) in
    `core/world/tiles.ts`, including a unique `mapChar` for map files.
 2. Produce it in a generation step, or paint it into the map file by hand.
-3. (M2+) Add its sprite to the atlas under `spriteKey`. Collision and validation pick up
-   `isWalkable`/`waterBody` automatically.
+3. Paint its sprite under `spriteKey` (see "Add or change a sprite") and give it an
+   `edgePriority` (and an `EDGE_STYLES` entry if it should spill over lower tiles).
+   Collision and validation pick up `isWalkable`/`waterBody` automatically.
 
 ### Add an object type
 
@@ -197,7 +245,8 @@ the next step is loading chunks on demand instead of one JSON import (see ROADMA
    `core/world/objects.ts`: category, footprint, `blocksMovement`, `spriteKey`, `mapColor`.
 2. Place it from a step (`isAreaFree` / `addObject` in `generation/objectLayer.ts`) or add it
    to the map file by hand.
-3. (M2+) Add its sprite under `spriteKey`.
+3. Paint its sprite under `spriteKey`. Flowers/tufts are flat decorations; everything else
+   stands and is depth-sorted by its footprint's bottom edge.
 
 ### Add a generation step
 

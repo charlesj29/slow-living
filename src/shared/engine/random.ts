@@ -24,6 +24,9 @@ const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 const MURMUR_MIX_1 = 0x85ebca6b;
 const MURMUR_MIX_2 = 0xc2b2ae35;
+// Large odd constants that decorrelate x and y before mixing.
+const COORD_PRIME_X = 0x27d4eb2d;
+const COORD_PRIME_Y = 0x165667b1;
 
 /**
  * mulberry32: tiny, fast, good-enough PRNG with a 32-bit state. The state is
@@ -106,6 +109,11 @@ export function parseSeed(raw: string | null): number | null {
     }
   }
   return hashString(trimmed);
+}
+
+/** Stable pseudo-random uint32 for grid coordinates (e.g. picking a tile sprite variant). */
+export function hashCoords(x: number, y: number, salt = 0): number {
+  return mixUint32(Math.imul(x, COORD_PRIME_X) ^ Math.imul(y, COORD_PRIME_Y) ^ salt);
 }
 
 /** Non-deterministic seed for "give me a new world". */
