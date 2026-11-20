@@ -1,5 +1,5 @@
 // Tile registry. Adding a terrain type = add an id + a definition here (and a
-// sprite in M2). Logic asks the registry instead of comparing ids directly.
+// sprite in the atlas). Logic asks the registry instead of comparing ids directly.
 
 export const TileId = {
   DeepSea: 0,
@@ -8,6 +8,8 @@ export const TileId = {
   Grass: 3,
   LakeWater: 4,
   LakeShallow: 5,
+  Path: 6,
+  Dock: 7,
 } as const;
 
 export type TileId = (typeof TileId)[keyof typeof TileId];
@@ -24,64 +26,35 @@ export interface TileDefinition {
   readonly spriteKey: string;
   /** Flat colour for map previews / minimaps. */
   readonly mapColor: string;
+  /** Single character used for this tile in map files (readable, diff-friendly). */
+  readonly mapChar: string;
 }
+
+function tile(
+  id: TileId,
+  key: string,
+  name: string,
+  traits: Pick<TileDefinition, 'isWalkable' | 'waterBody' | 'mapColor' | 'mapChar'>,
+): TileDefinition {
+  return { id, key, name, spriteKey: `tile_${key}`, ...traits };
+}
+
+const water = (waterBody: WaterBody, mapColor: string, mapChar: string) =>
+  ({ isWalkable: false, waterBody, mapColor, mapChar }) as const;
+const ground = (mapColor: string, mapChar: string) =>
+  ({ isWalkable: true, waterBody: null, mapColor, mapChar }) as const;
 
 /** Indexed by TileId (verified by tests). */
 export const TILE_DEFINITIONS: readonly TileDefinition[] = [
-  {
-    id: TileId.DeepSea,
-    key: 'deep_sea',
-    name: 'Deep sea',
-    isWalkable: false,
-    waterBody: 'sea',
-    spriteKey: 'tile_deep_sea',
-    mapColor: '#1f4e79',
-  },
-  {
-    id: TileId.ShallowSea,
-    key: 'shallow_sea',
-    name: 'Shallow sea',
-    isWalkable: false,
-    waterBody: 'sea',
-    spriteKey: 'tile_shallow_sea',
-    mapColor: '#3f86c4',
-  },
-  {
-    id: TileId.Sand,
-    key: 'sand',
-    name: 'Sand',
-    isWalkable: true,
-    waterBody: null,
-    spriteKey: 'tile_sand',
-    mapColor: '#e3d29b',
-  },
-  {
-    id: TileId.Grass,
-    key: 'grass',
-    name: 'Grass',
-    isWalkable: true,
-    waterBody: null,
-    spriteKey: 'tile_grass',
-    mapColor: '#6aa84f',
-  },
-  {
-    id: TileId.LakeWater,
-    key: 'lake_water',
-    name: 'Lake water',
-    isWalkable: false,
-    waterBody: 'lake',
-    spriteKey: 'tile_lake_water',
-    mapColor: '#25808f',
-  },
-  {
-    id: TileId.LakeShallow,
-    key: 'lake_shallow',
-    name: 'Lake shallows',
-    isWalkable: false,
-    waterBody: 'lake',
-    spriteKey: 'tile_lake_shallow',
-    mapColor: '#4fb0b8',
-  },
+  tile(TileId.DeepSea, 'deep_sea', 'Deep sea', water('sea', '#1f4e79', '~')),
+  tile(TileId.ShallowSea, 'shallow_sea', 'Shallow sea', water('sea', '#3f86c4', '-')),
+  tile(TileId.Sand, 'sand', 'Sand', ground('#e3d29b', '.')),
+  tile(TileId.Grass, 'grass', 'Grass', ground('#6aa84f', ',')),
+  tile(TileId.LakeWater, 'lake_water', 'Lake water', water('lake', '#25808f', 'L')),
+  tile(TileId.LakeShallow, 'lake_shallow', 'Lake shallows', water('lake', '#4fb0b8', 'l')),
+  tile(TileId.Path, 'path', 'Dirt path', ground('#b08a5a', '=')),
+  // Planks over water: walkable and not part of any water body.
+  tile(TileId.Dock, 'dock', 'Wooden dock', ground('#8a6238', '#')),
 ];
 
 export function getTileDefinition(id: number): TileDefinition {
@@ -90,6 +63,13 @@ export function getTileDefinition(id: number): TileDefinition {
     throw new RangeError(`Unknown tile id: ${String(id)}`);
   }
   return definition;
+}
+
+const TILE_ID_BY_CHAR = new Map(TILE_DEFINITIONS.map((d) => [d.mapChar, d.id]));
+
+/** Tile id for a map-file character, or undefined if the character is unknown. */
+export function tileIdForMapChar(char: string): TileId | undefined {
+  return TILE_ID_BY_CHAR.get(char);
 }
 
 export function isWaterTile(id: number): boolean {

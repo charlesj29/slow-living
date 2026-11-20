@@ -12,7 +12,8 @@ export const GAME_CATALOG: readonly GameInfo[] = [
   {
     id: 'island',
     title: 'Island',
-    description: 'Explore a procedurally generated island: meadows, forests, a lake and a cabin.',
-    path: '/games/island',
+    description:
+      'Stroll around a hand-picked island: meadows, forests, trails, a lake with a dock and a cabin.',
+    path: '/',
   },
 ];

@@ -6,7 +6,7 @@ export function NotFoundPage(): JSX.Element {
     <div className="page">
       <h1>Page not found</h1>
       <p>
-        <Link to="/">Back to home</Link>
+        <Link to="/">Back to the island</Link>
       </p>
     </div>
   );

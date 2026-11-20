@@ -10,7 +10,7 @@ export function Layout(): JSX.Element {
         </NavLink>
         <nav className="layout__nav">
           <NavLink to="/" end>
-            Home
+            World
           </NavLink>
           <NavLink to="/games">Games</NavLink>
         </nav>

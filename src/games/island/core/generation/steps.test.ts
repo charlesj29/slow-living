@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { EIGHT_DIRECTIONS, forEachNeighbor, toIndex } from '@/shared/engine/grid';
+import {
+  CARDINAL_DIRECTIONS,
+  EIGHT_DIRECTIONS,
+  floodFill,
+  forEachNeighbor,
+  toIndex,
+} from '@/shared/engine/grid';
 import { ISLAND_CONFIG } from '../config';
 import { OBJECT_REGISTRY, TREE_KINDS } from '../world/objects';
 import { isLakeTile, TileId } from '../world/tiles';
-import { NO_OBJECT } from '../world/world';
+import { getDoorFrontTile, NO_OBJECT } from '../world/world';
 import { createInitialContext } from './context';
 import { GENERATION_STEPS } from './pipeline';
 import { validContext } from './testUtils';
@@ -25,20 +31,23 @@ describe('pipeline steps', () => {
 });
 
 describe('carveLake', () => {
-  it('surrounds the lake with a shore and no grass touches lake water directly', () => {
+  it('surrounds the lake with a shore so no grass touches lake water directly', () => {
     const context = validContext(8);
     const { size, terrain } = context;
     terrain.forEach((id, i) => {
       if (id !== TileId.LakeShallow && id !== TileId.LakeWater) return;
       forEachNeighbor(size, i, EIGHT_DIRECTIONS, (n) => {
-        expect([TileId.Sand, TileId.LakeShallow, TileId.LakeWater]).toContain(terrain[n]);
+        // Shore sand, more lake, or the dock planks that stick out into it.
+        expect([TileId.Sand, TileId.LakeShallow, TileId.LakeWater, TileId.Dock]).toContain(
+          terrain[n],
+        );
       });
     });
-    // Deep lake water is always ringed by shallows.
+    // Deep lake water is always ringed by shallows (or dock planks built over them).
     terrain.forEach((id, i) => {
       if (id !== TileId.LakeWater) return;
       forEachNeighbor(size, i, EIGHT_DIRECTIONS, (n) => {
-        expect(isLakeTile(terrain[n] ?? 0)).toBe(true);
+        expect(isLakeTile(terrain[n] ?? 0) || terrain[n] === TileId.Dock).toBe(true);
       });
     });
   });
@@ -55,7 +64,8 @@ describe('placeCabin', () => {
       for (let dx = 0; dx < footprint.width; dx++) {
         const index = toIndex(context.size, cabin.x + dx, cabin.y + footprint.height - 1 + row);
         expect(context.occupancy[index]).toBe(NO_OBJECT);
-        expect(context.terrain[index]).toBe(TileId.Grass);
+        // Grass, or the trail that starts at the door.
+        expect([TileId.Grass, TileId.Path]).toContain(context.terrain[index]);
       }
     }
   });
@@ -90,5 +100,49 @@ describe('scatterTrees', () => {
     const observed = treeNeighbors / trees.length;
     const expectedIfUniform = EIGHT_DIRECTIONS.length * (trees.length / grassTiles);
     expect(observed).toBeGreaterThan(expectedIfUniform * 2);
+  });
+});
+
+describe('placeDock', () => {
+  it('builds a straight dock from the lake shore into the lake', () => {
+    const context = validContext(55);
+    const { size, terrain } = context;
+    const planks = [...terrain.keys()].filter((i) => terrain[i] === TileId.Dock);
+    expect(planks).toHaveLength(ISLAND_CONFIG.dock.lengthTiles);
+    const root = context.dockRoot;
+    expect(root).not.toBeNull();
+    if (!root) return;
+    expect(terrain[toIndex(size, root.x, root.y)]).toBe(TileId.Sand);
+    // Every plank touches lake water on at least two sides (it sticks out into the lake).
+    for (const plank of planks) {
+      let lakeNeighbors = 0;
+      forEachNeighbor(size, plank, CARDINAL_DIRECTIONS, (n) => {
+        if (isLakeTile(terrain[n] ?? 0)) lakeNeighbors++;
+      });
+      expect(lakeNeighbors).toBeGreaterThanOrEqual(2);
+    }
+  });
+});
+
+describe('layPaths', () => {
+  it('starts a trail at the cabin door that leads to the dock', () => {
+    const context = validContext(89);
+    const { size, terrain, cabin, dockRoot } = context;
+    if (!cabin || !dockRoot) throw new Error('fixture needs a cabin and a dock');
+    const door = getDoorFrontTile(cabin);
+    expect(terrain[toIndex(size, door.x, door.y)]).toBe(TileId.Path);
+    // Walk only on trail/sand/dock tiles from the door: the dock must be reachable.
+    const trailTiles = new Set<number>([TileId.Path, TileId.Sand, TileId.Dock]);
+    const onTrail = floodFill(size, [toIndex(size, door.x, door.y)], (i) =>
+      trailTiles.has(terrain[i] ?? -1),
+    );
+    expect(onTrail[toIndex(size, dockRoot.x, dockRoot.y)]).toBe(1);
+  });
+
+  it('keeps trails free of objects', () => {
+    const context = validContext(144);
+    context.terrain.forEach((id, i) => {
+      if (id === TileId.Path) expect(context.occupancy[i]).toBe(NO_OBJECT);
+    });
   });
 });

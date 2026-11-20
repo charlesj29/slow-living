@@ -10,12 +10,13 @@ export const OBJECT_KINDS = [
   'flower_blue',
   'flower_white',
   'grass_tuft',
+  'rock',
   'cabin',
 ] as const;
 
 export type ObjectKind = (typeof OBJECT_KINDS)[number];
 
-export type ObjectCategory = 'tree' | 'flower' | 'grass' | 'building';
+export type ObjectCategory = 'tree' | 'flower' | 'grass' | 'rock' | 'building';
 
 export interface ObjectDefinition {
   readonly kind: ObjectKind;
@@ -76,6 +77,15 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     blocksMovement: false,
     spriteKey: 'grass_tuft',
     mapColor: '#86c46c',
+  },
+  rock: {
+    kind: 'rock',
+    name: 'Rock',
+    category: 'rock',
+    footprint: SINGLE_TILE,
+    blocksMovement: true,
+    spriteKey: 'rock',
+    mapColor: '#8d8f94',
   },
   cabin: {
     kind: 'cabin',

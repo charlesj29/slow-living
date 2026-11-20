@@ -1,6 +1,6 @@
 import { distanceField, isInBounds, toIndex } from '@/shared/engine/grid';
 import { OBJECT_REGISTRY } from '../../world/objects';
-import { isWaterTile, TileId } from '../../world/tiles';
+import { isLakeTile, isWaterTile, TileId } from '../../world/tiles';
 import { createStepRng, type GenerationContext, type GenerationStep } from '../context';
 import { addObject, copyObjectLayer } from '../objectLayer';
 
@@ -41,12 +41,14 @@ function isSiteSuitable(
 }
 
 /**
- * Places the cabin on flat grass away from water. Its surroundings and the
- * area in front of the door are reserved so later steps keep them clear.
+ * Places the cabin on flat grass away from water, preferably within sight of
+ * the lake. Its surroundings and the area in front of the door are reserved so
+ * later steps keep them clear.
  */
 export const placeCabin: GenerationStep = (context) => {
-  const { size } = context;
-  const waterDistance = distanceField(size, (i) => isWaterTile(context.terrain[i] ?? 0));
+  const { size, terrain, config } = context;
+  const waterDistance = distanceField(size, (i) => isWaterTile(terrain[i] ?? 0));
+  const lakeDistance = distanceField(size, (i) => isLakeTile(terrain[i] ?? 0));
 
   const candidates: number[] = [];
   for (let y = 0; y < size.height; y++) {
@@ -59,8 +61,14 @@ export const placeCabin: GenerationStep = (context) => {
   if (candidates.length === 0) {
     return context;
   }
+  const nearLake = candidates.filter((index) => {
+    const distance = lakeDistance[index] ?? -1;
+    return distance >= 0 && distance <= config.cabin.maxLakeDistanceTiles;
+  });
 
-  const chosen = createStepRng(context, 'placeCabin').pick(candidates);
+  const chosen = createStepRng(context, 'placeCabin').pick(
+    nearLake.length > 0 ? nearLake : candidates,
+  );
   const cabinX = chosen % size.width;
   const cabinY = Math.floor(chosen / size.width);
 

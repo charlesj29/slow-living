@@ -5,9 +5,10 @@ project stands and wait for the user's go. The full spec is `PROJECT_BRIEF.md`.
 
 ## Project
 
-A games website (React + TypeScript + Three.js via React Three Fiber). Games live under
-`/games/...`. First game: **Island**, a seeded, procedurally generated 2D top-down world
-(pixel art, 16×16 tiles, orthographic camera).
+A games website (React + TypeScript + Three.js via React Three Fiber). The site opens straight
+into **Island** at `/`: a fixed 192×192 2D top-down world (pixel art, 16×16 tiles, orthographic
+camera) loaded from a baked map file. Other games will live under `/games/...`.
+User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`.
 
 ## Working agreement
 
@@ -22,7 +23,7 @@ A games website (React + TypeScript + Three.js via React Three Fiber). Games liv
 ## Commands
 
 `npm run dev` · `npm run check` (typecheck + lint + test + build) · `npm run typecheck` ·
-`npm run lint` · `npm test` · `npm run build` · `npm run format`
+`npm run lint` · `npm test` · `npm run build` · `npm run format` · `npm run bake:island`
 
 ## Architecture rules (enforced by ESLint `no-restricted-imports`, see `eslint.config.js`)
 
@@ -39,6 +40,9 @@ A games website (React + TypeScript + Three.js via React Three Fiber). Games liv
 
 ## Generation & world conventions
 
+- **The live world is `src/games/island/data/island.map.json`**, never generated at runtime.
+  Generation is an authoring tool: `npm run bake:island -- <seed>` re-bakes (overwrites hand
+  edits). `?seed=` previews are dev-only. `bakedIsland.test.ts` must stay green.
 - World grids are flat typed arrays, row-major (`y * width + x`), **y grows downwards**;
   render code flips y for Three.js.
 - Generation steps are pure `(context) => context` (copy arrays you change) and take

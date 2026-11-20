@@ -100,7 +100,7 @@ describe('generateWorld failure handling', () => {
   it('gives up after maxAttempts with the reasons from the last attempt', () => {
     const impossible: IslandConfig = {
       ...ISLAND_CONFIG,
-      generation: { maxAttempts: 3 },
+      generation: { ...ISLAND_CONFIG.generation, maxAttempts: 3 },
       validation: { ...ISLAND_CONFIG.validation, minLandShare: 0.99 },
     };
     const result = generateWorld(1, impossible);

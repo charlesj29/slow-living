@@ -1,29 +1,29 @@
 import { useMemo, type JSX } from 'react';
-import { ISLAND_CONFIG } from './core/config';
-import { generateWorld } from './core/generation/generateWorld';
+import { loadWorld } from './loadWorld';
 import { GameCanvas } from './render/GameCanvas';
-import { GenerationErrorPanel } from './ui/GenerationErrorPanel';
-import { SeedLabel } from './ui/SeedLabel';
+import { DevSeedBadge } from './ui/DevSeedBadge';
+import { WorldErrorPanel } from './ui/WorldErrorPanel';
 
 export interface IslandGameProps {
-  /** World seed; the same seed always produces the same island. */
-  readonly seed: number;
+  /**
+   * Dev-only authoring preview: generate this seed live instead of loading
+   * the baked island. Leave undefined in production.
+   */
+  readonly devSeed?: number;
 }
 
-/** Composes the game's render layer (canvas) and UI layer (HUD, overlays). */
-export function IslandGame({ seed }: IslandGameProps): JSX.Element {
-  // Generation is pure and takes ~20 ms, so it is fine to run during render.
-  const result = useMemo(() => generateWorld(seed, ISLAND_CONFIG), [seed]);
+/** Loads the world and composes the game's render layer (canvas) and UI layer (overlays). */
+export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
+  // Loading is synchronous and fast (parse ~5 ms, dev generation ~60 ms).
+  const result = useMemo(() => loadWorld(devSeed), [devSeed]);
 
   if (!result.ok) {
-    return (
-      <GenerationErrorPanel seed={result.seed} attempts={result.attempts} issues={result.issues} />
-    );
+    return <WorldErrorPanel title={result.title} details={result.details} />;
   }
   return (
     <>
       <GameCanvas world={result.world} />
-      <SeedLabel seed={seed} />
+      {devSeed !== undefined && <DevSeedBadge seed={devSeed} />}
     </>
   );
 }

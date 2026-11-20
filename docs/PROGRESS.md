@@ -2,24 +2,27 @@
 
 ## Current status
 
-- **Milestone:** M1 — World data & generation ✅ complete. Next: **M2 — Visuals**.
-- **What works:** seeded island generation (`?seed=1234`, word seeds like `?seed=palm`, or a
-  random seed shown top-left). Island with natural coastline, deep-sea borders, shallow sea,
-  sand beach, grass; one inland lake with shallows and a sand shore; clustered forests (oak
-  and pine stands) plus lone trees; flower patches in four colours and grass tufts; a 3×3
-  cabin on flat grass with a clear area in front of its door; spawn tile in front of the
-  door. Pipeline validated with deterministic retries; a clear error panel if all attempts
-  fail. Map drawn as a flat-colour preview (one texel per tile, magenta = spawn) with an
-  orthographic camera that fits the whole map. 119 tests.
-- **Exact next step:** present the M2 plan to the user and wait for OK. Expected M2 scope:
-  procedural pixel-art sprite atlas in `games/island/assets/` (canvas → texture, sprites by
-  key) with a reusable atlas interface in `shared/render/`; chunked tilemap (merged geometry
-  per chunk with atlas UVs, or a tile-index shader — pick the simplest that hits 60 FPS and
-  record it); instanced trees/flowers/tufts; cabin sprite; y-based depth ordering (tree tops
-  drawn over things behind them); animated water (frames or shimmer); pixel-perfect
-  orthographic camera (integer zoom, snapped position). The M1 `WorldColorMap` and
-  `FitMapCamera` get replaced; until M3 adds the follow camera, M2 needs a temporary way to
-  look around (e.g. dev-only pan/zoom) — propose this in the plan.
+- **Milestone:** M1.5 — Fixed world ✅ complete. Next: **M2 — Visuals** (plan already approved
+  by the user on 2026-11-20, including smooth shorelines / autotiling).
+- **What works:** opening the site (`/`) shows a full-screen loading screen, then the island,
+  full screen, with a small "Games" menu. The island is the same on every visit: it is loaded
+  from the committed, baked map file `src/games/island/data/island.map.json` (192×192, seed
+  1, chunked, human-readable). It has a natural coastline, a forested peninsula, one lake with
+  shallows, sand shore and a wooden dock, a cabin beside the lake, dirt trails from the cabin
+  door to the dock and to two beaches, rocks, clustered forests, flower patches and grass
+  tufts. `/games` lists the game; `/games/island` redirects to `/`. Dev only: `/?seed=N`
+  previews a generated island (badge "Dev preview · seed N"). Still drawn as the flat-colour
+  preview. 142 tests.
+- **Exact next step:** start M2 (no new plan approval needed; user said "fix this first then
+  continue for M2"). Approved M2 plan: procedural pixel-art sprite atlas (sprites painted into
+  pixel buffers, packed into one texture, looked up by key; pure packing/lookup in
+  `shared/render`), placeholder art 16×16 with tile variants and 3 water frames, trees 16×32
+  with collision on the trunk tile, flowers/tufts/rocks/cabin/dock/path sprites; chunked
+  tilemap (32×32-tile chunks, merged geometry, atlas UVs); animated water via a time uniform;
+  instanced meshes per object sprite; depth from the sprite's base row (depth buffer, no
+  sorting); autotiled shorelines (sand↔water, grass↔sand, path edges); pixel-perfect camera
+  (integer zoom, snapped position) plus a temporary dev-only pan/zoom (arrows, +/−) until
+  M3's follow camera. Tests for packing, lookup, chunk geometry, depth, autotile rules.
 
 ## Milestones
 
@@ -27,14 +30,63 @@
       canvas, docs
 - [x] **M1 — World data & generation:** seeded RNG, registries, world data, pipeline +
       validation, tests, coloured-tile render
-- [ ] **M2 — Visuals:** procedural sprite atlas, chunked tilemap, sprites for trees/flowers/
-      cabin, depth ordering, animated water, pixel-perfect ortho camera
+- [x] **M1.5 — Fixed world (user request):** site opens into the world; world loaded from a
+      baked, chunked map file; 192×192; trails, dock, rocks; seed tools dev-only
+- [ ] **M2 — Visuals:** procedural sprite atlas, chunked tilemap, autotiled shorelines,
+      sprites for trees/flowers/rocks/cabin/dock, depth ordering, animated water, pixel-perfect
+      ortho camera
 - [ ] **M3 — Player:** input, 4-direction walk animation, movement + collision with sliding,
       spawn at door, camera follow with bounds
-- [ ] **M4 — Polish & handover:** HUD, regenerate key, debug overlay, 60 FPS check, resource
-      cleanup check, final docs + roadmap
+- [ ] **M4 — Polish & handover:** HUD (controls hint), debug overlay (F3), dev regenerate key
+      (R → new dev-preview seed), 60 FPS check, resource cleanup check, final docs + roadmap
+
+## User decisions that override PROJECT_BRIEF.md (2026-11-20)
+
+- The site opens straight into the world at `/` (brief: `/` home, `/games/island` game).
+- The world is fixed: always the same layout, loaded from a baked map file (brief: random seed
+  unless `?seed=` given, seed shown in the HUD). `?seed=` and `R`-regenerate are dev-only
+  authoring tools now.
+- Map size 192×192 (brief: 128×128), designed to be pleasant to stroll; the map format must
+  allow growing the world later.
+- Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
+  M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-20 — M1.5 Fixed world
+
+- **Why:** after M1 the user asked for a consistent world that loads straight in from the
+  site URL (no "pick a game → generate"), designed to be beautiful to stroll and ready to be
+  expanded later. Answers: open straight into the world; bake into a map file; 192×192;
+  features left to Claude.
+- **Done:**
+  - Registries: tiles `path` (`=`) and `dock` (`#`), a `mapChar` per tile; object `rock`.
+  - `shared/engine/pathfinding.ts`: 4-connected A* with a binary heap (+ tests).
+  - Generation: `placeDock`, `layPaths`, `scatterRocks` steps; `placeCabin` prefers sites
+    near the lake; config retuned for 192×192 (bigger, more irregular lake).
+    `validate.ts` → `validateMap(snapshot, rules)` usable on loaded maps; new checks
+    `dock-missing`, `trail-unreachable`.
+  - Map file: `core/world/mapFile.ts` (format v1, writer, line-per-row formatter),
+    `parseMapFile.ts` (strict parser, `MapFileError`), `bakedIsland.ts` (loader),
+    `generation/bakeIslandMap.ts` + `scripts/bake-island-map.mjs` (`npm run bake:island`,
+    uses Vite's `runnerImport`). Baked seed 1 (picked from ~24 candidates by contact sheets).
+  - App: `/` = `WorldPage` (full screen, `SiteMenu`), full-screen `RouteLoadingPage`,
+    `IslandRedirectPage` for `/games/island`, `HomePage` removed, catalog points to `/`.
+    `IslandGame` takes an optional `devSeed`; `loadWorld.ts` returns a displayable result;
+    `WorldErrorPanel`, `DevSeedBadge` replace the old error panel / seed label.
+- **Decisions:** D14–D17 in `docs/DECISIONS.md`.
+- **Tuning (40 seeds at 192×192):** 0 failures, ~1.03 attempts, ≤80 ms per world.
+- **Verified:** typecheck, lint, 142 tests, build, format:check pass. Browser
+  (`scripts/browser-check.mjs`, dev server): `/` renders the baked island in ~0.5 s with
+  pixel-identical screenshots across loads; `/games/island` redirects and shows the same
+  island; `/?seed=11` shows the dev preview badge; `/games` renders the list; console clean
+  (no warnings/errors).
+- **Known issues / notes:**
+  - The map JSON is bundled into the world chunk (~1.0 MB / 260 kB gzip total, under the
+    1200 kB warning limit). The generator is bundled too (needed for dev previews; ~20 kB).
+  - Re-baking overwrites hand edits to the map file.
+  - `/games` → Island card navigates to `/` client-side; the world page has no "back" UI
+    besides the Games menu (fine for now).
 
 ### 2026-11-20 — M1 World data & generation
 

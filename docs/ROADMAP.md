@@ -27,3 +27,12 @@ architecture should make each a natural addition.
 - Move to TypeScript 7 when typescript-eslint supports it
 - Minimap built from the registries' `mapColor` (the M1 preview texture already does this)
 - Move to three r183+ once a stable `@react-three/fiber` stops using `THREE.Clock`
+- Load map chunks on demand (fetch per chunk) once the world grows well beyond 192×192
+- Map editing in a visual editor (e.g. import/export the Tiled JSON format) instead of
+  editing `island.map.json` by hand
+
+## World design ideas
+
+- New regions as extra chunks (a second beach, a hill area, a small village)
+- A stream with a bridge (needs a rule change: the lake must stay isolated from the sea)
+- Landmarks along the trails (benches, signposts, a lighthouse on the peninsula)

@@ -6,11 +6,14 @@ import {
   isOnBorder,
   labelRegions,
   toIndex,
+  type GridSize,
+  type TilePoint,
 } from '@/shared/engine/grid';
+import type { IslandConfig } from '../config';
 import { computeBlockedMask } from '../world/collision';
 import { OBJECT_REGISTRY } from '../world/objects';
 import { isLakeTile, isLandTile, isSeaTile, isWalkableTile, TileId } from '../world/tiles';
-import { getDoorFrontTile } from '../world/world';
+import { getDoorFrontTile, type WorldObject } from '../world/world';
 import type { GenerationContext } from './context';
 
 export type ValidationIssueCode =
@@ -18,10 +21,12 @@ export type ValidationIssueCode =
   | 'land-share-out-of-range'
   | 'lake-count'
   | 'lake-touches-sea'
+  | 'dock-missing'
   | 'cabin-missing'
   | 'cabin-not-on-land'
   | 'spawn-missing'
   | 'door-unreachable'
+  | 'trail-unreachable'
   | 'reachable-area-too-small';
 
 export interface ValidationIssue {
@@ -29,9 +34,21 @@ export interface ValidationIssue {
   readonly message: string;
 }
 
-type Check = (context: GenerationContext) => ValidationIssue | null;
+/** What validation needs: satisfied by a generation context and by a loaded map. */
+export interface MapSnapshot {
+  readonly size: GridSize;
+  readonly terrain: Uint8Array;
+  readonly objects: readonly WorldObject[];
+  readonly cabin: WorldObject | null;
+  readonly spawn: TilePoint | null;
+}
+
+type ValidationRules = IslandConfig['validation'];
+type Check = (map: MapSnapshot, rules: ValidationRules) => ValidationIssue | null;
 
 const issue = (code: ValidationIssueCode, message: string): ValidationIssue => ({ code, message });
+const countWhere = (terrain: Uint8Array, predicate: (id: number) => boolean): number =>
+  terrain.reduce((count, id) => count + (predicate(id) ? 1 : 0), 0);
 
 const checkBorders: Check = ({ size, terrain }) => {
   for (let y = 0; y < size.height; y++) {
@@ -47,11 +64,9 @@ const checkBorders: Check = ({ size, terrain }) => {
   return null;
 };
 
-const checkLandShare: Check = ({ terrain, config }) => {
-  const landTiles = terrain.reduce((count, id) => count + (isLandTile(id) ? 1 : 0), 0);
-  const share = landTiles / terrain.length;
-  const { minLandShare, maxLandShare } = config.validation;
-  return share < minLandShare || share > maxLandShare
+const checkLandShare: Check = ({ terrain }, rules) => {
+  const share = countWhere(terrain, isLandTile) / terrain.length;
+  return share < rules.minLandShare || share > rules.maxLandShare
     ? issue('land-share-out-of-range', `Land covers ${(share * 100).toFixed(1)}% of the map`)
     : null;
 };
@@ -75,6 +90,9 @@ const checkLakeIsolatedFromSea: Check = ({ size, terrain }) => {
   return null;
 };
 
+const checkDock: Check = ({ terrain }) =>
+  terrain.includes(TileId.Dock) ? null : issue('dock-missing', 'The lake has no dock');
+
 const checkCabin: Check = ({ size, terrain, cabin }) => {
   if (!cabin) return issue('cabin-missing', 'No suitable spot for the cabin was found');
   const { footprint } = OBJECT_REGISTRY[cabin.kind];
@@ -90,10 +108,11 @@ const checkCabin: Check = ({ size, terrain, cabin }) => {
   return null;
 };
 
-/** BFS from the spawn: the door must be reachable and the player must not be boxed in. */
-const checkReachability: Check = ({ size, terrain, objects, cabin, spawn, config }) => {
-  if (!spawn || !cabin)
+/** BFS from the spawn: door, every trail and dock plank reachable; player not boxed in. */
+const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rules) => {
+  if (!spawn || !cabin) {
     return issue('spawn-missing', 'No walkable spawn tile in front of the door');
+  }
   const blocked = computeBlockedMask(size, terrain, objects);
   const reached = floodFill(size, [toIndex(size, spawn.x, spawn.y)], (i) => blocked[i] === 0);
 
@@ -101,11 +120,15 @@ const checkReachability: Check = ({ size, terrain, objects, cabin, spawn, config
   if (reached[toIndex(size, door.x, door.y)] !== 1) {
     return issue('door-unreachable', 'The cabin door cannot be reached from the spawn');
   }
-
-  const walkableLand = terrain.reduce((count, id) => count + (isWalkableTile(id) ? 1 : 0), 0);
-  const reachedCount = reached.reduce((count, value) => count + value, 0);
-  const share = reachedCount / Math.max(1, walkableLand);
-  return share < config.validation.minReachableShare
+  const strandedTrail = terrain.findIndex(
+    (id, i) => (id === TileId.Path || id === TileId.Dock) && reached[i] !== 1,
+  );
+  if (strandedTrail !== -1) {
+    return issue('trail-unreachable', 'Part of a trail or the dock cannot be reached');
+  }
+  const share =
+    reached.reduce((sum, v) => sum + v, 0) / Math.max(1, countWhere(terrain, isWalkableTile));
+  return share < rules.minReachableShare
     ? issue('reachable-area-too-small', `Only ${(share * 100).toFixed(1)}% of land is reachable`)
     : null;
 };
@@ -115,11 +138,16 @@ const CHECKS: readonly Check[] = [
   checkLandShare,
   checkLakeCount,
   checkLakeIsolatedFromSea,
+  checkDock,
   checkCabin,
   checkReachability,
 ];
 
-/** Returns every invariant the generated map breaks; empty means valid. */
+/** Returns every invariant the map breaks; empty means valid. */
+export function validateMap(map: MapSnapshot, rules: ValidationRules): ValidationIssue[] {
+  return CHECKS.map((check) => check(map, rules)).filter((found) => found !== null);
+}
+
 export function validateGeneration(context: GenerationContext): ValidationIssue[] {
-  return CHECKS.map((check) => check(context)).filter((found) => found !== null);
+  return validateMap(context, context.config.validation);
 }

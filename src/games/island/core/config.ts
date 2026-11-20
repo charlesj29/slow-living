@@ -4,13 +4,18 @@ import type { FractalNoiseOptions } from '@/shared/engine/noise';
 
 export interface IslandConfig {
   readonly map: {
+    /** Size of a generated map (the baked map file defines the live world's size). */
     readonly widthTiles: number;
     readonly heightTiles: number;
     readonly tileSizePx: number;
+    /** Map files store terrain in square chunks of this many tiles, so the world can grow. */
+    readonly chunkSizeTiles: number;
   };
   readonly generation: {
     /** Attempts (original seed + derived retry seeds) before giving up. */
     readonly maxAttempts: number;
+    /** Seed used by `npm run bake:island` when none is given. */
+    readonly authoringSeed: number;
   };
   readonly island: {
     readonly noise: FractalNoiseOptions;
@@ -42,6 +47,28 @@ export interface IslandConfig {
     /** Clear grass rows in front of (below) the door. */
     readonly frontClearanceTiles: number;
     readonly minWaterDistanceTiles: number;
+    /** Preferred maximum distance from the lake, so the cabin overlooks it. */
+    readonly maxLakeDistanceTiles: number;
+  };
+  readonly dock: {
+    readonly lengthTiles: number;
+  };
+  readonly paths: {
+    /** Bends trails; higher = more winding. */
+    readonly meanderNoise: FractalNoiseOptions;
+    readonly meanderStrength: number;
+    readonly grassCost: number;
+    readonly sandCost: number;
+    /** Walking an existing trail is cheap, so trails merge instead of running in parallel. */
+    readonly existingPathCost: number;
+    /** Number of beach destinations for trails from the cabin. */
+    readonly beachTrails: number;
+  };
+  readonly rocks: {
+    readonly clusterNoise: FractalNoiseOptions;
+    readonly clusterThreshold: number;
+    readonly clusterDensity: number;
+    readonly scatteredChance: number;
   };
   readonly trees: {
     readonly forestNoise: FractalNoiseOptions;
@@ -71,64 +98,62 @@ export interface IslandConfig {
   };
 }
 
-const singleOctave = (scale: number): FractalNoiseOptions => ({
+const noise = (scale: number, octaves = 1): FractalNoiseOptions => ({
   scale,
-  octaves: 1,
+  octaves,
   persistence: 0.5,
   lacunarity: 2,
 });
 
 export const ISLAND_CONFIG: IslandConfig = {
-  map: {
-    widthTiles: 128,
-    heightTiles: 128,
-    tileSizePx: 16,
-  },
-  generation: {
-    maxAttempts: 10,
-  },
-  island: {
-    noise: { scale: 0.025, octaves: 5, persistence: 0.5, lacunarity: 2 },
-    radialWeight: 0.55,
-    edgeWaterTiles: 4,
-  },
-  terrain: {
-    deepSeaMax: 0.38,
-    shallowSeaMax: 0.43,
-    sandMax: 0.46,
-  },
+  map: { widthTiles: 192, heightTiles: 192, tileSizePx: 16, chunkSizeTiles: 32 },
+  generation: { maxAttempts: 10, authoringSeed: 1 },
+  island: { noise: noise(0.016, 5), radialWeight: 0.55, edgeWaterTiles: 6 },
+  terrain: { deepSeaMax: 0.38, shallowSeaMax: 0.43, sandMax: 0.46 },
   lake: {
-    minRadius: 5,
-    maxRadius: 8,
-    shapeNoise: { scale: 0.18, octaves: 2, persistence: 0.5, lacunarity: 2 },
-    shapeNoiseAmount: 0.3,
+    minRadius: 10,
+    maxRadius: 13,
+    shapeNoise: noise(0.12, 2),
+    shapeNoiseAmount: 0.38,
     shallowWidthTiles: 1,
     shoreWidthTiles: 1,
-    minCoastGapTiles: 3,
+    minCoastGapTiles: 4,
   },
   cabin: {
     marginTiles: 1,
     frontClearanceTiles: 3,
-    minWaterDistanceTiles: 3,
+    minWaterDistanceTiles: 4,
+    maxLakeDistanceTiles: 22,
+  },
+  dock: { lengthTiles: 4 },
+  paths: {
+    meanderNoise: noise(0.06, 2),
+    meanderStrength: 4,
+    grassCost: 1,
+    sandCost: 3,
+    existingPathCost: 0.4,
+    beachTrails: 2,
+  },
+  rocks: {
+    clusterNoise: noise(0.07, 2),
+    clusterThreshold: 0.72,
+    clusterDensity: 0.25,
+    scatteredChance: 0.002,
   },
   trees: {
-    forestNoise: { scale: 0.045, octaves: 3, persistence: 0.5, lacunarity: 2 },
+    forestNoise: noise(0.032, 3),
     forestThreshold: 0.57,
     forestDensity: 0.7,
-    loneTreeChance: 0.012,
-    speciesNoise: singleOctave(0.03),
+    loneTreeChance: 0.01,
+    speciesNoise: noise(0.022),
   },
   decorations: {
-    flowerPatchNoise: { scale: 0.09, octaves: 2, persistence: 0.5, lacunarity: 2 },
+    flowerPatchNoise: noise(0.07, 2),
     flowerPatchThreshold: 0.66,
     flowerPatchDensity: 0.35,
     scatteredFlowerChance: 0.01,
-    flowerColorNoise: singleOctave(0.05),
+    flowerColorNoise: noise(0.04),
     grassTuftChance: 0.05,
   },
-  validation: {
-    minLandShare: 0.2,
-    maxLandShare: 0.65,
-    minReachableShare: 0.3,
-  },
+  validation: { minLandShare: 0.2, maxLandShare: 0.65, minReachableShare: 0.3 },
 };

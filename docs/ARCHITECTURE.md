@@ -1,7 +1,7 @@
 # Architecture
 
-> Status: M1. Sections marked _(planned)_ describe the design the next milestones will
-> implement; update them as the code lands.
+> Status: M1.5 (fixed world). Sections marked _(planned)_ describe the design the next
+> milestones will implement; update them as the code lands.
 
 ## Layers
 
@@ -17,50 +17,86 @@ each other; the game's root component (`IslandGame.tsx`) composes them. Shared c
 imports a game. All of this is enforced by `no-restricted-imports` blocks in
 `eslint.config.js` and verified by `tests/layer-rules.test.ts`.
 
+## Routes
+
+| Route           | What                                                                                                                         |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `/`             | **The world**, full screen (lazy; full-screen loading screen on first load). Dev only: `?seed=N` previews a generated island |
+| `/games`        | Games list (inside the site `Layout` with header)                                                                            |
+| `/games/island` | Redirects to `/` (keeps the query string)                                                                                    |
+| anything else   | 404 page                                                                                                                     |
+
 ## Folder map
 
 ```
 src/
   main.tsx                  # Entry: mounts <App/>
-  app/                      # App shell: App, router (with HydrateFallback), Layout, global.css
-  pages/                    # Route components; IslandGamePage reads ?seed=
+  app/                      # App shell: router (HydrateFallback), Layout, SiteMenu, global.css
+  pages/                    # WorldPage (/), GamesIndexPage, IslandRedirectPage, loading/error/404
   shared/
-    engine/                 # Reusable pure TS: math, random (mulberry32, seeds), noise, grid
-    render/                 # (planned) reusable R3F pieces: pixel-perfect camera, sprite atlas
+    engine/                 # Pure TS: math, random, noise, grid, pathfinding (A*)
+    render/                 # (planned, M2) reusable R3F pieces: pixel-perfect camera, sprite atlas
     ui/                     # (planned) shared UI components
   games/
     catalog.ts              # Plain metadata for every game (used by the games list)
     island/
       index.ts              # Public API: IslandGame
-      IslandGame.tsx        # Generates the world for a seed; composes render + UI
+      IslandGame.tsx        # Loads the world; composes render + UI
+      loadWorld.ts          # Baked island, or a generated one for a dev seed; never throws
       state.ts              # zustand store, UI-facing state only (unused until M4)
+      data/island.map.json  # THE world: baked, committed map file (chunked, readable)
       core/
         config.ts           # IslandConfig: every tunable number
-        world/              # tiles.ts, objects.ts (registries), world.ts (World type), collision.ts
-        generation/         # context, steps/*, validate, pipeline, generateWorld
+        world/              # tiles, objects (registries), world (type), collision,
+                            #   mapFile (format + writer), parseMapFile, bakedIsland (loader)
+        generation/         # authoring tool: context, steps/*, validate, pipeline,
+                            #   generateWorld, bakeIslandMap
         systems/            # (planned, M3) movement, collision response, animation
       render/               # GameCanvas, FitMapCamera, WorldColorMap (+ texture builder)
       assets/               # (planned, M2) procedural sprite atlas
-      ui/                   # SeedLabel, GenerationErrorPanel, islandUi.css
+      ui/                   # DevSeedBadge, WorldErrorPanel, islandUi.css
 tests/                      # Cross-cutting tests (architecture rules)
-scripts/browser-check.mjs   # Dev-only headless Chrome check (screenshot + console)
+scripts/
+  bake-island-map.mjs       # npm run bake:island [-- seed]: generator -> data/island.map.json
+  browser-check.mjs         # Dev-only headless Chrome check (screenshot + console)
 ```
 
 ## Data flow
 
 ```mermaid
 flowchart LR
-  URL["URL ?seed="] --> Page["IslandGamePage<br/>parseSeed / random"]
-  Page -- "seed prop" --> Game["IslandGame"]
-  Game --> Gen["core/generation<br/>generateWorld (pure)"]
-  Gen -- "World (plain data)" --> Render["render/*<br/>GameCanvas"]
-  Game --> UI["ui/*<br/>SeedLabel, error panel"]
+  subgraph Authoring["Authoring (dev time)"]
+    Seed["seed"] --> Gen["core/generation<br/>generateWorld"]
+    Gen --> Bake["bakeIslandMap<br/>(npm run bake:island)"]
+    Bake --> File["data/island.map.json<br/>(committed, hand-editable)"]
+  end
+  File --> Parse["core/world<br/>parseMapFile"]
+  Parse -- "World (plain data)" --> Game["IslandGame"]
+  DevSeed["dev only: ?seed="] -.-> Gen2["generateWorld (live preview)"] -.-> Game
+  Game --> Render["render/*<br/>GameCanvas"]
+  Game --> UI["ui/*<br/>badges, error panel"]
   Input["(M3) input"] -.-> Loop["(M3) fixed-timestep loop<br/>core/systems"]
-  Loop -.-> Entities["(M3) player + entities<br/>plain mutable objects"]
+  Loop -.-> Entities["(M3) player<br/>plain mutable objects"]
   Entities -.-> Render
   Loop -. "UI-relevant changes only" .-> Store["state.ts (zustand)"]
   Store -.-> UI
 ```
+
+## The world is a baked map file
+
+- The live island is **not generated at runtime**. `data/island.map.json` is produced once by
+  the generator (`npm run bake:island`), committed, and loaded by `loadBakedIsland()`.
+  Changing generation code never moves anything in the live world; only re-baking or editing
+  the file does. `bakedIsland.test.ts` guarantees the committed file passes every invariant.
+- **Format (version 1):** header (`chunkSize`, `widthChunks`, `heightChunks`, `spawn`,
+  `source` seed info) + `chunks[]`. Each chunk has chunk coordinates `x`/`y`, `rows` (one
+  string per tile row, one character per tile — `mapChar` in the tile registry) and
+  `objects` as `[kind, localX, localY]`. Written one row/object per line for readable diffs.
+- **Tile characters:** `~` deep sea, `-` shallow sea, `.` sand, `,` grass, `L` lake water,
+  `l` lake shallows, `=` path, `#` dock.
+- `parseMapFile` checks everything (version, sizes, known tiles/objects, overlaps, exactly
+  one cabin, spawn in bounds) and throws `MapFileError` with a precise message, which the UI
+  shows in `WorldErrorPanel`.
 
 ## World data
 
@@ -72,47 +108,66 @@ flowchart LR
 - Rules about tiles and objects come from the registries (`isWalkableTile`, `waterBody`,
   `blocksMovement`, `footprint`, `door`), never from comparing ids in logic.
 
-## Generation pipeline
+## Generation pipeline (authoring tool)
 
-`shapeIsland → assignTerrain → carveLake → placeCabin → scatterTrees → scatterFlowers →
-chooseSpawn → validate`
+`shapeIsland → assignTerrain → carveLake → placeCabin → placeDock → layPaths → scatterRocks →
+scatterTrees → scatterFlowers → chooseSpawn → validate`
 
-| Step             | What it does                                                                                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shapeIsland`    | Elevation = fractal noise blended with a radial gradient (`radialWeight`)                                                                                                               |
-| `assignTerrain`  | Elevation thresholds → deep/shallow sea, sand, grass; forced deep-sea edge band; keep the largest landmass; fill water not connected to the edge                                        |
-| `carveLake`      | Noise-bent blob placed where the coast distance leaves room for lake + shore + gap; 8-way shallows rim and sand shore                                                                   |
-| `placeCabin`     | Random site where footprint + margin + front clearance are grass and away from water; reserves that area                                                                                |
-| `scatterTrees`   | Forest noise above a threshold → dense trees; meadows → rare lone trees; species noise groups oaks/pines                                                                                |
-| `scatterFlowers` | Patch noise → flower patches (colour from a colour noise), scattered flowers, grass tufts                                                                                               |
-| `chooseSpawn`    | Tile in front of the cabin door if walkable                                                                                                                                             |
-| `validate`       | Borders deep sea, land share in range, exactly one lake not touching the sea (8-way), cabin on land, door reachable from spawn (BFS) and at least `minReachableShare` of land reachable |
+| Step             | What it does                                                                                                                                                                                                               |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shapeIsland`    | Elevation = fractal noise blended with a radial gradient (`radialWeight`)                                                                                                                                                  |
+| `assignTerrain`  | Thresholds → deep/shallow sea, sand, grass; deep-sea edge band; keep the largest landmass; fill water not connected to the edge                                                                                            |
+| `carveLake`      | Noise-bent blob where the coast distance leaves room for lake + shore + gap; 8-way shallows rim and sand shore                                                                                                             |
+| `placeCabin`     | Site where footprint + margin + front clearance are grass, away from water, preferably near the lake; reserves the area                                                                                                    |
+| `placeDock`      | Straight dock from a lake-shore sand tile into open water, on the side closest to the cabin door                                                                                                                           |
+| `layPaths`       | A* trails from the door to the dock and to beaches (closest, then farthest), noise-perturbed costs so they wind, existing trail is cheap so trails merge; trail tiles reserved                                             |
+| `scatterRocks`   | Rock outcrops from cluster noise plus lone rocks, on free grass/sand                                                                                                                                                       |
+| `scatterTrees`   | Forest noise → dense trees; meadows → rare lone trees; species noise groups oaks/pines                                                                                                                                     |
+| `scatterFlowers` | Patch noise → flower patches (colour from a colour noise), scattered flowers, grass tufts                                                                                                                                  |
+| `chooseSpawn`    | Tile in front of the cabin door if walkable                                                                                                                                                                                |
+| `validate`       | `validateMap` (works on generation contexts and loaded maps): deep-sea borders, land share, one lake not touching the sea, a dock, cabin on land, door + every trail/dock tile reachable from spawn, enough reachable land |
 
 - Each step is a pure `(context) => context` function; it copies the arrays it changes.
-- Each step draws from its own RNG stream, `createRng(deriveSeed(seed, stepName))`, so
-  changing one step's randomness doesn't reshuffle the others.
-- `generateWorld(seed, config)` runs the pipeline; on validation failure it retries with
-  `deriveSeed(seed, 'retry-N')` up to `generation.maxAttempts`, then returns
-  `{ ok: false, issues }`, which `IslandGame` shows in `GenerationErrorPanel`.
+- Each step draws from its own RNG stream, `createRng(deriveSeed(seed, stepName))`.
+- `generateWorld` retries with `deriveSeed(seed, 'retry-N')` up to `generation.maxAttempts`.
 
 ## Game loop _(planned, M3)_
 
 - R3F `useFrame` runs every rendered frame, but game logic advances in **fixed steps**
   (accumulator pattern), so movement is frame-rate independent.
 - Logic mutates the player/entities directly; nothing per-frame goes through React state.
-- Rendering reads the latest state. Only UI-relevant values (seed, debug flag, player tile for
-  the overlay) are pushed into zustand, and only when they change.
+- Only UI-relevant values (debug flag, player tile for the overlay) go into zustand.
 
 ## Rendering
 
-- **Now (M1 preview):** one plane with a `DataTexture` of one texel per tile (nearest
-  filtering); drei `OrthographicCamera` zoomed to fit the map. 1 world unit = 1 source pixel.
-- **(planned, M2):** sprite atlas by key, chunked tilemap, instanced decorations, y-sorted
-  depth, animated water, pixel-perfect camera.
+- **Now (preview):** one plane with a `DataTexture` of one texel per tile (nearest filtering);
+  drei `OrthographicCamera` zoomed to fit. 1 world unit = 1 source pixel.
+- **(planned, M2):** sprite atlas by key, chunked tilemap, autotiled shorelines, instanced
+  decorations, y-sorted depth, animated water, pixel-perfect camera.
 - Textures created by hand are disposed in an effect cleanup; JSX-declared geometries and
   materials are disposed by R3F.
 
 ## How-to guides
+
+### Re-bake or redesign the island
+
+1. Preview candidates in dev: `npm run dev`, open `/?seed=N` (a "Dev preview" badge shows).
+2. Bake the chosen seed: `npm run bake:island -- N` (or set `generation.authoringSeed`).
+3. Review the diff of `data/island.map.json`, run `npm run check`, commit.
+   Re-baking **replaces hand edits** — make generator changes first, hand edits last.
+
+### Edit the island by hand
+
+Edit `src/games/island/data/island.map.json`: change tile characters in a chunk's `rows`, or
+add/remove `[kind, x, y]` entries in its `objects` (coordinates are local to the chunk).
+`npm test` (`bakedIsland.test.ts`) tells you if an edit breaks an invariant.
+
+### Grow the world
+
+Add chunks to the map file and update `widthChunks`/`heightChunks`; every chunk inside the
+rectangle must exist. Growing east/south only needs new chunks; growing west/north means
+shifting chunk coordinates (and `spawn`) by the added amount. If the world gets large,
+the next step is loading chunks on demand instead of one JSON import (see ROADMAP).
 
 ### Add a page
 
@@ -124,15 +179,15 @@ chooseSpawn → validate`
 1. Create `src/games/<name>/` with `core/`, `render/`, `ui/`, `state.ts`, `index.ts` and a
    root component composing render + UI. Export only the root component from `index.ts`.
 2. Add an entry to `GAME_CATALOG` in `src/games/catalog.ts`.
-3. Add `src/pages/<Name>GamePage.tsx` and a lazy route `games/<name>` in the router.
+3. Add a page wrapper and a lazy route `games/<name>` in the router.
 4. Lint layer rules apply automatically through the `src/games/*/...` globs.
-5. Reuse `shared/engine` (random, noise, grid) instead of copying it.
+5. Reuse `shared/engine` (random, noise, grid, pathfinding) instead of copying it.
 
 ### Add a tile type
 
 1. Add an id to `TileId` and a definition to `TILE_DEFINITIONS` (same index) in
-   `core/world/tiles.ts`: key, name, `isWalkable`, `waterBody`, `spriteKey`, `mapColor`.
-2. Produce it in a generation step (e.g. a threshold in `assignTerrain` or a new step).
+   `core/world/tiles.ts`, including a unique `mapChar` for map files.
+2. Produce it in a generation step, or paint it into the map file by hand.
 3. (M2+) Add its sprite to the atlas under `spriteKey`. Collision and validation pick up
    `isWalkable`/`waterBody` automatically.
 
@@ -140,8 +195,8 @@ chooseSpawn → validate`
 
 1. Add the kind to `OBJECT_KINDS` and a definition to `OBJECT_REGISTRY` in
    `core/world/objects.ts`: category, footprint, `blocksMovement`, `spriteKey`, `mapColor`.
-2. Place it from a step using `isAreaFree` / `addObject` (`generation/objectLayer.ts`). New
-   flowers or trees are picked up through `FLOWER_KINDS` / `TREE_KINDS` automatically.
+2. Place it from a step (`isAreaFree` / `addObject` in `generation/objectLayer.ts`) or add it
+   to the map file by hand.
 3. (M2+) Add its sprite under `spriteKey`.
 
 ### Add a generation step
@@ -149,7 +204,7 @@ chooseSpawn → validate`
 1. Create `core/generation/steps/<name>.ts` exporting a `GenerationStep`; copy any arrays you
    change; get randomness from `createStepRng(context, '<name>')`.
 2. Insert it in `GENERATION_STEPS` (`pipeline.ts`); add tunables to `IslandConfig`.
-3. If it introduces an invariant, add a check to `validate.ts` and a test.
+3. If it introduces an invariant, add a check to `validate.ts` and a test. Re-bake.
 
 ### Add a system _(planned, M3)_
 

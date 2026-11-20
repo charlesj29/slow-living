@@ -18,7 +18,7 @@ export function RouteErrorPage(): JSX.Element {
       <h1>Something went wrong</h1>
       <p>{describeError(error)}</p>
       <p>
-        <Link to="/">Back to home</Link>
+        <Link to="/">Back to the island</Link>
       </p>
     </div>
   );

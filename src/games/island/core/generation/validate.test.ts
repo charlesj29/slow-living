@@ -66,14 +66,34 @@ describe('validateGeneration', () => {
     expect(codes({ ...base, spawn: null })).toContain('spawn-missing');
   });
 
-  it('rejects a spawn boxed in by trees', () => {
+  it('rejects a map without a dock', () => {
+    const broken = withTerrain(base, (t) =>
+      t.forEach((id, i) => id === TileId.Dock && (t[i] = TileId.LakeWater)),
+    );
+    expect(codes(broken)).toContain('dock-missing');
+  });
+
+  describe('with the spawn boxed in by trees', () => {
     const spawn = base.spawn ?? { x: 0, y: 0 };
     const fence: WorldObject[] = [
       { x: spawn.x - 1, y: spawn.y },
       { x: spawn.x + 1, y: spawn.y },
       { x: spawn.x, y: spawn.y + 1 },
     ].map((p, i) => ({ id: base.objects.length + i, kind: 'tree_pine', ...p }));
-    const broken = { ...base, objects: [...base.objects, ...fence] };
-    expect(codes(broken)).toContain('reachable-area-too-small');
+    const fenced = { ...base, objects: [...base.objects, ...fence] };
+
+    it('reports trails that can no longer be reached', () => {
+      expect(codes(fenced)).toContain('trail-unreachable');
+    });
+
+    it('reports a too-small reachable area once no trails remain', () => {
+      const trailless = withTerrain(fenced, (t) =>
+        t.forEach((id, i) => {
+          if (id === TileId.Path) t[i] = TileId.Grass;
+          if (id === TileId.Dock) t[i] = TileId.LakeWater;
+        }),
+      );
+      expect(codes(trailless)).toContain('reachable-area-too-small');
+    });
   });
 });

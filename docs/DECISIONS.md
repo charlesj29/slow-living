@@ -55,7 +55,8 @@ alternatives → consequences.
   public `index.ts`. Game routes are lazy-loaded.
 - **Alternatives:** export metadata from each game's `index.ts` (relies on tree-shaking to
   keep Three.js out of the main chunk).
-- **Consequences:** adding a game = catalog entry + route + page wrapper.
+- **Consequences:** adding a game = catalog entry + route + page wrapper. (Since D15 the
+  island itself lives at `/`.)
 
 ## D7 — Chunk-size warning limit 1200 kB
 
@@ -123,3 +124,51 @@ alternatives → consequences.
 - **Alternatives:** one mesh per tile (16k meshes, far too slow); building the M2 tilemap now.
 - **Consequences:** one draw call, trivially 60 FPS; replaced in M2. `mapColor` stays useful
   for a future minimap.
+
+## D14 — The live world is a baked, chunked map file (user decision)
+
+- **Context:** the user wants the same island on every visit, designed to be pleasant to
+  stroll, and expandable later. A fixed seed generated at runtime would silently change the
+  whole layout whenever generation code changes.
+- **Decision:** the generator becomes an authoring tool. `npm run bake:island [-- seed]`
+  writes `src/games/island/data/island.map.json`; the game only parses that file. Format v1:
+  square chunks (32×32) with chunk coordinates, terrain rows as strings (one `mapChar` per
+  tile), objects as `[kind, localX, localY]`, written one row/object per line. A strict
+  parser reports precise errors; a test asserts the committed file passes every invariant.
+- **Alternatives:** fixed seed at runtime (fragile); binary/base64 terrain (smaller, but not
+  readable or diffable); Tiled editor format (needs an external tool now — possible later).
+- **Consequences:** layout is stable and hand-editable; growing the world = adding chunks.
+  Re-baking overwrites hand edits. The map JSON is bundled into the world chunk (fine at
+  192×192; load chunks on demand if the world becomes much larger).
+
+## D15 — The site opens straight into the world (user decision)
+
+- **Context:** the user doesn't want "choose a game → generate"; visitors should land in the
+  world.
+- **Decision:** `/` is the full-screen world (lazy route with a full-screen loading screen as
+  `HydrateFallback`), with a small floating `SiteMenu` (Games). `/games` stays inside the site
+  layout for future games; `/games/island` redirects to `/` keeping the query string (a
+  `<Navigate>` component — a loader-only route made react-router warn). `HomePage` removed.
+  `?seed=` previews are honoured only when `import.meta.env.DEV`.
+- **Alternatives:** home page with a Play button; world behind the home page text.
+- **Consequences:** the island's catalog entry points to `/`.
+
+## D16 — 192×192 map, authoring seed 1 (user decision + curation)
+
+- **Context:** the user chose 192×192 (brief default 128×128).
+- **Decision:** generator retuned for 192 (noise scales, edge band, bigger and more irregular
+  lake, forest scales). Seed 1 picked from ~24 candidates rendered as contact sheets: cabin
+  beside the lake, forested peninsula beyond it, sandy western bays, trails crossing north.
+- **Consequences:** about 3–4 minutes to walk across at the planned speed.
+
+## D17 — Stroll features: trails, dock, rocks; no stream
+
+- **Context:** the user delegated which features make the island nicer to walk.
+- **Decision:** dirt trails (A* with noise-perturbed costs from the cabin door to the dock
+  and to the closest and farthest beaches; trails merge because existing trail is cheap;
+  only grass becomes path so trails fade into sand), a 4-plank dock built from the shore
+  into open lake water on the cabin's side, rock outcrops. Smooth shorelines (autotiling) are
+  part of M2. New validation: a dock exists; every trail and dock tile is reachable.
+- **Alternatives:** a stream from the lake to the sea — rejected, it breaks the brief's "lake
+  does not touch the sea" invariant; a spring-fed stream into the lake looked unmotivated.
+- **Consequences:** `shared/engine/pathfinding.ts` (A*) is available for NPCs later.

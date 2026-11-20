@@ -23,6 +23,8 @@ export interface GenerationContext {
   /** 1 = keep free of trees and decorations (around the cabin, in front of the door). */
   readonly reserved: Uint8Array;
   readonly lakeCenter: TilePoint | null;
+  /** Shore tile where the dock starts; trails lead here. */
+  readonly dockRoot: TilePoint | null;
   readonly cabin: WorldObject | null;
   readonly spawn: TilePoint | null;
 }
@@ -42,6 +44,7 @@ export function createInitialContext(seed: number, config: IslandConfig): Genera
     occupancy: new Int32Array(cells).fill(NO_OBJECT),
     reserved: new Uint8Array(cells),
     lakeCenter: null,
+    dockRoot: null,
     cabin: null,
     spawn: null,
   };

@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router';
 import { GamesIndexPage } from '@/pages/GamesIndexPage';
-import { HomePage } from '@/pages/HomePage';
+import { IslandRedirectPage } from '@/pages/IslandRedirectPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { RouteErrorPage } from '@/pages/RouteErrorPage';
 import { RouteLoadingPage } from '@/pages/RouteLoadingPage';
@@ -9,22 +9,26 @@ import { Layout } from './Layout';
 export const router = createBrowserRouter([
   {
     path: '/',
-    Component: Layout,
     ErrorBoundary: RouteErrorPage,
     // Rendered while lazy routes load when the app is opened directly on them.
     HydrateFallback: RouteLoadingPage,
     children: [
-      { index: true, Component: HomePage },
-      { path: 'games', Component: GamesIndexPage },
       {
-        path: 'games/island',
-        // Lazy so Three.js is only downloaded when a game is opened.
+        // The site opens straight into the world, full screen (no site header).
+        index: true,
         lazy: async () => {
-          const { IslandGamePage } = await import('@/pages/IslandGamePage');
-          return { Component: IslandGamePage };
+          const { WorldPage } = await import('@/pages/WorldPage');
+          return { Component: WorldPage };
         },
       },
-      { path: '*', Component: NotFoundPage },
+      {
+        Component: Layout,
+        children: [
+          { path: 'games', Component: GamesIndexPage },
+          { path: 'games/island', Component: IslandRedirectPage },
+          { path: '*', Component: NotFoundPage },
+        ],
+      },
     ],
   },
 ]);

@@ -1,7 +1,7 @@
 # threejs-project
 
 A small games website built with React, TypeScript and Three.js (via React Three Fiber).
-The first game, **Island**, is a procedurally generated 2D top-down world.
+The site opens straight into **Island**, a hand-picked 2D top-down world to stroll around.
 
 ## Requirements
 
@@ -28,13 +28,22 @@ npm install
 | `npm test`             | Run unit tests once (Vitest)                         |
 | `npm run test:watch`   | Run tests in watch mode                              |
 | `npm run check`        | typecheck + lint + test + build (run before commits) |
+| `npm run bake:island`  | Regenerate the island map file from a seed           |
 
 ## Pages
 
-- `/` — home
+- `/` — the island world, full screen (the same island on every visit)
 - `/games` — list of games
-- `/games/island` — the Island game. `?seed=1234` (or any word, e.g. `?seed=palm`) picks the
-  world; without it a random seed is used and shown top-left
+- `/games/island` — redirects to `/`
+- Dev only: `/?seed=1234` (or a word, e.g. `?seed=palm`) previews a freshly generated island
+
+## The island map
+
+The world is loaded from `src/games/island/data/island.map.json`, a baked map file that is
+committed to the repo (readable: one character per tile, see `docs/ARCHITECTURE.md`).
+
+- `npm run bake:island -- <seed>` regenerates it from a seed (this replaces hand edits).
+- You can also edit the file by hand; `npm test` checks the map is still valid.
 
 ## Documentation
 
