@@ -2,7 +2,7 @@ import { useMemo, type JSX } from 'react';
 import { loadWorld } from './loadWorld';
 import { GameCanvas } from './render/GameCanvas';
 import { DevSeedBadge } from './ui/DevSeedBadge';
-import { LookAroundHint } from './ui/LookAroundHint';
+import { ControlsHint } from './ui/ControlsHint';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
 
 export interface IslandGameProps {
@@ -24,7 +24,7 @@ export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
   return (
     <>
       <GameCanvas world={result.world} />
-      <LookAroundHint />
+      <ControlsHint />
       {devSeed !== undefined && <DevSeedBadge seed={devSeed} />}
     </>
   );

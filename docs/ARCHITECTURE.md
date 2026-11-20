@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: M2.5 (classic art pass). Sections marked _(planned)_ describe the design the next
+> Status: M3 (player). Sections marked _(planned)_ describe the design the next
 > milestones will implement; update them as the code lands.
 
 ## Layers
@@ -51,13 +51,17 @@ src/
                             #   mapFile (format + writer), parseMapFile, bakedIsland (loader)
         generation/         # authoring tool: context, steps/*, validate, pipeline,
                             #   generateWorld, bakeIslandMap
-        systems/            # (planned, M3) movement, collision response, animation
+        entities/           # player.ts (plain mutable player, feet hitbox)
+        systems/            # controls (bindings, intent), movement (collision), animation
+        game/               # gameState.ts: createGameState, stepGame, advanceGame
       render/               # GameCanvas, Tilemap (+ tileLayers, tilemapGeometry), spriteMaterial,
                             #   WorldObjects (+ objectSprites, objectSpriteKeys), worldSpace,
-                            #   spriteCatalog, FreeLookCamera (temporary until M3)
+                            #   spriteCatalog, spriteGeometry, GameLoop, PlayerSprite,
+                            #   FollowCamera, useKeyboardInput
       assets/               # palette (ramps), paint helpers, foliage (clump shading),
-                            #   paintTiles/Transitions/Objects/Structures/Cabin, islandSprites
-      ui/                   # DevSeedBadge, WorldErrorPanel, LookAroundHint (temporary), islandUi.css
+                            #   paintTiles/Transitions/Objects/Structures/Cabin, playerPixels,
+                            #   paintPlayer, islandSprites
+      ui/                   # DevSeedBadge, WorldErrorPanel, ControlsHint, islandUi.css
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
   bake-island-map.mjs       # npm run bake:island [-- seed]: generator -> data/island.map.json
@@ -78,9 +82,10 @@ flowchart LR
   DevSeed["dev only: ?seed="] -.-> Gen2["generateWorld (live preview)"] -.-> Game
   Game --> Render["render/*<br/>GameCanvas"]
   Game --> UI["ui/*<br/>badges, error panel"]
-  Input["(M3) input"] -.-> Loop["(M3) fixed-timestep loop<br/>core/systems"]
-  Loop -.-> Entities["(M3) player<br/>plain mutable objects"]
-  Entities -.-> Render
+  Input["keyboard input"] --> Loop["fixed-timestep loop<br/>core/game + core/systems"]
+  Game --> Loop
+  Loop --> Entities["player<br/>plain mutable object"]
+  Entities --> Render
   Loop -. "UI-relevant changes only" .-> Store["state.ts (zustand)"]
   Store -.-> UI
 ```
@@ -135,12 +140,32 @@ scatterRocks → scatterTrees → scatterFlowers → chooseSpawn → validate`
 - Each step draws from its own RNG stream, `createRng(deriveSeed(seed, stepName))`.
 - `generateWorld` retries with `deriveSeed(seed, 'retry-N')` up to `generation.maxAttempts`.
 
-## Game loop _(planned, M3)_
+## Game loop
 
-- R3F `useFrame` runs every rendered frame, but game logic advances in **fixed steps**
-  (accumulator pattern), so movement is frame-rate independent.
-- Logic mutates the player/entities directly; nothing per-frame goes through React state.
-- Only UI-relevant values (debug flag, player tile for the overlay) go into zustand.
+```mermaid
+flowchart LR
+  Keys["window keydown/keyup<br/>render/useKeyboardInput"] --> Input["InputState<br/>(shared/engine/input)"]
+  Frame["useFrame (GameLoop, priority −2)"] --> Clock["advanceClock<br/>fixed 1/60 s steps"]
+  Clock --> Step["stepGame"]
+  Input --> Step
+  Step --> Intent["readMovementIntent"] --> Move["movePlayer<br/>collision + sliding"] --> Anim["updatePlayerAnimation"]
+  Move --> Player["Player (mutable)"]
+  Player --> Sprite["PlayerSprite<br/>interpolated, depth by feet"]
+  Player --> Cam["FollowCamera (priority −1)"]
+```
+
+- `GameCanvas` creates one `GameState` per world (`createGameState`): world, player, input,
+  fixed-step clock, interpolation factor. It is a plain mutable object, never React state.
+- Each rendered frame, `GameLoop` calls `advanceGame(state, delta)`, which runs the owed
+  fixed steps (`stepGame`: read intent → face → `movePlayer` → `updatePlayerAnimation`) and
+  stores the interpolation factor. Then `FollowCamera` eases towards the interpolated player
+  position, and `PlayerSprite` draws it (pixel-snapped, facing strip, walk frame,
+  `standingSpriteZ(feet)`).
+- **Controls:** WASD/arrows walk (8-way, normalised speed; facing = most recently pressed
+  direction), Shift runs, +/− zoom. Losing window focus releases all keys.
+- **Collision:** a 10×6 px feet hitbox against `world.blocked`; X and Y move separately
+  (wall sliding), stop flush at tile edges, and nudge around corners clipped by ≤ 5 px.
+- Only UI-relevant values (from M4: the debug flag) go into zustand.
 
 ## Rendering
 
@@ -154,7 +179,7 @@ flowchart LR
   World --> Objs["objectSprites<br/>positions + depth"]
   Atlas --> Objs
   Objs --> Inst["WorldObjects<br/>1 InstancedMesh per sprite, spriteMaterial (flower uFrame)"]
-  Cam["PixelPerfectCamera<br/>(FreeLookCamera until M3)"] --> Canvas["GameCanvas (flat, linear)"]
+  Cam["PixelPerfectCamera<br/>(driven by FollowCamera)"] --> Canvas["GameCanvas (flat, linear)"]
   Tilemap --> Canvas
   Inst --> Canvas
 ```
@@ -183,8 +208,7 @@ flowchart LR
   materials use hard alpha (`alphaTest` / `discard`), so nothing needs sorting.
 - **Camera:** `PixelPerfectCamera` (shared) keeps whole device pixels per source pixel, snaps
   to the device-pixel grid (half-pixel fix for odd buffers) and clamps to the map. The scale is
-  `autoPixelScale` (~20 tiles across, ≥11 tall) plus a +/− offset. Until M3 it is driven by
-  the temporary `FreeLookCamera` (arrows/WASD); M3 replaces that with a follow camera.
+  `autoPixelScale` (~20 tiles across, ≥11 tall) plus a +/− offset, driven by `FollowCamera`.
 - **Colour:** the canvas is `flat` + `linear`, so painted colours reach the screen unchanged.
 - **Cleanup:** the atlas texture, chunk geometries, both sprite materials and the sprite
   geometries are disposed in effect cleanups; R3F disposes JSX-declared objects.
@@ -265,10 +289,17 @@ dither). Edge and corner sprites are generated for all directions automatically.
 2. Insert it in `GENERATION_STEPS` (`pipeline.ts`); add tunables to `IslandConfig`.
 3. If it introduces an invariant, add a check to `validate.ts` and a test. Re-bake.
 
-### Add a system _(planned, M3)_
+### Add a system
 
-Create `core/systems/<name>.ts` with a pure `update(state, dt)` function, add a unit test, and
-call it from the fixed-step update in order.
+Create `core/systems/<name>.ts` with a pure function that mutates game objects for one fixed
+step (`(…, stepSeconds) => void`), test it with `systems/testWorld.ts`, and call it from
+`stepGame` in `core/game/gameState.ts` in the right order (input → movement → animation).
+Put new tunables in `IslandConfig`.
+
+### Add a control
+
+Add the action to `IslandAction` and a key to `ISLAND_KEY_BINDINGS` (`core/systems/controls.ts`),
+read it in `readMovementIntent` (or a new intent reader), and update `ui/ControlsHint`.
 
 ### Add or change a layer rule
 

@@ -2,26 +2,24 @@
 
 ## Current status
 
-- **Milestone:** M2.5 — Classic art pass ✅ complete (user request). Next: **M3 — Player**.
-- **What works:** the site (`/`) opens on the baked 192×192 island in a classic
-  handheld-RPG-inspired pixel style (original art, painted in code): bright palette, dark
-  outlines, clumpy leaf shading, patterned grass/sand, wave-glyph water with two-tone foam.
-  Big 2×2 oaks and pines (walk-behind crowns), small 1×2 trees and bushes; forests are a mix of
-  dense interlocking canopy and loose clusters; flowers sway (4-frame animation); the cabin has
-  a fenced front yard with a gate gap at the trail and a mailbox. Handheld-like zoom (~20 tiles
-  across, scales with the window; +/− adjusts). Temporary free-look camera (arrows/WASD).
-  ~240 FPS on GPU; production console empty. 199 tests.
-- **Exact next step:** present the M3 plan to the user and wait for OK. Expected M3 scope:
-  core input mapping (keyboard → movement intent, testable), fixed-timestep loop in
-  `shared/engine` (accumulator), player entity (plain mutable object) with position in map
-  pixels, 4-direction facing and walk animation state, movement + tile collision with wall
-  sliding (axis-separated AABB vs `world.blocked`, small feet hitbox), spawn at `world.spawn`,
-  player sprite sheet painted in `assets/` in the same classic style (outlined, 4 directions ×
-  walk frames), drawn with `standingSpriteZ(feet)` so crowns/roof/fence occlude correctly,
-  smooth follow camera (snapped, clamped, using `autoPixelScale` + zoom offset) replacing
-  `FreeLookCamera` + `LookAroundHint`. Tests: collision (water/trees/cabin/rock/fence/mailbox
-  block; grass/flowers/sand/path/dock walkable), sliding, fixed-step determinism, input
-  mapping, animation state.
+- **Milestone:** M3 — Player ✅ complete. Next: **M4 — Polish & handover**.
+- **What works:** you arrive in front of the cabin door as an explorer (orange cap and jacket,
+  dark brown hair, brown backpack — the user's choices) and walk with WASD/arrow keys, Shift to
+  run. 4-direction facing (most recently pressed key wins) with a stand/step walk cycle;
+  diagonal movement at the same speed; tile collision on a small feet hitbox with wall sliding
+  and corner nudging; water, trees, rocks, bushes, the cabin, fence and mailbox block; grass,
+  flowers, sand, trails and the dock are walkable. Fixed 60 Hz logic with render
+  interpolation; the player is depth-sorted by the feet like every other standing sprite.
+  Smooth pixel-perfect follow camera clamped to the map (handheld-like zoom, +/−). Controls
+  hint at the bottom. ~240 FPS on GPU; production console empty. 244 tests.
+- **Exact next step:** present the M4 plan to the user and wait for OK. Expected M4 scope
+  (from the brief, adjusted for the fixed world): HUD polish (controls hint exists; decide on a
+  title/location label — no seed in production), dev-only debug overlay on F3 (FPS, player
+  tile, collision tiles drawn over the map) and dev-only R (new random `?seed=` preview),
+  zustand store for UI-facing state (debug flag), performance check on the real GPU path
+  (60 FPS target; currently ~240 headless), resource-cleanup check (mount/unmount via
+  navigating `/` ↔ `/games` repeatedly, watch `renderer.info` memory counts), final docs
+  pass (README, ARCHITECTURE, ROADMAP) and handover notes.
 
 ## Milestones
 
@@ -36,7 +34,7 @@
       ortho camera
 - [x] **M2.5 — Classic art pass (user request):** handheld-RPG-inspired original art, big
       2×2 trees, mixed forests, swaying flowers, cabin fence + mailbox, handheld-like zoom
-- [ ] **M3 — Player:** input, 4-direction walk animation, movement + collision with sliding,
+- [x] **M3 — Player:** input, 4-direction walk animation, movement + collision with sliding,
       spawn at door, camera follow with bounds
 - [ ] **M4 — Polish & handover:** HUD (controls hint), debug overlay (F3), dev regenerate key
       (R → new dev-preview seed), 60 FPS check, resource cleanup check, final docs + roadmap
@@ -51,10 +49,41 @@
   allow growing the world later.
 - Classic handheld-RPG-inspired pixel art (Pokémon Emerald as a style reference only, no
   copying); big 2×2 trees; handheld-like zoom (~20 tiles across).
+- Player character: explorer with a cap, dark brown hair, orange/yellow outfit; walk + hold
+  Shift to run.
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-20 — M3 Player
+
+- **User choices:** explorer with a cap; dark brown hair; orange/yellow outfit; walk + hold
+  Shift to run.
+- **Done:**
+  - `shared/engine`: `fixedStep.ts` (accumulator clock, capped steps, rounding tolerance),
+    `input.ts` (key bindings → actions, press order, multi-key actions, clear on blur),
+    `math.approach` (frame-rate independent smoothing).
+  - `core`: `entities/player.ts` (plain mutable player, feet hitbox, `playerFootY`),
+    `systems/controls.ts` (bindings, `readMovementIntent`), `systems/movement.ts`
+    (axis-separated collision, flush contact, corner nudging, map bounds),
+    `systems/animation.ts` (walk cycle 1-0-2-0, faster when running),
+    `game/gameState.ts` (`createGameState`, `stepGame`, `advanceGame`, interpolation).
+  - `assets`: `playerPixels.ts` (16×24 pixel maps: front/back/side, 3 leg frames, mirrored
+    left), `paintPlayer.ts` (pixel-map painter + atlas strips `player_<dir>`).
+  - `render`: `GameLoop` (fixed steps in `useFrame`), `PlayerSprite` (interpolated,
+    pixel-snapped, facing strip + frame, depth from feet), `FollowCamera` (smoothed,
+    automatic zoom + offset), `useKeyboardInput`, `spriteGeometry` (shared with objects);
+    `FreeLookCamera` and `LookAroundHint` removed; `ui/ControlsHint` added.
+  - `scripts/browser-check.mjs`: key combos (`ShiftLeft+ArrowRight:600`).
+- **Decisions:** D29–D33 in `docs/DECISIONS.md`.
+- **Verified:** typecheck, lint, 244 tests, build, format:check pass. Browser (simulated keys,
+  GPU): spawn at the door; walking down the trail with the camera following; walking onto the
+  dock and stopping at its end; running blocked by the yard fence; back view through the gate;
+  standing in front of an oak trunk; production preview console empty; ~240 FPS.
+- **Known issues / notes:** walking _behind_ a crown wasn't captured in a screenshot (depth
+  order is unit-tested with the same `standingSpriteZ` function the player uses).
+  `state.ts` (zustand) is still unused — M4's debug flag is its first real use.
 
 ### 2026-11-20 — M2.5 Classic art pass (user request)
 

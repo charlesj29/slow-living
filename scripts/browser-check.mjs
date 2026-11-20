@@ -1,5 +1,6 @@
 // Dev-only browser check (no dependencies):
 //   node scripts/browser-check.mjs <url> <out.png> [settleMs] [keys]
+// keys example: "ArrowDown:900,ShiftLeft+ArrowRight:600,Minus"
 // keys: comma-separated presses, e.g. "ArrowDown:1200,Minus" (key held for N ms, default a tap).
 // Needs the dev server running. Set CHROME_PATH if Chrome lives elsewhere.
 // Launches headless Chrome, loads the URL in real time, waits for a canvas,
@@ -98,6 +99,8 @@ while (Date.now() - started < 30000) {
 const loadMs = Date.now() - started;
 await sleep(settleMs);
 const KEY_CODES = {
+  ShiftLeft: 16,
+  ShiftRight: 16,
   ArrowUp: 38,
   ArrowDown: 40,
   ArrowLeft: 37,
@@ -107,19 +110,28 @@ const KEY_CODES = {
   F3: 114,
   KeyR: 82,
 };
-for (const press of (keysArg ?? '').split(',').filter(Boolean)) {
-  const [code, holdMs] = press.split(':');
+// A press is "Code" or "Code+Code:holdMs" (keys in a combo go down together).
+const keyParams = (code) => {
   const key = code.startsWith('Key')
     ? code.slice(3).toLowerCase()
     : code === 'Minus'
       ? '-'
       : code === 'Equal'
         ? '='
-        : code;
-  const params = { code, key, windowsVirtualKeyCode: KEY_CODES[code] ?? 0 };
-  await send('Input.dispatchKeyEvent', { type: 'keyDown', ...params });
+        : code.startsWith('Shift')
+          ? 'Shift'
+          : code;
+  return { code, key, windowsVirtualKeyCode: KEY_CODES[code] ?? 0 };
+};
+for (const press of (keysArg ?? '').split(',').filter(Boolean)) {
+  const [combo, holdMs] = press.split(':');
+  const codes = combo.split('+');
+  for (const code of codes)
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', ...keyParams(code) });
   await sleep(Number(holdMs ?? 50));
-  await send('Input.dispatchKeyEvent', { type: 'keyUp', ...params });
+  for (const code of [...codes].reverse()) {
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', ...keyParams(code) });
+  }
   await sleep(150);
 }
 if (keysArg) await sleep(400);

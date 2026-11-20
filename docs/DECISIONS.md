@@ -291,3 +291,49 @@ alternatives → consequences.
   sprites are chosen at render time from 16 connection pieces (`objectSpriteKeys.ts`).
 - **Consequences:** fences elsewhere later just need `fence` objects; they connect
   automatically.
+
+## D29 — Fixed 60 Hz logic with render interpolation
+
+- **Context:** movement must be frame-rate independent (brief) and smooth on 60–144 Hz screens.
+- **Decision:** `advanceClock` runs whole 1/60 s steps from an accumulator (max 5 per frame,
+  backlog dropped after stalls, 1e-9 rounding tolerance); the player keeps its previous
+  position and rendering interpolates with the leftover fraction.
+- **Consequences:** identical results at 30/60/144 fps (tested); systems take `stepSeconds`.
+
+## D30 — Input as ordered actions; 8-way movement, 4-way facing
+
+- **Context:** WASD/arrows with 4-direction facing; sliding along walls needs diagonal input.
+- **Decision:** `shared/engine/input.ts` maps key codes to actions and keeps press order; the
+  island reads a `MovementIntent` (dx, dy, run, facing = most recently pressed direction).
+  Diagonals are normalised to the same speed. Key listeners live in the render layer
+  (`useKeyboardInput`); everything else is pure and tested.
+- **Alternatives:** grid-locked tile-by-tile movement (classic, but the brief asks for smooth
+  movement with sliding).
+- **Consequences:** gamepad/touch can feed the same actions later.
+
+## D31 — Collision: feet hitbox, axis-separated, corner nudging
+
+- **Context:** tile collision with smooth movement and wall sliding; the 3/4 view means the
+  body may overlap things behind it.
+- **Decision:** a 10×6 px hitbox at the feet is tested against `world.blocked` (out of bounds
+  = blocked). X then Y move separately; a blocked axis stops flush at the tile edge. When
+  walking straight into an obstacle whose corner is within 5 px, the player is nudged
+  sideways around it.
+- **Consequences:** no snagging on tree edges; big-tree crowns stay walk-behind.
+
+## D32 — Player art as character pixel maps
+
+- **Context:** the character must match the user's choices and the classic style.
+- **Decision:** 16×24 frames written as one-character-per-pixel maps with a small palette
+  (`assets/playerPixels.ts`): front, back and side upper bodies, three leg poses each; left is
+  the mirrored right. Painted into atlas strips `player_<direction>` (stand, left step, right
+  step).
+- **Consequences:** the character is easy to edit by hand; tests reject malformed maps.
+
+## D33 — Smooth, pixel-perfect follow camera
+
+- **Context:** the camera should follow smoothly yet keep sprites crisp.
+- **Decision:** `FollowCamera` eases towards the player's interpolated position (aimed 8 px
+  above the feet) with `approach` (frame-rate independent), then `PixelPerfectCamera` snaps and
+  clamps. The player sprite is drawn at whole pixels.
+- **Consequences:** replaces the temporary free-look camera (D23).

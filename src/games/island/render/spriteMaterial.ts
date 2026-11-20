@@ -55,3 +55,8 @@ export function showAnimationFrameAt(
 ): void {
   material.uniforms.uFrame.value = Math.floor(elapsedSeconds / frameSeconds) % frameCount;
 }
+
+/** Shows a specific frame of every animated sprite drawn with this material (e.g. the player's walk cycle). */
+export function setAnimationFrame(material: SpriteMaterial, frameIndex: number): void {
+  material.uniforms.uFrame.value = frameIndex;
+}

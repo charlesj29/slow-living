@@ -3,6 +3,7 @@ import { OBJECT_KINDS, OBJECT_REGISTRY } from '../core/world/objects';
 import { TILE_DEFINITIONS } from '../core/world/tiles';
 import { createIslandAtlas, paintIslandSprites } from './islandSprites';
 import { TILE_PX } from './paint';
+import { PLAYER_FRAME_COUNT } from '../core/systems/animation';
 import { FLOWER_FRAME_COUNT } from './paintObjects';
 import { fenceSpriteKey } from './paintStructures';
 import { WATER_FRAME_COUNT } from './paintTiles';
@@ -50,11 +51,18 @@ describe('island sprites', () => {
     }
   });
 
-  it('animates only water and flowers, each group with its shared frame count', () => {
+  it('animates only water, flowers and the player, each with its frame count', () => {
     for (const source of paintIslandSprites()) {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
       const isFlower = source.key.startsWith('flower_');
-      const expected = isWater ? WATER_FRAME_COUNT : isFlower ? FLOWER_FRAME_COUNT : 1;
+      const isPlayer = source.key.startsWith('player_');
+      const expected = isWater
+        ? WATER_FRAME_COUNT
+        : isFlower
+          ? FLOWER_FRAME_COUNT
+          : isPlayer
+            ? PLAYER_FRAME_COUNT
+            : 1;
       expect(source.frames.length, source.key).toBe(expected);
     }
   });

@@ -41,3 +41,5 @@ architecture should make each a natural addition.
   shoreline pieces, more grass/sand variety, animated foam)
 - Side fences: dedicated side-view fence pieces (currently read as a row of posts)
 - More classic touches: tall-grass patches, stumps, a few signposts along trails
+- Gamepad and touch controls feeding the same input actions (`shared/engine/input.ts`)
+- Interactions: read the mailbox, open the cabin door (interior), sit on the dock

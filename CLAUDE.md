@@ -51,6 +51,14 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
   deterministic per seed (tests check this across 50 seeds).
 - `three` is pinned to `^0.182.0` (see `docs/DECISIONS.md` D9) — don't bump it casually.
 
+## Game loop conventions
+
+- Simulation state lives in `GameState` (`core/game/gameState.ts`), created once per world and
+  mutated by fixed 1/60 s steps (`advanceGame` from `render/GameLoop`). Systems in
+  `core/systems/` are pure functions taking `stepSeconds`; never read wall-clock time in core.
+- Input: key codes → actions in `core/systems/controls.ts`; DOM listeners only in
+  `render/useKeyboardInput.ts`. Render reads interpolated positions and draws at whole pixels.
+
 ## Rendering conventions
 
 - 1 world unit = 1 source pixel (tile = 16). World y = −(map y px). Use `worldSpace.ts`.

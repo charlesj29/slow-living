@@ -100,6 +100,23 @@ export interface IslandConfig {
     readonly flowerColorNoise: FractalNoiseOptions;
     readonly grassTuftChance: number;
   };
+  readonly loop: {
+    /** Fixed logic rate; rendering interpolates between steps. */
+    readonly stepsPerSecond: number;
+    /** After a stall, run at most this many steps in one frame (no catch-up burst). */
+    readonly maxStepsPerFrame: number;
+  };
+  readonly player: {
+    readonly walkSpeedTilesPerSecond: number;
+    readonly runSpeedTilesPerSecond: number;
+    /** Collision box around the feet (the body above can overlap things behind it). */
+    readonly hitboxWidthPx: number;
+    readonly hitboxHeightPx: number;
+    /** When walking into an obstacle's corner by up to this many px, slide around it. */
+    readonly cornerSlidePx: number;
+    readonly walkFrameSeconds: number;
+    readonly runFrameSeconds: number;
+  };
   readonly render: {
     /** Handheld-like framing: pick the whole-number scale that shows about this many tiles across. */
     readonly targetTilesAcross: number;
@@ -109,8 +126,8 @@ export interface IslandConfig {
     readonly maxPixelScale: number;
     readonly waterFrameSeconds: number;
     readonly flowerFrameSeconds: number;
-    /** Temporary free-look camera (until the player follow camera in M3). */
-    readonly lookSpeedTilesPerSecond: number;
+    /** How quickly the camera catches up with the player (higher = snappier). */
+    readonly cameraFollowSharpness: number;
   };
   readonly validation: {
     readonly minLandShare: number;
@@ -182,6 +199,16 @@ export const ISLAND_CONFIG: IslandConfig = {
     flowerColorNoise: noise(0.04),
     grassTuftChance: 0.05,
   },
+  loop: { stepsPerSecond: 60, maxStepsPerFrame: 5 },
+  player: {
+    walkSpeedTilesPerSecond: 4,
+    runSpeedTilesPerSecond: 7.5,
+    hitboxWidthPx: 10,
+    hitboxHeightPx: 6,
+    cornerSlidePx: 5,
+    walkFrameSeconds: 0.16,
+    runFrameSeconds: 0.1,
+  },
   render: {
     targetTilesAcross: 20,
     minTilesTall: 11,
@@ -189,7 +216,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,
     flowerFrameSeconds: 0.6,
-    lookSpeedTilesPerSecond: 14,
+    cameraFollowSharpness: 8,
   },
   validation: { minLandShare: 0.2, maxLandShare: 0.65, minReachableShare: 0.3 },
 };

@@ -65,6 +65,8 @@ loads the page in headless Chrome, optionally holds/taps keys, saves a screensho
 FPS sample plus all console output. Set `CHROME_ANGLE=d3d11` to render on the GPU, and
 `CHROME_PATH` if Chrome is not in the default Windows location.
 
-## Controls (temporary)
+## Controls
 
-Until the player arrives (M3): arrow keys / WASD look around, `+` / `-` zoom.
+- **WASD / arrow keys:** walk
+- **Shift (held):** run
+- **`+` / `-`:** zoom in / out
