@@ -6,7 +6,7 @@ import type { World } from '../core/world/world';
 import { spriteCatalogFor } from './spriteCatalog';
 import { tileLayersAt } from './tileLayers';
 import { buildChunkGeometryData } from './tilemapGeometry';
-import { createTilemapMaterial, showAnimationFrameAt } from './tilemapMaterial';
+import { createSpriteMaterial, showAnimationFrameAt } from './spriteMaterial';
 
 interface TilemapProps {
   readonly world: World;
@@ -54,7 +54,7 @@ export function Tilemap(props: TilemapProps): JSX.Element {
   // Rebuilt only when the world or atlas changes (props are stable otherwise).
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const geometries = useMemo(() => buildChunkGeometries(props), [props.world, props.atlas]);
-  const material = useMemo(() => createTilemapMaterial(atlas.texture), [atlas]);
+  const material = useMemo(() => createSpriteMaterial(atlas.texture), [atlas]);
 
   useEffect(() => () => geometries.forEach((geometry) => geometry.dispose()), [geometries]);
   useEffect(() => () => material.dispose(), [material]);

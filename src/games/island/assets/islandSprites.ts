@@ -2,6 +2,7 @@ import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { buildSpriteAtlas, type SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { paintCabinSprites } from './paintCabin';
 import { paintObjectSprites } from './paintObjects';
+import { paintStructureSprites } from './paintStructures';
 import { paintTileSprites } from './paintTiles';
 import { paintTransitionSprites } from './paintTransitions';
 
@@ -11,6 +12,7 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintTileSprites(),
     ...paintTransitionSprites(),
     ...paintObjectSprites(),
+    ...paintStructureSprites(),
     ...paintCabinSprites(),
   ];
 }

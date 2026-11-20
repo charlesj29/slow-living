@@ -1,28 +1,37 @@
 // Object registry. Adding an object type = add a kind + a definition here (and
-// a sprite in M2); placement steps refer to kinds and categories, not details.
+// a sprite in the atlas); placement steps refer to kinds and categories.
 import type { TilePoint } from '@/shared/engine/grid';
 
 export const OBJECT_KINDS = [
   'tree_oak',
   'tree_pine',
+  'tree_small',
+  'bush',
   'flower_red',
   'flower_yellow',
   'flower_blue',
   'flower_white',
   'grass_tuft',
   'rock',
+  'fence',
+  'mailbox',
   'cabin',
 ] as const;
 
 export type ObjectKind = (typeof OBJECT_KINDS)[number];
 
-export type ObjectCategory = 'tree' | 'flower' | 'grass' | 'rock' | 'building';
+export type ObjectCategory =
+  'tree' | 'bush' | 'flower' | 'grass' | 'rock' | 'structure' | 'building';
 
 export interface ObjectDefinition {
   readonly kind: ObjectKind;
   readonly name: string;
   readonly category: ObjectCategory;
-  /** Tiles covered, measured from the object's top-left tile. */
+  /**
+   * Tiles that block movement / are occupied, from the object's top-left tile.
+   * Sprites may be taller: they stand on the footprint's bottom edge and extend
+   * upwards (a big tree's crown covers the row above its footprint).
+   */
   readonly footprint: { readonly width: number; readonly height: number };
   readonly blocksMovement: boolean;
   readonly spriteKey: string;
@@ -33,12 +42,29 @@ export interface ObjectDefinition {
 }
 
 const SINGLE_TILE = { width: 1, height: 1 } as const;
+/** Big trees: 2 tiles wide at the trunk; the crown (drawn above) is walk-behind. */
+const BIG_TREE_FOOTPRINT = { width: 2, height: 1 } as const;
 
-function flower(kind: ObjectKind, name: string, mapColor: string): ObjectDefinition {
+function solid(
+  kind: ObjectKind,
+  name: string,
+  category: ObjectCategory,
+  mapColor: string,
+  footprint: ObjectDefinition['footprint'] = SINGLE_TILE,
+): ObjectDefinition {
+  return { kind, name, category, footprint, blocksMovement: true, spriteKey: kind, mapColor };
+}
+
+function decoration(
+  kind: ObjectKind,
+  name: string,
+  category: ObjectCategory,
+  mapColor: string,
+): ObjectDefinition {
   return {
     kind,
     name,
-    category: 'flower',
+    category,
     footprint: SINGLE_TILE,
     blocksMovement: false,
     spriteKey: kind,
@@ -47,46 +73,18 @@ function flower(kind: ObjectKind, name: string, mapColor: string): ObjectDefinit
 }
 
 export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
-  tree_oak: {
-    kind: 'tree_oak',
-    name: 'Oak tree',
-    category: 'tree',
-    footprint: SINGLE_TILE,
-    blocksMovement: true,
-    spriteKey: 'tree_oak',
-    mapColor: '#2f6b2a',
-  },
-  tree_pine: {
-    kind: 'tree_pine',
-    name: 'Pine tree',
-    category: 'tree',
-    footprint: SINGLE_TILE,
-    blocksMovement: true,
-    spriteKey: 'tree_pine',
-    mapColor: '#1c4a2c',
-  },
-  flower_red: flower('flower_red', 'Red flower', '#d64545'),
-  flower_yellow: flower('flower_yellow', 'Yellow flower', '#f2d03b'),
-  flower_blue: flower('flower_blue', 'Blue flower', '#5b7fe0'),
-  flower_white: flower('flower_white', 'White flower', '#f4f4f4'),
-  grass_tuft: {
-    kind: 'grass_tuft',
-    name: 'Grass tuft',
-    category: 'grass',
-    footprint: SINGLE_TILE,
-    blocksMovement: false,
-    spriteKey: 'grass_tuft',
-    mapColor: '#86c46c',
-  },
-  rock: {
-    kind: 'rock',
-    name: 'Rock',
-    category: 'rock',
-    footprint: SINGLE_TILE,
-    blocksMovement: true,
-    spriteKey: 'rock',
-    mapColor: '#8d8f94',
-  },
+  tree_oak: solid('tree_oak', 'Oak tree', 'tree', '#2f6b2a', BIG_TREE_FOOTPRINT),
+  tree_pine: solid('tree_pine', 'Pine tree', 'tree', '#1c4a2c', BIG_TREE_FOOTPRINT),
+  tree_small: solid('tree_small', 'Small tree', 'tree', '#3d7f35'),
+  bush: solid('bush', 'Bush', 'bush', '#4c8f3e'),
+  flower_red: decoration('flower_red', 'Red flowers', 'flower', '#d64545'),
+  flower_yellow: decoration('flower_yellow', 'Yellow flowers', 'flower', '#f2d03b'),
+  flower_blue: decoration('flower_blue', 'Blue flowers', 'flower', '#5b7fe0'),
+  flower_white: decoration('flower_white', 'White flowers', 'flower', '#f4f4f4'),
+  grass_tuft: decoration('grass_tuft', 'Grass tuft', 'grass', '#86c46c'),
+  rock: solid('rock', 'Rock', 'rock', '#8d8f94'),
+  fence: solid('fence', 'Wooden fence', 'structure', '#d8bc8c'),
+  mailbox: solid('mailbox', 'Mailbox', 'structure', '#d04040'),
   cabin: {
     kind: 'cabin',
     name: 'Wooden cabin',

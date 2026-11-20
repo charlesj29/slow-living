@@ -1,5 +1,6 @@
 // The cabin: 48×64 px. The bottom 48 px match its 3×3-tile footprint; the roof
 // rises one extra tile above it (drawn over whatever stands behind the cabin).
+// Outlined, chunky shading in the classic handheld style (original design).
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
   createPixelCanvas,
@@ -12,69 +13,121 @@ import { PALETTE } from './palette';
 
 const WIDTH = TILE_PX * 3;
 const HEIGHT = TILE_PX * 4;
-const ROOF_BOTTOM = 34;
+const ROOF_TOP = 4;
+const ROOF_BOTTOM = 33;
 const WALL_LEFT = 3;
 const WALL_RIGHT = WIDTH - 4;
-const DOOR_LEFT = 20;
-const DOOR_WIDTH = 8;
-const DOOR_TOP = 46;
+const WALL_BOTTOM = HEIGHT - 3;
+const DOOR_LEFT = 19;
+const DOOR_WIDTH = 10;
+const DOOR_TOP = 44;
+
+function paintChimney(canvas: PixelCanvas): void {
+  const { stone, stoneDark } = PALETTE.cabin;
+  fillRect(canvas, 32, 0, 8, 12, PALETTE.roof.outline);
+  fillRect(canvas, 33, 1, 6, 10, stone);
+  fillRect(canvas, 33, 1, 6, 1, PALETTE.foam.soft);
+  fillRect(canvas, 38, 2, 1, 9, stoneDark);
+  for (let y = 4; y < 11; y += 3) fillRect(canvas, 33, y, 5, 1, stoneDark);
+}
 
 function paintRoof(canvas: PixelCanvas): void {
-  const { roof, roofLight, roofDark } = PALETTE.cabin;
-  for (let y = 1; y <= ROOF_BOTTOM; y++) {
-    // Overhang widens slightly towards the eaves.
-    const inset = Math.max(0, 3 - Math.floor(y / 6));
-    const isShingleLine = y % 4 === 0;
-    fillRect(canvas, inset, y, WIDTH - inset * 2, 1, isShingleLine ? roofDark : roof);
-    if (!isShingleLine) {
-      for (let x = inset + ((y >> 2) % 2) * 3; x < WIDTH - inset; x += 6)
-        setPixel(canvas, x, y, roofDark);
+  const { outline, dark, base, light, highlight } = PALETTE.roof;
+  for (let y = ROOF_TOP; y <= ROOF_BOTTOM; y++) {
+    // The roof flares out slightly towards the eaves.
+    const inset = Math.max(0, 3 - Math.floor((y - ROOF_TOP) / 7));
+    const row = (y - ROOF_TOP) % 5;
+    const tone = row === 4 ? dark : row === 0 ? light : base;
+    fillRect(canvas, inset, y, WIDTH - inset * 2, 1, tone);
+    // Staggered shingle seams.
+    if (row !== 4) {
+      const offset = Math.floor((y - ROOF_TOP) / 5) % 2 === 0 ? 2 : 6;
+      for (let x = inset + offset; x < WIDTH - inset; x += 8) setPixel(canvas, x, y, dark);
     }
+    setPixel(canvas, inset, y, outline);
+    setPixel(canvas, WIDTH - inset - 1, y, outline);
   }
-  fillRect(canvas, 3, 1, WIDTH - 6, 2, roofLight); // ridge catches the light
-  fillRect(canvas, 0, ROOF_BOTTOM, WIDTH, 1, roofDark); // eaves
-  // Chimney
-  fillRect(canvas, 33, 0, 6, 9, PALETTE.cabin.stone);
-  fillRect(canvas, 33, 0, 6, 1, PALETTE.cabin.stoneDark);
-  fillRect(canvas, 38, 1, 1, 8, PALETTE.cabin.stoneDark);
+  // Ridge cap and eaves
+  fillRect(canvas, 3, ROOF_TOP - 1, WIDTH - 6, 1, outline);
+  fillRect(canvas, 3, ROOF_TOP, WIDTH - 6, 2, highlight);
+  fillRect(canvas, 0, ROOF_BOTTOM, WIDTH, 2, outline);
+  fillRect(canvas, 1, ROOF_BOTTOM - 1, WIDTH - 2, 1, dark);
 }
 
 function paintWall(canvas: PixelCanvas): void {
-  const { log, logLight, logDark } = PALETTE.cabin;
-  for (let y = ROOF_BOTTOM + 1; y < HEIGHT - 2; y++) {
-    const row = y - ROOF_BOTTOM - 1;
-    const color = row % 4 === 3 ? logDark : row % 4 === 0 ? logLight : log;
-    fillRect(canvas, WALL_LEFT, y, WALL_RIGHT - WALL_LEFT + 1, 1, color);
+  const { outline, dark, base, light } = PALETTE.wall;
+  fillRect(
+    canvas,
+    WALL_LEFT - 1,
+    ROOF_BOTTOM + 2,
+    WALL_RIGHT - WALL_LEFT + 3,
+    WALL_BOTTOM - ROOF_BOTTOM - 1,
+    outline,
+  );
+  for (let y = ROOF_BOTTOM + 2; y < WALL_BOTTOM; y++) {
+    const row = (y - ROOF_BOTTOM - 2) % 4;
+    const tone = row === 3 ? dark : row === 0 ? light : base;
+    fillRect(canvas, WALL_LEFT, y, WALL_RIGHT - WALL_LEFT + 1, 1, tone);
   }
-  fillRect(canvas, WALL_LEFT, ROOF_BOTTOM + 1, 2, HEIGHT - ROOF_BOTTOM - 3, logDark);
-  fillRect(canvas, WALL_RIGHT - 1, ROOF_BOTTOM + 1, 2, HEIGHT - ROOF_BOTTOM - 3, logDark);
+  // Shadow under the eaves and log ends at the corners.
+  fillRect(canvas, WALL_LEFT, ROOF_BOTTOM + 2, WALL_RIGHT - WALL_LEFT + 1, 1, outline);
+  for (const x of [WALL_LEFT, WALL_RIGHT - 2]) {
+    fillRect(canvas, x, ROOF_BOTTOM + 3, 3, WALL_BOTTOM - ROOF_BOTTOM - 3, dark);
+    fillRect(canvas, x, ROOF_BOTTOM + 3, 1, WALL_BOTTOM - ROOF_BOTTOM - 3, light);
+  }
 }
 
 function paintWindow(canvas: PixelCanvas, left: number): void {
-  const { glass, frame } = PALETTE.cabin;
-  fillRect(canvas, left, 40, 8, 8, frame);
-  fillRect(canvas, left + 1, 41, 6, 6, glass);
-  fillRect(canvas, left + 4, 41, 1, 6, frame);
-  fillRect(canvas, left + 1, 44, 6, 1, frame);
-  setPixel(canvas, left + 2, 42, PALETTE.foam.bright);
+  const { glass, shine } = PALETTE.cabin;
+  const frame = PALETTE.wall.outline;
+  fillRect(canvas, left, 39, 10, 10, frame);
+  fillRect(canvas, left + 1, 40, 8, 8, glass);
+  fillRect(canvas, left + 5, 40, 1, 8, frame);
+  fillRect(canvas, left + 1, 44, 8, 1, frame);
+  setPixel(canvas, left + 2, 41, shine);
+  setPixel(canvas, left + 3, 41, shine);
+  setPixel(canvas, left + 2, 42, shine);
+  // Window box with a flower or two
+  fillRect(canvas, left, 49, 10, 2, PALETTE.wall.dark);
+  setPixel(canvas, left + 2, 48, PALETTE.flowers.red.petal);
+  setPixel(canvas, left + 7, 48, PALETTE.flowers.yellow.petal);
 }
 
 function paintDoor(canvas: PixelCanvas): void {
-  const { door, doorFrame, stone, stoneDark } = PALETTE.cabin;
-  fillRect(canvas, DOOR_LEFT - 1, DOOR_TOP - 1, DOOR_WIDTH + 2, HEIGHT - DOOR_TOP - 1, doorFrame);
-  fillRect(canvas, DOOR_LEFT, DOOR_TOP, DOOR_WIDTH, HEIGHT - DOOR_TOP - 2, door);
-  fillRect(canvas, DOOR_LEFT + 3, DOOR_TOP, 1, HEIGHT - DOOR_TOP - 2, doorFrame);
-  setPixel(canvas, DOOR_LEFT + DOOR_WIDTH - 2, DOOR_TOP + 8, PALETTE.flowers.centerWarm);
+  const { door, doorDark, stone, stoneDark } = PALETTE.cabin;
+  const outline = PALETTE.wall.outline;
+  fillRect(
+    canvas,
+    DOOR_LEFT - 1,
+    DOOR_TOP - 1,
+    DOOR_WIDTH + 2,
+    WALL_BOTTOM - DOOR_TOP + 1,
+    outline,
+  );
+  fillRect(canvas, DOOR_LEFT, DOOR_TOP, DOOR_WIDTH, WALL_BOTTOM - DOOR_TOP, door);
+  fillRect(canvas, DOOR_LEFT, DOOR_TOP, DOOR_WIDTH, 1, PALETTE.wall.light);
+  fillRect(canvas, DOOR_LEFT + 4, DOOR_TOP + 1, 1, WALL_BOTTOM - DOOR_TOP - 1, doorDark);
+  fillRect(
+    canvas,
+    DOOR_LEFT + DOOR_WIDTH - 1,
+    DOOR_TOP + 1,
+    1,
+    WALL_BOTTOM - DOOR_TOP - 1,
+    doorDark,
+  );
+  setPixel(canvas, DOOR_LEFT + DOOR_WIDTH - 3, DOOR_TOP + 8, PALETTE.flowers.centerWarm);
   // Stone step in front of the door
-  fillRect(canvas, DOOR_LEFT - 2, HEIGHT - 2, DOOR_WIDTH + 4, 2, stone);
-  fillRect(canvas, DOOR_LEFT - 2, HEIGHT - 1, DOOR_WIDTH + 4, 1, stoneDark);
+  fillRect(canvas, DOOR_LEFT - 2, WALL_BOTTOM, DOOR_WIDTH + 4, 3, outline);
+  fillRect(canvas, DOOR_LEFT - 1, WALL_BOTTOM, DOOR_WIDTH + 2, 2, stone);
+  fillRect(canvas, DOOR_LEFT - 1, WALL_BOTTOM + 1, DOOR_WIDTH + 2, 1, stoneDark);
 }
 
 export function paintCabinSprites(): SpriteSource[] {
   const canvas = createPixelCanvas(WIDTH, HEIGHT);
   paintWall(canvas);
   paintRoof(canvas);
-  paintWindow(canvas, 8);
+  paintChimney(canvas);
+  paintWindow(canvas, 6);
   paintWindow(canvas, 32);
   paintDoor(canvas);
   return [{ key: 'cabin', frames: [canvas] }];

@@ -3,6 +3,8 @@ import { OBJECT_KINDS, OBJECT_REGISTRY } from '../core/world/objects';
 import { TILE_DEFINITIONS } from '../core/world/tiles';
 import { createIslandAtlas, paintIslandSprites } from './islandSprites';
 import { TILE_PX } from './paint';
+import { FLOWER_FRAME_COUNT } from './paintObjects';
+import { fenceSpriteKey } from './paintStructures';
 import { WATER_FRAME_COUNT } from './paintTiles';
 import { EDGE_MATERIALS } from './paintTransitions';
 
@@ -30,7 +32,11 @@ describe('island sprites', () => {
   });
 
   it('sizes standing sprites to their footprint plus height above it', () => {
-    expect(atlas.frame('tree_oak.0')).toMatchObject({ width: 16, height: 32 });
+    expect(atlas.frame('tree_oak.0')).toMatchObject({ width: 32, height: 32 });
+    expect(atlas.frame('tree_pine.0')).toMatchObject({ width: 32, height: 32 });
+    expect(atlas.frame('tree_small.0')).toMatchObject({ width: 16, height: 32 });
+    expect(atlas.frame('bush.0')).toMatchObject({ width: 16, height: 16 });
+    expect(atlas.frame('mailbox')).toMatchObject({ width: 16, height: 24 });
     expect(atlas.frame('cabin')).toMatchObject({ width: 48, height: 64 });
     expect(atlas.frame('rock.0')).toMatchObject({ width: 16, height: 16 });
   });
@@ -44,10 +50,19 @@ describe('island sprites', () => {
     }
   });
 
-  it('animates only water, always with the shared frame count', () => {
+  it('animates only water and flowers, each group with its shared frame count', () => {
     for (const source of paintIslandSprites()) {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
-      expect(source.frames.length, source.key).toBe(isWater ? WATER_FRAME_COUNT : 1);
+      const isFlower = source.key.startsWith('flower_');
+      const expected = isWater ? WATER_FRAME_COUNT : isFlower ? FLOWER_FRAME_COUNT : 1;
+      expect(source.frames.length, source.key).toBe(expected);
+    }
+  });
+
+  it('has a fence piece for every connection pattern', () => {
+    for (let mask = 0; mask < 16; mask++) {
+      const key = fenceSpriteKey(!!(mask & 1), !!(mask & 2), !!(mask & 4), !!(mask & 8));
+      expect(atlas.has(key), key).toBe(true);
     }
   });
 

@@ -73,13 +73,13 @@ describe('validateGeneration', () => {
     expect(codes(broken)).toContain('dock-missing');
   });
 
-  describe('with the spawn boxed in by trees', () => {
+  describe('with the spawn boxed in by rocks', () => {
     const spawn = base.spawn ?? { x: 0, y: 0 };
     const fence: WorldObject[] = [
       { x: spawn.x - 1, y: spawn.y },
       { x: spawn.x + 1, y: spawn.y },
       { x: spawn.x, y: spawn.y + 1 },
-    ].map((p, i) => ({ id: base.objects.length + i, kind: 'tree_pine', ...p }));
+    ].map((p, i) => ({ id: base.objects.length + i, kind: 'rock', ...p }));
     const fenced = { ...base, objects: [...base.objects, ...fence] };
 
     it('reports trails that can no longer be reached', () => {

@@ -1,44 +1,40 @@
+import { useFrame } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef, type JSX } from 'react';
-import {
-  BufferAttribute,
-  MeshBasicMaterial,
-  Object3D,
-  PlaneGeometry,
-  type InstancedMesh,
-} from 'three';
+import { BufferAttribute, Object3D, PlaneGeometry, type InstancedMesh } from 'three';
 import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
-import { OBJECT_REGISTRY } from '../core/world/objects';
-import type { World, WorldObject } from '../core/world/world';
+import { FLOWER_FRAME_COUNT } from '../assets/paintObjects';
+import type { World } from '../core/world/world';
 import { placeObjectSprites, type SpriteInstance } from './objectSprites';
-import { variantKeyAt } from './spriteCatalog';
+import { objectSpriteKey } from './objectSpriteKeys';
+import { createSpriteMaterial, showAnimationFrameAt, type SpriteMaterial } from './spriteMaterial';
 
-/** A plane the size of the sprite, with UVs pointing at its atlas frame. */
+const VERTICES_PER_QUAD = 4;
+
+/** A plane the size of one sprite frame, UV-mapped to it (and animated if it is a strip). */
 function createSpriteGeometry(frame: AtlasFrame): PlaneGeometry {
   const geometry = new PlaneGeometry(frame.width, frame.height);
   // PlaneGeometry vertex order: top-left, top-right, bottom-left, bottom-right.
-  geometry.setAttribute(
-    'uv',
-    new BufferAttribute(
-      new Float32Array([
-        frame.u0,
-        frame.vTop,
-        frame.u1,
-        frame.vTop,
-        frame.u0,
-        frame.vBottom,
-        frame.u1,
-        frame.vBottom,
-      ]),
-      2,
-    ),
-  );
+  const uvs = [
+    frame.u0,
+    frame.vTop,
+    frame.u1,
+    frame.vTop,
+    frame.u0,
+    frame.vBottom,
+    frame.u1,
+    frame.vBottom,
+  ];
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+  const stride = frame.frameCount > 1 ? frame.frameStrideU : 0;
+  const strides = new Float32Array(VERTICES_PER_QUAD).fill(stride);
+  geometry.setAttribute('animStride', new BufferAttribute(strides, 1));
   return geometry;
 }
 
 interface SpriteBatchProps {
   readonly frame: AtlasFrame;
-  readonly material: MeshBasicMaterial;
+  readonly material: SpriteMaterial;
   readonly instances: readonly SpriteInstance[];
 }
 
@@ -64,7 +60,7 @@ function SpriteBatch({ frame, material, instances }: SpriteBatchProps): JSX.Elem
     <instancedMesh
       ref={meshRef}
       args={[geometry, material, instances.length]}
-      // Instances span the whole map; per-instance culling isn't worth it for ~10 batches.
+      // Instances span the whole map; per-batch culling isn't worth it for ~40 batches.
       frustumCulled={false}
     />
   );
@@ -74,21 +70,34 @@ interface WorldObjectsProps {
   readonly world: World;
   readonly atlas: SpriteAtlas;
   readonly tileSizePx: number;
+  readonly flowerFrameSeconds: number;
 }
 
-/** Trees, rocks, flowers, tufts and the cabin: one instanced mesh per sprite. */
-export function WorldObjects({ world, atlas, tileSizePx }: WorldObjectsProps): JSX.Element {
-  const material = useMemo(
-    () => new MeshBasicMaterial({ map: atlas.texture, alphaTest: 0.5 }),
-    [atlas],
-  );
+/** Trees, bushes, rocks, flowers, tufts, fence, mailbox and cabin: one instanced mesh per sprite. */
+export function WorldObjects({
+  world,
+  atlas,
+  tileSizePx,
+  flowerFrameSeconds,
+}: WorldObjectsProps): JSX.Element {
+  const material = useMemo(() => createSpriteMaterial(atlas.texture), [atlas]);
   useEffect(() => () => material.dispose(), [material]);
 
-  const batches = useMemo(() => {
-    const spriteKeyFor = (object: WorldObject): string =>
-      variantKeyAt(atlas, OBJECT_REGISTRY[object.kind].spriteKey, object.x, object.y);
-    return [...placeObjectSprites(world.objects, tileSizePx, spriteKeyFor, atlas.frame)];
-  }, [world, atlas, tileSizePx]);
+  useFrame(({ clock }) => {
+    showAnimationFrameAt(material, clock.elapsedTime, flowerFrameSeconds, FLOWER_FRAME_COUNT);
+  });
+
+  const batches = useMemo(
+    () => [
+      ...placeObjectSprites(
+        world.objects,
+        tileSizePx,
+        (object) => objectSpriteKey(world, object, atlas),
+        atlas.frame,
+      ),
+    ],
+    [world, atlas, tileSizePx],
+  );
 
   return (
     <group>

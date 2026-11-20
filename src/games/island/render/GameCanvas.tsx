@@ -52,7 +52,12 @@ export function GameCanvas({ world }: GameCanvasProps): JSX.Element {
         waterFrameSeconds={ISLAND_CONFIG.render.waterFrameSeconds}
         waterFrameCount={WATER_FRAME_COUNT}
       />
-      <WorldObjects world={world} atlas={atlas} tileSizePx={tileSizePx} />
+      <WorldObjects
+        world={world}
+        atlas={atlas}
+        tileSizePx={tileSizePx}
+        flowerFrameSeconds={ISLAND_CONFIG.render.flowerFrameSeconds}
+      />
     </Canvas>
   );
 }

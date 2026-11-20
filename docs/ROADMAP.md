@@ -39,3 +39,5 @@ architecture should make each a natural addition.
 - Smoother trails: allow diagonal steps or post-process staircases into gentle curves
 - Real sprite sheets (PNG) loaded into the same atlas keys; richer tiles (inner-corner
   shoreline pieces, more grass/sand variety, animated foam)
+- Side fences: dedicated side-view fence pieces (currently read as a row of posts)
+- More classic touches: tall-grass patches, stumps, a few signposts along trails

@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: M2 (visuals). Sections marked _(planned)_ describe the design the next
+> Status: M2.5 (classic art pass). Sections marked _(planned)_ describe the design the next
 > milestones will implement; update them as the code lands.
 
 ## Layers
@@ -52,10 +52,11 @@ src/
         generation/         # authoring tool: context, steps/*, validate, pipeline,
                             #   generateWorld, bakeIslandMap
         systems/            # (planned, M3) movement, collision response, animation
-      render/               # GameCanvas, Tilemap (+ tileLayers, tilemapGeometry, tilemapMaterial),
-                            #   WorldObjects (+ objectSprites), worldSpace, spriteCatalog,
-                            #   FreeLookCamera (temporary, M2)
-      assets/               # palette, paint helpers, paintTiles/Transitions/Objects/Cabin, islandSprites
+      render/               # GameCanvas, Tilemap (+ tileLayers, tilemapGeometry), spriteMaterial,
+                            #   WorldObjects (+ objectSprites, objectSpriteKeys), worldSpace,
+                            #   spriteCatalog, FreeLookCamera (temporary until M3)
+      assets/               # palette (ramps), paint helpers, foliage (clump shading),
+                            #   paintTiles/Transitions/Objects/Structures/Cabin, islandSprites
       ui/                   # DevSeedBadge, WorldErrorPanel, LookAroundHint (temporary), islandUi.css
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
@@ -112,8 +113,8 @@ flowchart LR
 
 ## Generation pipeline (authoring tool)
 
-`shapeIsland → assignTerrain → carveLake → placeCabin → placeDock → layPaths → scatterRocks →
-scatterTrees → scatterFlowers → chooseSpawn → validate`
+`shapeIsland → assignTerrain → carveLake → placeCabin → placeDock → layPaths → decorateCabin →
+scatterRocks → scatterTrees → scatterFlowers → chooseSpawn → validate`
 
 | Step             | What it does                                                                                                                                                                                                               |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -123,8 +124,9 @@ scatterTrees → scatterFlowers → chooseSpawn → validate`
 | `placeCabin`     | Site where footprint + margin + front clearance are grass, away from water, preferably near the lake; reserves the area                                                                                                    |
 | `placeDock`      | Straight dock from a lake-shore sand tile into open water, on the side closest to the cabin door                                                                                                                           |
 | `layPaths`       | A* trails from the door to the dock and to beaches (closest, then farthest), noise-perturbed costs so they wind, existing trail is cheap so trails merge; trail tiles reserved                                             |
+| `decorateCabin`  | Fence around the cabin's front yard (trail tiles left open = gate) and a mailbox beside the door                                                                                                                           |
 | `scatterRocks`   | Rock outcrops from cluster noise plus lone rocks, on free grass/sand                                                                                                                                                       |
-| `scatterTrees`   | Forest noise → dense trees; meadows → rare lone trees; species noise groups oaks/pines                                                                                                                                     |
+| `scatterTrees`   | Dense canopy (big trees on a staggered 2-tile grid) where forest cores meet a "dense" character noise; loose big/small mix elsewhere in forests; rare meadow trees and bushes; crowns never overhang reserved tiles        |
 | `scatterFlowers` | Patch noise → flower patches (colour from a colour noise), scattered flowers, grass tufts                                                                                                                                  |
 | `chooseSpawn`    | Tile in front of the cabin door if walkable                                                                                                                                                                                |
 | `validate`       | `validateMap` (works on generation contexts and loaded maps): deep-sea borders, land share, one lake not touching the sea, a dock, cabin on land, door + every trail/dock tile reachable from spawn, enough reachable land |
@@ -148,11 +150,11 @@ flowchart LR
   World["World"] --> Layers["tileLayers<br/>base + shoreline overlays + dock"]
   Layers --> Geo["tilemapGeometry<br/>quads per 32×32 chunk"]
   Atlas --> Geo
-  Geo --> Tilemap["Tilemap<br/>36 meshes, 1 ShaderMaterial (uFrame)"]
+  Geo --> Tilemap["Tilemap<br/>36 meshes, spriteMaterial (water uFrame)"]
   World --> Objs["objectSprites<br/>positions + depth"]
   Atlas --> Objs
-  Objs --> Inst["WorldObjects<br/>1 InstancedMesh per sprite"]
-  Cam["PixelPerfectCamera<br/>(FreeLookCamera in M2)"] --> Canvas["GameCanvas (flat, linear)"]
+  Objs --> Inst["WorldObjects<br/>1 InstancedMesh per sprite, spriteMaterial (flower uFrame)"]
+  Cam["PixelPerfectCamera<br/>(FreeLookCamera until M3)"] --> Canvas["GameCanvas (flat, linear)"]
   Tilemap --> Canvas
   Inst --> Canvas
 ```
@@ -168,17 +170,24 @@ flowchart LR
   touching sides, rounded corners for diagonal-only contact, lowest priority first), then the
   dock planks. `buildChunkGeometryData` turns a chunk into quads; animated water quads carry a
   u stride and the shader adds `stride × uFrame`.
+- **Objects:** `objectSpriteKey` picks each object's sprite (fence pieces by neighbouring
+  fences, otherwise a stable variant); `placeObjectSprites` stands sprites on the bottom edge
+  of their footprint (big trees: 32×32 over a 2×1 trunk row; cabin: 48×64 over 3×3). One
+  `InstancedMesh` per sprite key with the shared `spriteMaterial` (instancing-aware); flowers
+  are 4-frame strips animated by the objects material's own `uFrame`.
+- **Style:** classic handheld-RPG-inspired, original, painted in code: colour ramps
+  (outline → dark → base → light → highlight), dark outlines, clumpy top-left-lit foliage.
 - **Depth:** terrain z = 0 (layers draw in index order), flat decorations z = 0.5, standing
   sprites `standingSpriteZ(footYPx) = 1 + footYPx × 0.01` — the depth buffer puts things lower
   on the map in front, so crowns and the cabin roof cover whatever stands behind them. All
   materials use hard alpha (`alphaTest` / `discard`), so nothing needs sorting.
 - **Camera:** `PixelPerfectCamera` (shared) keeps whole device pixels per source pixel, snaps
-  to the device-pixel grid (half-pixel fix for odd buffers) and clamps to the map. In M2 it is
-  driven by the temporary `FreeLookCamera` (arrows/WASD, +/−); M3 replaces that with a follow
-  camera.
+  to the device-pixel grid (half-pixel fix for odd buffers) and clamps to the map. The scale is
+  `autoPixelScale` (~20 tiles across, ≥11 tall) plus a +/− offset. Until M3 it is driven by
+  the temporary `FreeLookCamera` (arrows/WASD); M3 replaces that with a follow camera.
 - **Colour:** the canvas is `flat` + `linear`, so painted colours reach the screen unchanged.
-- **Cleanup:** the atlas texture, chunk geometries, the tilemap material, sprite geometries and
-  the object material are disposed in effect cleanups; R3F disposes JSX-declared objects.
+- **Cleanup:** the atlas texture, chunk geometries, both sprite materials and the sprite
+  geometries are disposed in effect cleanups; R3F disposes JSX-declared objects.
 
 ## How-to guides
 
@@ -245,7 +254,8 @@ dither). Edge and corner sprites are generated for all directions automatically.
    `core/world/objects.ts`: category, footprint, `blocksMovement`, `spriteKey`, `mapColor`.
 2. Place it from a step (`isAreaFree` / `addObject` in `generation/objectLayer.ts`) or add it
    to the map file by hand.
-3. Paint its sprite under `spriteKey`. Flowers/tufts are flat decorations; everything else
+3. Paint its sprite under `spriteKey` (taller than the footprint is fine — it extends
+   upwards; tree crowns are kept off reserved tiles). Flowers/tufts are flat decorations; everything else
    stands and is depth-sorted by its footprint's bottom edge.
 
 ### Add a generation step

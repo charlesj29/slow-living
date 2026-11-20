@@ -2,25 +2,26 @@
 
 ## Current status
 
-- **Milestone:** M2 — Visuals ✅ complete. Next: **M3 — Player**.
-- **What works:** the site (`/`) opens on the baked 192×192 island rendered as crisp pixel
-  art: procedurally painted sprites in one atlas, chunked tilemap (36 chunks), animated water
-  (3 frames), smooth shorelines (foam-edged sand, grass rims, soft water steps), a wooden dock,
-  oak/pine trees with crowns that overlap things behind them, rocks, flowers, grass tufts and
-  a log cabin with a red roof. Pixel-perfect orthographic camera (whole device pixels per
-  source pixel, snapped, clamped to the map). A temporary free-look camera starts at the cabin
-  door: arrow keys/WASD pan, +/− zoom (hint shown at the bottom). ~240 FPS with GPU in
-  headless Chrome; production console is empty. 185 tests.
+- **Milestone:** M2.5 — Classic art pass ✅ complete (user request). Next: **M3 — Player**.
+- **What works:** the site (`/`) opens on the baked 192×192 island in a classic
+  handheld-RPG-inspired pixel style (original art, painted in code): bright palette, dark
+  outlines, clumpy leaf shading, patterned grass/sand, wave-glyph water with two-tone foam.
+  Big 2×2 oaks and pines (walk-behind crowns), small 1×2 trees and bushes; forests are a mix of
+  dense interlocking canopy and loose clusters; flowers sway (4-frame animation); the cabin has
+  a fenced front yard with a gate gap at the trail and a mailbox. Handheld-like zoom (~20 tiles
+  across, scales with the window; +/− adjusts). Temporary free-look camera (arrows/WASD).
+  ~240 FPS on GPU; production console empty. 199 tests.
 - **Exact next step:** present the M3 plan to the user and wait for OK. Expected M3 scope:
   core input mapping (keyboard → movement intent, testable), fixed-timestep loop in
   `shared/engine` (accumulator), player entity (plain mutable object) with position in map
   pixels, 4-direction facing and walk animation state, movement + tile collision with wall
   sliding (axis-separated AABB vs `world.blocked`, small feet hitbox), spawn at `world.spawn`,
-  player sprite sheet painted in `assets/` (4 directions × walk frames), player drawn with
-  `standingSpriteZ(feet)` so trees and the cabin occlude correctly, smooth follow camera
-  (snapped, clamped) replacing `FreeLookCamera` + `LookAroundHint`. Tests: collision
-  (water/tree/cabin/rock block; grass/flowers/sand/path/dock walkable), sliding, fixed-step
-  determinism, input mapping, animation state.
+  player sprite sheet painted in `assets/` in the same classic style (outlined, 4 directions ×
+  walk frames), drawn with `standingSpriteZ(feet)` so crowns/roof/fence occlude correctly,
+  smooth follow camera (snapped, clamped, using `autoPixelScale` + zoom offset) replacing
+  `FreeLookCamera` + `LookAroundHint`. Tests: collision (water/trees/cabin/rock/fence/mailbox
+  block; grass/flowers/sand/path/dock walkable), sliding, fixed-step determinism, input
+  mapping, animation state.
 
 ## Milestones
 
@@ -33,6 +34,8 @@
 - [x] **M2 — Visuals:** procedural sprite atlas, chunked tilemap, autotiled shorelines,
       sprites for trees/flowers/rocks/cabin/dock, depth ordering, animated water, pixel-perfect
       ortho camera
+- [x] **M2.5 — Classic art pass (user request):** handheld-RPG-inspired original art, big
+      2×2 trees, mixed forests, swaying flowers, cabin fence + mailbox, handheld-like zoom
 - [ ] **M3 — Player:** input, 4-direction walk animation, movement + collision with sliding,
       spawn at door, camera follow with bounds
 - [ ] **M4 — Polish & handover:** HUD (controls hint), debug overlay (F3), dev regenerate key
@@ -46,10 +49,40 @@
   authoring tools now.
 - Map size 192×192 (brief: 128×128), designed to be pleasant to stroll; the map format must
   allow growing the world later.
+- Classic handheld-RPG-inspired pixel art (Pokémon Emerald as a style reference only, no
+  copying); big 2×2 trees; handheld-like zoom (~20 tiles across).
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-20 — M2.5 Classic art pass (user request)
+
+- **Why:** the user liked M2 but wanted more classic pixel art (Pokémon Emerald as a style
+  reference only — no copying), with trees up to 4 tiles. Answers: mix of 2×2 big trees and
+  1×2 small trees/bushes; forests sometimes dense, sometimes loose; extras: swaying flowers,
+  fence + mailbox at the cabin; handheld-like zoom.
+- **Done:**
+  - Objects: `tree_oak`/`tree_pine` are now big (footprint 2×1 trunk row, 32×32 sprite);
+    new `tree_small`, `bush`, `fence`, `mailbox`; categories `bush`, `structure`.
+  - Generation: `scatterTrees` rewritten (dense canopy on a staggered 2-tile grid where forest
+    cores meet a "dense" character noise; loose big/small mix elsewhere; meadow trees and
+    bushes; crowns never overhang reserved tiles so trails and the yard stay visible); new
+    `decorateCabin` step (fence around the front yard, trail tiles left open; mailbox by the
+    door). Re-baked seed 1: terrain, spawn, cabin and rocks verified identical to M2.
+  - Art (`assets/`): new ramp palette, `foliage.ts` clump shader (lit top-left, creases,
+    outline), redrawn tiles/water/dock/shorelines (two-tone foam, dark grass rims), big
+    oak/pine, small tree, bush, rock, 4-frame swaying flowers, tufts, fence (16 connection
+    pieces), mailbox (16×24), outlined cabin with chimney, window boxes and stone step.
+  - Render: `spriteMaterial.ts` (one shader for tiles and instanced objects, `uFrame`
+    animation), `objectSpriteKeys.ts` (fence connections, stable variants), objects animated;
+    `autoPixelScale` in `shared/render/pixelPerfect.ts` (~20 tiles across, ≥11 tall).
+- **Decisions:** D24–D28 in `docs/DECISIONS.md`.
+- **Verified:** typecheck, lint, 199 tests, build, format:check pass. Browser (dev + production
+  preview, GPU): cabin yard, lake/dock, dense and loose forests, meadows inspected via
+  screenshots; flowers animate; production console has no messages; ~240 FPS.
+- **Known issues / notes:** side fences read as a row of posts (fine for now); trails still
+  staircase on diagonals (ROADMAP).
 
 ### 2026-11-20 — M2 Visuals
 

@@ -1,20 +1,25 @@
 import { FrontSide, ShaderMaterial, type Texture } from 'three';
 
-// Animated tiles are horizontal strips in the atlas; each vertex carries the u
-// distance between frames, so one uniform animates every water tile at once
-// (no per-frame CPU work). Static tiles have a stride of 0.
+// One shader for every sprite (terrain quads and instanced objects). Animated
+// sprites are horizontal strips in the atlas; each vertex carries the u
+// distance between frames, so a single `uFrame` uniform animates everything
+// drawn with the material (no per-frame CPU work). Static sprites use stride 0.
 const VERTEX_SHADER = /* glsl */ `
   attribute float animStride;
   uniform float uFrame;
   varying vec2 vUv;
   void main() {
     vUv = uv + vec2(animStride * uFrame, 0.0);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vec4 local = vec4(position, 1.0);
+    #ifdef USE_INSTANCING
+      local = instanceMatrix * local;
+    #endif
+    gl_Position = projectionMatrix * modelViewMatrix * local;
   }
 `;
 
-// Pixel art has hard alpha: discard transparent texels (overlay sprites) and
-// output colours unchanged (the canvas renders in linear/flat mode).
+// Pixel art has hard alpha: discard transparent texels and output colours
+// unchanged (the canvas renders in linear/flat mode).
 const FRAGMENT_SHADER = /* glsl */ `
   uniform sampler2D map;
   varying vec2 vUv;
@@ -25,25 +30,25 @@ const FRAGMENT_SHADER = /* glsl */ `
   }
 `;
 
-export interface TilemapMaterial extends ShaderMaterial {
+export interface SpriteMaterial extends ShaderMaterial {
   uniforms: {
     map: { value: Texture };
     uFrame: { value: number };
   };
 }
 
-export function createTilemapMaterial(atlasTexture: Texture): TilemapMaterial {
+export function createSpriteMaterial(atlasTexture: Texture): SpriteMaterial {
   return new ShaderMaterial({
     uniforms: { map: { value: atlasTexture }, uFrame: { value: 0 } },
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,
     side: FrontSide,
-  }) as TilemapMaterial;
+  }) as SpriteMaterial;
 }
 
-/** Shows the animation frame for `elapsedSeconds` on every animated tile (called once per rendered frame). */
+/** Shows the animation frame for `elapsedSeconds` on every animated sprite (once per rendered frame). */
 export function showAnimationFrameAt(
-  material: TilemapMaterial,
+  material: SpriteMaterial,
   elapsedSeconds: number,
   frameSeconds: number,
   frameCount: number,

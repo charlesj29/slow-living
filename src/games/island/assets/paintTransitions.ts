@@ -24,6 +24,8 @@ interface EdgeStyle {
   readonly speckle: Rgba;
   /** Drawn just outside the material (e.g. foam on water); optional. */
   readonly fringe?: Rgba;
+  /** A broken second line beyond the fringe (softer foam). */
+  readonly softFringe?: Rgba;
   /** Drawn on the material's own outermost row (e.g. a darker grass rim). */
   readonly rim?: Rgba;
   /** Checkerboard the outermost row so water-on-water blends softly. */
@@ -36,12 +38,13 @@ const EDGE_STYLES: Readonly<Record<string, EdgeStyle>> = {
     fill: PALETTE.sand.base,
     speckle: PALETTE.sand.light,
     fringe: PALETTE.foam.bright,
+    softFringe: PALETTE.foam.soft,
   },
   grass: {
     depth: 3,
     fill: PALETTE.grass.base,
     speckle: PALETTE.grass.light,
-    rim: PALETTE.grass.dark,
+    rim: PALETTE.grass.outline,
   },
   shallow_sea: {
     depth: 3,
@@ -78,7 +81,8 @@ function paintBand(
       outermost && style.rim ? style.rim : rng.chance(0.15) ? style.speckle : style.fill;
     setPixel(canvas, x, y, color);
   }
-  if (style.fringe && rng.chance(0.75)) setPixel(canvas, x, depth, style.fringe);
+  if (style.fringe) setPixel(canvas, x, depth, style.fringe);
+  if (style.softFringe && x % 3 !== 2) setPixel(canvas, x, depth + 1, style.softFringe);
 }
 
 /** North-facing edge: the material hugs the top of the tile with a gently wavy boundary. */
@@ -113,6 +117,8 @@ function northEastCorner(style: EdgeStyle, rng: Rng): PixelCanvas {
         );
       } else if (style.fringe && distance < radius) {
         setPixel(canvas, x, y, style.fringe);
+      } else if (style.softFringe && distance < radius + 1 && (x + y) % 3 !== 2) {
+        setPixel(canvas, x, y, style.softFringe);
       }
     }
   }

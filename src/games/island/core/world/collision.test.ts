@@ -27,11 +27,21 @@ describe('computeBlockedMask', () => {
     expect(blocked.every((value) => value === expected)).toBe(true);
   });
 
-  it('blocks trees', () => {
-    const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt('tree_oak', 2, 1)]);
-    expect(blocked[1 * size.width + 2]).toBe(1);
-    expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(1);
+  it('blocks a big tree along its 2-tile trunk row only (the crown is walk-behind)', () => {
+    const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt('tree_oak', 1, 2)]);
+    expect(blocked[2 * size.width + 1]).toBe(1);
+    expect(blocked[2 * size.width + 2]).toBe(1);
+    expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(2);
   });
+
+  it.each(['tree_small', 'bush', 'rock', 'fence', 'mailbox'] as const)(
+    'blocks a %s tile',
+    (kind) => {
+      const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt(kind, 2, 1)]);
+      expect(blocked[1 * size.width + 2]).toBe(1);
+      expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(1);
+    },
+  );
 
   it('blocks the whole cabin footprint', () => {
     const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt('cabin', 0, 0)]);

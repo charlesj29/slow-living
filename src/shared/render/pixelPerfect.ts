@@ -2,11 +2,6 @@
 // Sprites stay crisp only when one source pixel covers a whole number of
 // device pixels and the camera sits exactly on the device-pixel grid.
 
-/** Whole device pixels per source pixel, aiming for `cssScale` CSS pixels per source pixel. */
-export function pixelScaleFor(cssScale: number, devicePixelRatio: number): number {
-  return Math.max(1, Math.round(cssScale * devicePixelRatio));
-}
-
 /** Three.js zoom (CSS pixels per world unit) that yields `pixelScale` device pixels per world unit. */
 export function zoomForPixelScale(pixelScale: number, devicePixelRatio: number): number {
   return pixelScale / devicePixelRatio;
@@ -38,4 +33,27 @@ export function clampViewCenter(
 ): number {
   if (max - min <= halfView * 2) return (min + max) / 2;
   return Math.min(Math.max(center, min + halfView), max - halfView);
+}
+
+export interface AutoScaleOptions {
+  /** Aim to show about this many tiles across the drawing buffer. */
+  readonly targetTilesAcross: number;
+  /** Never show fewer than this many tiles top to bottom. */
+  readonly minTilesTall: number;
+  readonly tileSizePx: number;
+}
+
+/**
+ * Handheld-like framing: the whole-number pixel scale that shows roughly
+ * `targetTilesAcross` tiles, reduced if that would show fewer than
+ * `minTilesTall` tiles vertically. Always at least 1.
+ */
+export function autoPixelScale(
+  bufferWidth: number,
+  bufferHeight: number,
+  options: AutoScaleOptions,
+): number {
+  const byWidth = Math.round(bufferWidth / (options.targetTilesAcross * options.tileSizePx));
+  const byHeight = Math.floor(bufferHeight / (options.minTilesTall * options.tileSizePx));
+  return Math.max(1, Math.min(byWidth, byHeight));
 }

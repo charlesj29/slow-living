@@ -242,3 +242,52 @@ alternatives → consequences.
   on-screen hint. Keyboard handling lives in the render layer only because it is temporary.
 - **Consequences:** M3 replaces it with core input + a follow camera and deletes
   `FreeLookCamera.tsx` and `ui/LookAroundHint.tsx`.
+
+## D24 — Classic handheld-inspired art style, original and code-painted (user decision)
+
+- **Context:** the user asked for more classic pixel art, using Pokémon Emerald as a style
+  reference without plagiarism.
+- **Decision:** keep painting every sprite in code, adopting only general traits of the era:
+  bright saturated ramps (outline → dark → base → light → highlight), dark coloured outlines,
+  clumpy top-left-lit foliage (`assets/foliage.ts`), patterned ground tiles, wave-glyph water.
+  No tiles, sprites, palettes or layouts are traced or copied from any game.
+- **Consequences:** the atlas keys are unchanged, so real sprite sheets can still replace the
+  painted art later.
+
+## D25 — Big trees, mixed forests, crowns kept off reserved tiles
+
+- **Context:** the user wanted trees up to 4 tiles, and forests that are sometimes dense,
+  sometimes loose.
+- **Decision:** big trees have a 2×1 trunk footprint (blocks) and a 32×32 sprite whose top
+  row is walk-behind crown. Dense canopy: big trees on a staggered 2-tile grid where forest
+  noise exceeds `denseThreshold` and a low-frequency character noise exceeds
+  `characterThreshold`; other forest is a loose big/small mix; meadows get rare trees and
+  bushes. Tree crowns may not overhang reserved tiles (trails, cabin yard).
+- **Consequences:** forests read as classic canopy walls in places and as groves elsewhere;
+  trails and the fence are never hidden.
+
+## D26 — Handheld-like automatic zoom
+
+- **Context:** the user chose a closer, handheld-like view.
+- **Decision:** `autoPixelScale(bufferWidth, bufferHeight)` picks the whole-number pixel scale
+  that shows about `targetTilesAcross` (20) tiles, reduced if fewer than `minTilesTall` (11)
+  rows would fit; +/− adds an offset. Still pixel-perfect (D22).
+- **Consequences:** sprites look big and chunky on any screen; M3's follow camera reuses it.
+
+## D27 — One sprite shader for tiles and objects; animated objects
+
+- **Context:** flowers should sway; objects used a plain `MeshBasicMaterial`.
+- **Decision:** `spriteMaterial.ts` (renamed from `tilemapMaterial.ts`) supports instancing;
+  objects carry an `animStride` attribute like tiles. Tiles and objects use separate material
+  instances so water (3 frames) and flowers (4 frames: rest, right, rest, left) keep their
+  own timing.
+- **Consequences:** any object can animate by being a strip with `FLOWER_FRAME_COUNT` frames.
+
+## D28 — Cabin yard: fence and mailbox as objects
+
+- **Context:** the user picked a fence and mailbox at the cabin.
+- **Decision:** a `decorateCabin` step places `fence` objects around the cleared front yard
+  (skipping trail tiles, so there is always a gate) and a `mailbox` beside the door. Fence
+  sprites are chosen at render time from 16 connection pieces (`objectSpriteKeys.ts`).
+- **Consequences:** fences elsewhere later just need `fence` objects; they connect
+  automatically.

@@ -74,11 +74,21 @@ export interface IslandConfig {
     readonly forestNoise: FractalNoiseOptions;
     /** Forest noise above this value counts as forest. */
     readonly forestThreshold: number;
-    /** Chance of a tree on a free forest tile. */
-    readonly forestDensity: number;
-    /** Chance of a lone tree on a free meadow tile. */
-    readonly loneTreeChance: number;
-    /** Low-frequency noise that groups tree species into stands. */
+    /**
+     * Forest cores (forest noise above denseThreshold) become dense, interlocking
+     * canopy, but only where the low-frequency character noise is above
+     * characterThreshold — so some forests are dense and others stay loose.
+     */
+    readonly denseThreshold: number;
+    readonly characterNoise: FractalNoiseOptions;
+    readonly characterThreshold: number;
+    /** Chance of a tree on a free tile in loose forest. */
+    readonly looseDensity: number;
+    /** Share of loose-forest and meadow trees that are big (2×2) rather than small. */
+    readonly bigTreeShare: number;
+    readonly meadowTreeChance: number;
+    readonly meadowBushChance: number;
+    /** Low-frequency noise that groups oaks and pines into stands. */
     readonly speciesNoise: FractalNoiseOptions;
   };
   readonly decorations: {
@@ -91,11 +101,14 @@ export interface IslandConfig {
     readonly grassTuftChance: number;
   };
   readonly render: {
-    /** Target CSS pixels per source pixel; rounded to whole device pixels for crispness. */
-    readonly cssPixelScale: number;
+    /** Handheld-like framing: pick the whole-number scale that shows about this many tiles across. */
+    readonly targetTilesAcross: number;
+    /** ...but never fewer than this many tiles top to bottom (wide, short windows). */
+    readonly minTilesTall: number;
     readonly minPixelScale: number;
     readonly maxPixelScale: number;
     readonly waterFrameSeconds: number;
+    readonly flowerFrameSeconds: number;
     /** Temporary free-look camera (until the player follow camera in M3). */
     readonly lookSpeedTilesPerSecond: number;
   };
@@ -151,9 +164,14 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   trees: {
     forestNoise: noise(0.032, 3),
-    forestThreshold: 0.57,
-    forestDensity: 0.7,
-    loneTreeChance: 0.01,
+    forestThreshold: 0.56,
+    denseThreshold: 0.62,
+    characterNoise: noise(0.012),
+    characterThreshold: 0.45,
+    looseDensity: 0.2,
+    bigTreeShare: 0.6,
+    meadowTreeChance: 0.005,
+    meadowBushChance: 0.008,
     speciesNoise: noise(0.022),
   },
   decorations: {
@@ -165,10 +183,12 @@ export const ISLAND_CONFIG: IslandConfig = {
     grassTuftChance: 0.05,
   },
   render: {
-    cssPixelScale: 3,
+    targetTilesAcross: 20,
+    minTilesTall: 11,
     minPixelScale: 1,
-    maxPixelScale: 8,
+    maxPixelScale: 12,
     waterFrameSeconds: 0.5,
+    flowerFrameSeconds: 0.6,
     lookSpeedTilesPerSecond: 14,
   },
   validation: { minLandShare: 0.2, maxLandShare: 0.65, minReachableShare: 0.3 },

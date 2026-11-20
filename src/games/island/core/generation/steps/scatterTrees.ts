@@ -1,38 +1,96 @@
-import { toIndex } from '@/shared/engine/grid';
+import { isInBounds, toIndex } from '@/shared/engine/grid';
 import { createFractalNoise2D } from '@/shared/engine/noise';
+import { OBJECT_REGISTRY, type ObjectKind } from '../../world/objects';
 import { TileId } from '../../world/tiles';
 import { NO_OBJECT } from '../../world/world';
-import { createStepRng, type GenerationStep } from '../context';
-import { addObject, copyObjectLayer } from '../objectLayer';
+import { createStepRng, type GenerationContext, type GenerationStep } from '../context';
+import { addObject, copyObjectLayer, type ObjectLayer } from '../objectLayer';
 
 const SPECIES_SPLIT = 0.5;
+/** Tree sprites rise one tile above their footprint (the crown). */
+const CROWN_ROWS = 1;
+
+function canPlace(
+  context: GenerationContext,
+  layer: ObjectLayer,
+  kind: ObjectKind,
+  x: number,
+  y: number,
+): boolean {
+  const { footprint, category } = OBJECT_REGISTRY[kind];
+  // Crowns may overhang grass and other trees, but never reserved tiles, so
+  // trails and the cabin yard (fence, mailbox) stay visible.
+  if (category === 'tree') {
+    for (let dy = 1; dy <= CROWN_ROWS; dy++) {
+      for (let dx = 0; dx < footprint.width; dx++) {
+        const tx = x + dx;
+        const ty = y - dy;
+        if (
+          isInBounds(context.size, tx, ty) &&
+          context.reserved[toIndex(context.size, tx, ty)] === 1
+        ) {
+          return false;
+        }
+      }
+    }
+  }
+  for (let dy = 0; dy < footprint.height; dy++) {
+    for (let dx = 0; dx < footprint.width; dx++) {
+      const tx = x + dx;
+      const ty = y + dy;
+      if (!isInBounds(context.size, tx, ty)) return false;
+      const index = toIndex(context.size, tx, ty);
+      if (context.terrain[index] !== TileId.Grass) return false;
+      if (context.reserved[index] === 1 || layer.occupancy[index] !== NO_OBJECT) return false;
+    }
+  }
+  return true;
+}
 
 /**
- * Forests come from low-frequency noise (clusters with soft edges, not uniform
- * scatter); meadows get the occasional lone tree. A second noise groups oaks
- * and pines into separate stands.
+ * Forests come from low-frequency noise. Where a forest's core meets a
+ * "dense" character, big trees are packed on a staggered 2-tile grid so their
+ * crowns interlock into a solid canopy (classic RPG forest walls); elsewhere
+ * forests are loose mixes of big and small trees you can weave through.
+ * Meadows get the odd lone tree or bush. A species noise groups oaks and pines.
  */
 export const scatterTrees: GenerationStep = (context) => {
-  const { size, config, terrain, reserved } = context;
+  const { size, config } = context;
   const settings = config.trees;
   const rng = createStepRng(context, 'scatterTrees');
-  const forestNoise = createFractalNoise2D(rng.next, settings.forestNoise);
-  const speciesNoise = createFractalNoise2D(rng.next, settings.speciesNoise);
+  const forest = createFractalNoise2D(rng.next, settings.forestNoise);
+  const character = createFractalNoise2D(rng.next, settings.characterNoise);
+  const species = createFractalNoise2D(rng.next, settings.speciesNoise);
   const layer = copyObjectLayer(context);
+  const bigKindAt = (x: number, y: number): ObjectKind =>
+    species(x, y) > SPECIES_SPLIT ? 'tree_oak' : 'tree_pine';
+  const tryPlace = (kind: ObjectKind, x: number, y: number): boolean => {
+    if (!canPlace(context, layer, kind, x, y)) return false;
+    addObject(layer, kind, x, y);
+    return true;
+  };
 
+  // Pass 1: dense canopy. Rows alternate their 2-tile grid offset, so every
+  // row is fully covered and each row's crowns overlap the trunks behind them.
+  for (let y = 0; y < size.height; y++) {
+    for (let x = y % 2; x < size.width; x += 2) {
+      const isDense =
+        forest(x, y) > settings.denseThreshold && character(x, y) > settings.characterThreshold;
+      if (isDense) tryPlace(bigKindAt(x, y), x, y);
+    }
+  }
+
+  // Pass 2: loose forest and meadows.
   for (let y = 0; y < size.height; y++) {
     for (let x = 0; x < size.width; x++) {
-      const index = toIndex(size, x, y);
-      if (
-        terrain[index] !== TileId.Grass ||
-        reserved[index] === 1 ||
-        layer.occupancy[index] !== NO_OBJECT
-      ) {
-        continue;
-      }
-      const isForest = forestNoise(x, y) > settings.forestThreshold;
-      if (rng.chance(isForest ? settings.forestDensity : settings.loneTreeChance)) {
-        addObject(layer, speciesNoise(x, y) > SPECIES_SPLIT ? 'tree_oak' : 'tree_pine', x, y);
+      if (!canPlace(context, layer, 'tree_small', x, y)) continue;
+      const inForest = forest(x, y) > settings.forestThreshold;
+      const treeChance = inForest ? settings.looseDensity : settings.meadowTreeChance;
+      if (rng.chance(treeChance)) {
+        const wantsBig = rng.chance(settings.bigTreeShare);
+        if (!(wantsBig && tryPlace(bigKindAt(x, y), x, y))) tryPlace('tree_small', x, y);
+      } else if (!inForest && rng.chance(settings.meadowBushChance)) {
+        tryPlace('bush', x, y);
       }
     }
   }

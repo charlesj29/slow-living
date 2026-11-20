@@ -3,6 +3,7 @@ import { createInitialContext, type GenerationContext, type GenerationStep } fro
 import { assignTerrain } from './steps/assignTerrain';
 import { carveLake } from './steps/carveLake';
 import { chooseSpawn } from './steps/chooseSpawn';
+import { decorateCabin } from './steps/decorateCabin';
 import { layPaths } from './steps/layPaths';
 import { placeCabin } from './steps/placeCabin';
 import { placeDock } from './steps/placeDock';
@@ -22,6 +23,7 @@ export const GENERATION_STEPS: readonly GenerationStep[] = [
   placeCabin,
   placeDock,
   layPaths,
+  decorateCabin,
   scatterRocks,
   scatterTrees,
   scatterFlowers,

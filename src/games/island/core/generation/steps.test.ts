@@ -54,24 +54,46 @@ describe('carveLake', () => {
 });
 
 describe('placeCabin', () => {
-  it('keeps the area in front of the door free of objects', () => {
+  it('keeps trees and rocks out of the front yard and the door step clear', () => {
     const context = validContext(13);
     const cabin = context.cabin;
-    expect(cabin).not.toBeNull();
-    if (!cabin) return;
+    if (!cabin) throw new Error('fixture needs a cabin');
     const { footprint } = OBJECT_REGISTRY.cabin;
+    const yardKinds = new Set(['fence', 'mailbox']);
     for (let row = 1; row <= ISLAND_CONFIG.cabin.frontClearanceTiles; row++) {
-      for (let dx = 0; dx < footprint.width; dx++) {
+      for (let dx = -1; dx <= footprint.width; dx++) {
         const index = toIndex(context.size, cabin.x + dx, cabin.y + footprint.height - 1 + row);
-        expect(context.occupancy[index]).toBe(NO_OBJECT);
-        // Grass, or the trail that starts at the door.
-        expect([TileId.Grass, TileId.Path]).toContain(context.terrain[index]);
+        const object = context.objects[context.occupancy[index] ?? NO_OBJECT];
+        if (object) expect(yardKinds.has(object.kind), object.kind).toBe(true);
       }
+    }
+    const door = getDoorFrontTile(cabin);
+    expect(context.occupancy[toIndex(context.size, door.x, door.y)]).toBe(NO_OBJECT);
+  });
+});
+
+describe('decorateCabin', () => {
+  it('fences the front yard and puts a mailbox next to the door', () => {
+    const context = validContext(13);
+    const kinds = context.objects.map((o) => o.kind);
+    expect(kinds.filter((k) => k === 'fence').length).toBeGreaterThan(3);
+    expect(kinds.filter((k) => k === 'mailbox')).toHaveLength(1);
+    for (const object of context.objects) {
+      if (object.kind !== 'fence') continue;
+      // Fences never sit on a trail, so they can't block the way out.
+      expect(context.terrain[toIndex(context.size, object.x, object.y)]).toBe(TileId.Grass);
     }
   });
 });
 
 describe('scatterTrees', () => {
+  it('mixes big 2×2 trees with small trees and bushes', () => {
+    const kinds = validContext(21).objects.map((o) => o.kind);
+    for (const kind of ['tree_oak', 'tree_pine', 'tree_small', 'bush'] as const) {
+      expect(kinds.filter((k) => k === kind).length, kind).toBeGreaterThan(10);
+    }
+  });
+
   it('places trees only on free grass outside reserved areas', () => {
     const context = validContext(21);
     for (const object of context.objects) {

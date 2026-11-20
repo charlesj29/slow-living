@@ -5,7 +5,8 @@ import { standingSpriteZ } from './worldSpace';
 
 const TILE = 16;
 const SIZES: Readonly<Record<string, SpriteSize>> = {
-  tree_oak: { width: 16, height: 32 },
+  tree_small: { width: 16, height: 32 },
+  tree_oak: { width: 32, height: 32 },
   flower_red: { width: 16, height: 16 },
   cabin: { width: 48, height: 64 },
 };
@@ -18,9 +19,15 @@ function place(objects: WorldObject[]): ReturnType<typeof placeObjectSprites> {
 
 describe('placeObjectSprites', () => {
   it('stands a tall sprite on the bottom of its tile, centred', () => {
-    const [tree] = place([{ id: 0, kind: 'tree_oak', x: 2, y: 5 }]).get('tree_oak') ?? [];
+    const [tree] = place([{ id: 0, kind: 'tree_small', x: 2, y: 5 }]).get('tree_small') ?? [];
     expect(tree?.x).toBe(2 * TILE + 8);
     // Bottom of the sprite = bottom of tile row 5 (world y −96); centre is half the height above.
+    expect(tree?.y).toBe(-(6 * TILE) + 16);
+  });
+
+  it('centres a big tree on its 2-tile trunk, crown covering the row above', () => {
+    const [tree] = place([{ id: 0, kind: 'tree_oak', x: 2, y: 5 }]).get('tree_oak') ?? [];
+    expect(tree?.x).toBe(2 * TILE + 16);
     expect(tree?.y).toBe(-(6 * TILE) + 16);
   });
 
