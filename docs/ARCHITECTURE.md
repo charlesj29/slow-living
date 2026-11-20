@@ -31,7 +31,7 @@ imports a game. All of this is enforced by `no-restricted-imports` blocks in
 ```
 src/
   main.tsx                  # Entry: mounts <App/>
-  app/                      # App shell: router (HydrateFallback), Layout, SiteMenu, global.css
+  app/                      # App shell: router (HydrateFallback), Layout, global.css
   pages/                    # WorldPage (/), GamesIndexPage, IslandRedirectPage, loading/error/404
   shared/
     engine/                 # Pure TS: math, random, noise, grid, pathfinding (A*)

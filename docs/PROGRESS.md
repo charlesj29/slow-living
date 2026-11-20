@@ -61,6 +61,14 @@
 
 ## Session log
 
+### 2026-11-20 — No site menu on the island (user request)
+
+- **Why:** the user wants visitors to land straight in the game with nothing else on screen.
+- **Done:** removed the floating "Games" button (`app/SiteMenu.tsx` and its CSS). The island
+  page now shows only the game and the controls hint. `/games` still exists (reachable by
+  URL, ready for future games) but nothing links to it from the island.
+- **Verified:** checks pass; the page text is only the controls hint; console clean.
+
 ### 2026-11-20 — Wider initial camera (user request)
 
 - **Why:** the user found the start view too close; their ideal view is the old default after

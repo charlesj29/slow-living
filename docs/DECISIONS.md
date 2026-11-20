@@ -359,3 +359,11 @@ alternatives → consequences.
 - **Alternatives:** a fixed "tiles across" target — it can't match "three steps out" on every
   window, because the old framing was sometimes height-limited.
 - **Consequences:** on small windows the view may reach the minimum scale (1); +/− still work.
+
+## D36 — No site chrome on the island (user decision)
+
+- **Context:** the user wants the URL to "teleport" visitors straight into the game.
+- **Decision:** remove the floating "Games" menu (it amended D15). `/` renders only the game
+  (canvas + controls hint). `/games` and the catalog stay for future games, reachable by URL.
+- **Consequences:** if more games are added, how visitors discover them needs a new decision
+  (e.g. an in-game sign or a pause menu).
