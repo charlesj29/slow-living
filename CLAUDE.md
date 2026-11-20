@@ -37,6 +37,22 @@ A games website (React + TypeScript + Three.js via React Three Fiber). Games liv
 - Dispose Three.js geometries/materials/textures on unmount and on regenerate.
 - `tests/layer-rules.test.ts` proves the layer rules fire; update it when rules change.
 
+## Generation & world conventions
+
+- World grids are flat typed arrays, row-major (`y * width + x`), **y grows downwards**;
+  render code flips y for Three.js.
+- Generation steps are pure `(context) => context` (copy arrays you change) and take
+  randomness only from `createStepRng(context, '<stepName>')`. Never `Math.random()` in core.
+- New invariants go into `generation/validate.ts` plus a test; generation must stay
+  deterministic per seed (tests check this across 50 seeds).
+- `three` is pinned to `^0.182.0` (see `docs/DECISIONS.md` D9) — don't bump it casually.
+
+## Verifying in the browser
+
+Run `npm run dev`, then `node scripts/browser-check.mjs <url> <out.png>`: headless Chrome,
+real-time wait for the canvas, screenshot + full console log. Definition of done requires no
+console warnings or errors (Vite debug and React DevTools info lines are fine).
+
 ## Conventions
 
 - TypeScript strict + `noUncheckedIndexedAccess`; no `any`. Named exports only (no default

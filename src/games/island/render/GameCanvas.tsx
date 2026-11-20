@@ -1,24 +1,29 @@
 import { Canvas } from '@react-three/fiber';
 import type { JSX } from 'react';
+import { ISLAND_CONFIG } from '../core/config';
+import { getTileDefinition, TileId } from '../core/world/tiles';
+import type { World } from '../core/world/world';
+import { FitMapCamera } from './FitMapCamera';
+import { WorldColorMap } from './WorldColorMap';
 
-const SEA_COLOR = '#1f4e79';
-const CAMERA_DISTANCE = 100;
-const INITIAL_ZOOM = 1;
+// The canvas background matches deep sea so the map blends into the margin.
+const BACKGROUND_COLOR = getTileDefinition(TileId.DeepSea).mapColor;
+
+interface GameCanvasProps {
+  readonly world: World;
+}
 
 /**
- * Root Three.js canvas for the island. Orthographic camera looking straight
- * down the Z axis gives a true 2D top-down view. Antialiasing is off because
- * it blurs pixel art.
+ * Root Three.js canvas for the island. 1 world unit = 1 source pixel, so a
+ * tile is `tileSizePx` units wide. Antialiasing is off because it blurs pixel art.
  */
-export function GameCanvas(): JSX.Element {
+export function GameCanvas({ world }: GameCanvasProps): JSX.Element {
+  const { tileSizePx } = ISLAND_CONFIG.map;
   return (
-    <Canvas
-      orthographic
-      flat
-      gl={{ antialias: false }}
-      camera={{ position: [0, 0, CAMERA_DISTANCE], zoom: INITIAL_ZOOM }}
-    >
-      <color attach="background" args={[SEA_COLOR]} />
+    <Canvas flat gl={{ antialias: false }}>
+      <color attach="background" args={[BACKGROUND_COLOR]} />
+      <FitMapCamera mapWidthPx={world.width * tileSizePx} mapHeightPx={world.height * tileSizePx} />
+      <WorldColorMap world={world} tileSizePx={tileSizePx} />
     </Canvas>
   );
 }

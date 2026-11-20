@@ -33,7 +33,8 @@ npm install
 
 - `/` — home
 - `/games` — list of games
-- `/games/island` — the Island game (`?seed=1234` chooses a world, from M1 on)
+- `/games/island` — the Island game. `?seed=1234` (or any word, e.g. `?seed=palm`) picks the
+  world; without it a random seed is used and shown top-left
 
 ## Documentation
 
@@ -42,3 +43,9 @@ npm install
 - [docs/DECISIONS.md](docs/DECISIONS.md) — decision records
 - [docs/ROADMAP.md](docs/ROADMAP.md) — future ideas
 - [PROJECT_BRIEF.md](PROJECT_BRIEF.md) — the original project specification
+
+## Browser check (dev only)
+
+With `npm run dev` running, `node scripts/browser-check.mjs http://localhost:5173/games/island?seed=1234 shot.png`
+loads the page in headless Chrome, saves a screenshot and prints all console output. Set
+`CHROME_PATH` if Chrome is not in the default Windows location.

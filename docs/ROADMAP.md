@@ -25,3 +25,5 @@ architecture should make each a natural addition.
   interface
 - Typed linting (`strictTypeChecked`) once async code grows
 - Move to TypeScript 7 when typescript-eslint supports it
+- Minimap built from the registries' `mapColor` (the M1 preview texture already does this)
+- Move to three r183+ once a stable `@react-three/fiber` stops using `THREE.Clock`
