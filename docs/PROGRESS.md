@@ -11,10 +11,11 @@
   previews a seed. Touch devices see "Best played with a keyboard". Every other address
   redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
   renderer memory stays flat across regenerations. 249 tests.
-- **Visual overhaul in progress** (user request, `pixel_art_visual_overhaul_prompt.md` + a
-  cozy 16-bit reference image): Phases 2–4 done (foundation; trees, cottage, explorer; props,
-  stumps/branches, rocky coastal ledges). **Next: Phase 5** — refine against the reference,
-  before/after screenshots, final summary (asset list, limitations, gameplay preserved).
+- **Visual overhaul complete** (user request, `pixel_art_visual_overhaul_prompt.md` + a cozy
+  16-bit reference image, style only): soft shadows, calmer grass with dithered patches,
+  natural paths, leaf-cluster trees + a giant forest tree, a 6×4 reference-style cottage,
+  refined explorer with idle breathing, props by the house, stumps and branches, rocky coastal
+  ledges, warm palette. Wait for the user's feedback on the result.
 - **Still open from M4:** discuss the two items the user deferred until after M4:
   1. **Real-machine performance:** ask the user to run `npm run dev` (or `npm run build` +
      `npm run preview`), press F3, walk around (including zoomed out) and report the FPS.
@@ -63,10 +64,27 @@
   "chilling"; loading text "Cooking…" / "Doing its magic…"; touch devices get a keyboard notice.
 - Bigger cabin pinned with an authoring anchor (5×3, then a 6×4 reference-style cottage in
   the visual overhaul); camera starts three zoom steps out.
+- Visual overhaul (2026-11-21): art stays drawn in code; a 6×4 reference-style cottage (door on
+  the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
+  the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Visual overhaul, Phase 5: test and refine (user request)
+
+- **Compared with the reference** at the default gameplay zoom and close up. Fixes: rocks moved
+  from cool blue-grey to warm greys (they read as clutter against the warm palette); grass
+  patches a touch softer (`render.grassPatches.shade` 0.9 → 0.92).
+- **Gameplay re-tested in the browser** (F3 tile readout): the flower pot blocks the way left
+  of the door; the trail leads down onto the dock and stops at its end (115, 119); the
+  stepping stones are walkable and the yard fence stops the player. Ledges block, their beaches
+  are reachable (validation). Controls, zoom, F3 and the hint unchanged.
+- **Verified:** typecheck, lint, 281 tests, build pass; console clean; ~240 FPS on GPU.
+- **Remaining limitations:** ledges are one tile high (no raised plateaus or stairs); the
+  lake's deep/shallow boundary still steps per tile; the dense forest canopy repeats a few
+  crown variants; stepping stones pick their layout by position hash, so neighbours can match.
 
 ### 2026-11-21 — Visual overhaul, Phase 4 (user request)
 

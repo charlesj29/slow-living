@@ -267,7 +267,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,
     flowerFrameSeconds: 0.6,
-    grassPatches: { noise: noise(0.07, 2), threshold: 0.55, shade: 0.9, ditherSpread: 0.14 },
+    grassPatches: { noise: noise(0.07, 2), threshold: 0.55, shade: 0.92, ditherSpread: 0.14 },
     cameraFollowSharpness: 8,
   },
   validation: { minLandShare: 0.2, maxLandShare: 0.65, minReachableShare: 0.3 },

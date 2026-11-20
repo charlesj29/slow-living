@@ -41,7 +41,8 @@ export const PALETTE = {
   oak: ramp('#1b4628', '#2b6c34', '#3f9142', '#5db24e', '#92d46a'),
   pine: ramp('#143c28', '#1f5a38', '#2c7848', '#40965a', '#6cbc7a'),
   leafy: ramp('#1f4a26', '#327a3a', '#479c46', '#66bb56', '#9ad878'),
-  rock: ramp('#36363e', '#66666e', '#8e8e98', '#b4b4be', '#dedee6'),
+  // Warm greys so stones sit with the sunny greens and sand instead of looking blue.
+  rock: ramp('#3c3834', '#6a645e', '#918a82', '#b6aea4', '#dbd4c8'),
   /** Warm sandstone for coastal ledges, so they sit between the grass and the beach. */
   cliff: ramp('#4a362a', '#7a6250', '#9c8670', '#bba68a', '#d8c8aa'),
   terracotta: ramp('#5a2818', '#a24a2a', '#c8663a', '#e08a58', '#f2b07e'),
