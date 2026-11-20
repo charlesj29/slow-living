@@ -163,8 +163,10 @@ flowchart LR
   stores the interpolation factor. Then `FollowCamera` eases towards the interpolated player
   position, and `PlayerSprite` draws it (pixel-snapped, facing strip, walk frame,
   `standingSpriteZ(feet)`).
-- **Controls:** WASD/arrows walk (8-way, normalised speed; facing = most recently pressed
-  direction), Shift runs, +/− zoom. Losing window focus releases all keys.
+- **Controls:** WASD/arrows walk in 4 directions: only the most recently pressed key that is
+  still held moves (and faces) the player; releasing it falls back to the previous held key,
+  and opposite keys don't cancel (D40). Shift runs, +/− zoom, F3 debug overlay. Losing window
+  focus releases all keys.
 - **Collision:** a 10×6 px feet hitbox against `world.blocked`; X and Y move separately
   (wall sliding), stop flush at tile edges, and nudge around corners clipped by ≤ 5 px.
 - Only UI-relevant values go into zustand: `isDebugOverlayVisible` (F3) and

@@ -47,6 +47,8 @@
 - Classic handheld-RPG-inspired pixel art (Pokémon Emerald as a style reference only, no
   copying); big 2×2 trees; the initial view is three zoom steps out from the ~20-tiles-across
   framing ("press − three times", the user's preferred camera).
+- 4-way movement: only the most recently pressed direction key moves the player (no
+  diagonals).
 - Player character: explorer with a cap, dark brown hair, orange/yellow outfit; walk + hold
   Shift to run. Redrawn in a chunky chibi handheld-RPG style after the user shared a style
   reference (style only — no copying of the reference character).
@@ -60,6 +62,18 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — 4-way movement (user request)
+
+- **Why:** pressing two keys (e.g. A+W) moved the player diagonally; the user wants only one
+  active direction — the last pressed key.
+- **Done:** `readMovementIntent` now returns a single unit step for the most recently pressed
+  held direction (`latestHeld`); releasing it falls back to the previous held key; opposite
+  keys no longer cancel. Movement system unchanged (it still supports diagonals, it just
+  isn't asked to); corner nudging still helps slip past obstacles.
+- **Verified:** 252 tests (new: latest key wins, fallback on release, opposite keys, no
+  diagonal while two keys are held); in the browser D+S held together moved straight down
+  from tile (115, 109) to (115, 112).
 
 ### 2026-11-21 — M4 Polish & handover
 

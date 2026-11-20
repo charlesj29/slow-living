@@ -17,19 +17,43 @@ const open = (): ReturnType<typeof makeTestWorld> =>
   makeTestWorld(Array.from({ length: 10 }, () => ',,,,,,,,,,'));
 
 describe('controls', () => {
-  it('turns held keys into a movement intent', () => {
+  it('moves in one direction only: the most recently pressed key wins', () => {
     const state = createGameState(open(), ISLAND_CONFIG);
     pressKey(state.input, ISLAND_KEY_BINDINGS, 'KeyD');
     pressKey(state.input, ISLAND_KEY_BINDINGS, 'ArrowUp');
     pressKey(state.input, ISLAND_KEY_BINDINGS, 'ShiftLeft');
-    expect(readMovementIntent(state.input)).toEqual({ dx: 1, dy: -1, run: true, facing: 'up' });
+    expect(readMovementIntent(state.input)).toEqual({ dx: 0, dy: -1, run: true, facing: 'up' });
   });
 
-  it('cancels opposite directions but still faces the latest one', () => {
+  it('falls back to the previous held key when the latest is released', () => {
+    const state = createGameState(open(), ISLAND_CONFIG);
+    pressKey(state.input, ISLAND_KEY_BINDINGS, 'KeyA');
+    pressKey(state.input, ISLAND_KEY_BINDINGS, 'KeyW');
+    releaseKey(state.input, ISLAND_KEY_BINDINGS, 'KeyW');
+    expect(readMovementIntent(state.input)).toMatchObject({ dx: -1, dy: 0, facing: 'left' });
+  });
+
+  it('lets the newer of two opposite keys win instead of cancelling out', () => {
     const state = createGameState(open(), ISLAND_CONFIG);
     pressKey(state.input, ISLAND_KEY_BINDINGS, 'ArrowLeft');
     pressKey(state.input, ISLAND_KEY_BINDINGS, 'ArrowRight');
-    expect(readMovementIntent(state.input)).toMatchObject({ dx: 0, facing: 'right' });
+    expect(readMovementIntent(state.input)).toMatchObject({ dx: 1, dy: 0, facing: 'right' });
+  });
+
+  it('stands still with no direction held', () => {
+    const state = createGameState(open(), ISLAND_CONFIG);
+    pressKey(state.input, ISLAND_KEY_BINDINGS, 'ShiftLeft');
+    expect(readMovementIntent(state.input)).toEqual({ dx: 0, dy: 0, run: true, facing: undefined });
+  });
+
+  it('never moves diagonally while two directions are held', () => {
+    const state = createGameState(open(), ISLAND_CONFIG);
+    pressKey(state.input, ISLAND_KEY_BINDINGS, 'KeyS');
+    pressKey(state.input, ISLAND_KEY_BINDINGS, 'KeyD');
+    const startY = state.player.y;
+    for (let i = 0; i < 30; i++) stepGame(state, 1 / 60, ISLAND_CONFIG);
+    expect(state.player.y).toBe(startY);
+    expect(state.player.x).toBeGreaterThan((state.world.spawn.x + 0.5) * TEST_TILE);
   });
 });
 

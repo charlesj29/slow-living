@@ -403,3 +403,13 @@ alternatives → consequences.
 - **Consequences:** results (M4): 31–34 draw calls, ~26k triangles, 1 texture, 2 programs,
   memory flat across repeated island regenerations; ~240 FPS uncapped on GPU (headless). The
   hook is absent in production (verified).
+
+## D40 — 4-way movement: the last pressed key wins (user decision)
+
+- **Context:** with 8-way movement (D30), holding A+W walked diagonally; the user wants the
+  classic feel of one active direction.
+- **Decision:** `readMovementIntent` uses only the most recently pressed direction that is
+  still held (`latestHeld`): one unit step, no diagonals; releasing it falls back to the
+  previous held key; opposite keys don't cancel. Supersedes the 8-way part of D30.
+- **Consequences:** wall sliding along diagonals no longer happens in play (the movement
+  system still supports it); corner nudging (D31) keeps tight spots easy to walk through.

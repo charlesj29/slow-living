@@ -19,6 +19,14 @@ export const ISLAND_KEY_BINDINGS: KeyBindings<IslandAction> = {
 
 const DIRECTION_ACTIONS: readonly Direction[] = ['up', 'down', 'left', 'right'];
 
+/** Unit step per direction in map coordinates (+y is down). */
+const DIRECTION_STEPS: Readonly<Record<Direction, { readonly dx: number; readonly dy: number }>> = {
+  up: { dx: 0, dy: -1 },
+  down: { dx: 0, dy: 1 },
+  left: { dx: -1, dy: 0 },
+  right: { dx: 1, dy: 0 },
+};
+
 export interface MovementIntent {
   /** −1, 0 or 1 on each axis (map coordinates: +y is down). */
   readonly dx: number;
@@ -28,12 +36,13 @@ export interface MovementIntent {
   readonly facing: Direction | undefined;
 }
 
+/**
+ * Classic 4-way movement: only one direction is active at a time — the most
+ * recently pressed key that is still held. Releasing it falls back to the
+ * previous held key; opposite keys don't cancel out (the newer one wins).
+ */
 export function readMovementIntent(input: InputState<IslandAction>): MovementIntent {
-  const held = (action: IslandAction): number => (isHeld(input, action) ? 1 : 0);
-  return {
-    dx: held('right') - held('left'),
-    dy: held('down') - held('up'),
-    run: isHeld(input, 'run'),
-    facing: latestHeld(input, DIRECTION_ACTIONS),
-  };
+  const facing = latestHeld(input, DIRECTION_ACTIONS);
+  const step = facing ? DIRECTION_STEPS[facing] : { dx: 0, dy: 0 };
+  return { dx: step.dx, dy: step.dy, run: isHeld(input, 'run'), facing };
 }
