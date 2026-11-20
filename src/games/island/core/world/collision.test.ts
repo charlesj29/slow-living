@@ -4,7 +4,7 @@ import type { ObjectKind } from './objects';
 import { TileId } from './tiles';
 import type { WorldObject } from './world';
 
-const size = { width: 4, height: 4 };
+const size = { width: 6, height: 4 };
 
 function terrainOf(tile: TileId): Uint8Array {
   return new Uint8Array(size.width * size.height).fill(tile);
@@ -45,7 +45,7 @@ describe('computeBlockedMask', () => {
 
   it('blocks the whole cabin footprint', () => {
     const blocked = computeBlockedMask(size, terrainOf(TileId.Grass), [objectAt('cabin', 0, 0)]);
-    expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(9);
+    expect(blocked.reduce((sum, v) => sum + v, 0)).toBe(15);
     expect(blocked[3 * size.width + 1]).toBe(0);
   });
 

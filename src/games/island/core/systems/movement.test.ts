@@ -57,7 +57,7 @@ describe('movePlayer', () => {
     ['a tree trunk', ',,', [{ kind: 'tree_small', x: 1, y: 1 }]],
     ['a rock', ',,', [{ kind: 'rock', x: 1, y: 1 }]],
     ['a fence', ',,', [{ kind: 'fence', x: 1, y: 1 }]],
-    ['the cabin', ',,,,', [{ kind: 'cabin', x: 1, y: 0 }]],
+    ['the cabin', ',,,,,,', [{ kind: 'cabin', x: 1, y: 0 }]],
   ] as const)('stops flush against %s', (_name, row, objects) => {
     const world = makeTestWorld([row, row, row], [...objects]);
     const player = createPlayer({ x: 0, y: 1 }, TEST_TILE);

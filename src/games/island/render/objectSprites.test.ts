@@ -8,7 +8,7 @@ const SIZES: Readonly<Record<string, SpriteSize>> = {
   tree_small: { width: 16, height: 32 },
   tree_oak: { width: 32, height: 32 },
   flower_red: { width: 16, height: 16 },
-  cabin: { width: 48, height: 64 },
+  cabin: { width: 80, height: 64 },
 };
 const sizeOf = (key: string): SpriteSize => SIZES[key] ?? { width: 16, height: 16 };
 const keyFor = (object: WorldObject): string => object.kind;
@@ -31,9 +31,9 @@ describe('placeObjectSprites', () => {
     expect(tree?.y).toBe(-(6 * TILE) + 16);
   });
 
-  it('centres the cabin sprite on its 3×3 footprint, roof extending upwards', () => {
+  it('centres the cabin sprite on its 5×3 footprint, roof extending upwards', () => {
     const [cabin] = place([{ id: 0, kind: 'cabin', x: 10, y: 10 }]).get('cabin') ?? [];
-    expect(cabin?.x).toBe(10 * TILE + 24);
+    expect(cabin?.x).toBe(10 * TILE + 40);
     expect(cabin?.y).toBe(-(13 * TILE) + 32);
   });
 

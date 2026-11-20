@@ -1,4 +1,4 @@
-import { distanceField, isInBounds, toIndex } from '@/shared/engine/grid';
+import { distanceField, isInBounds, toIndex, type TilePoint } from '@/shared/engine/grid';
 import { OBJECT_REGISTRY } from '../../world/objects';
 import { isLakeTile, isWaterTile, TileId } from '../../world/tiles';
 import { createStepRng, type GenerationContext, type GenerationStep } from '../context';
@@ -40,6 +40,20 @@ function isSiteSuitable(
   return true;
 }
 
+/** The candidate (top-left tile index) nearest the anchor tile. */
+function closestTo(candidates: readonly number[], anchor: TilePoint, width: number): number {
+  let best = candidates[0] ?? 0;
+  let bestDistance = Infinity;
+  for (const index of candidates) {
+    const distance = Math.hypot((index % width) - anchor.x, Math.floor(index / width) - anchor.y);
+    if (distance < bestDistance) {
+      best = index;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
 /**
  * Places the cabin on flat grass away from water, preferably within sight of
  * the lake. Its surroundings and the area in front of the door are reserved so
@@ -66,9 +80,10 @@ export const placeCabin: GenerationStep = (context) => {
     return distance >= 0 && distance <= config.cabin.maxLakeDistanceTiles;
   });
 
-  const chosen = createStepRng(context, 'placeCabin').pick(
-    nearLake.length > 0 ? nearLake : candidates,
-  );
+  const pool = nearLake.length > 0 ? nearLake : candidates;
+  const chosen = config.cabin.anchor
+    ? closestTo(pool, config.cabin.anchor, size.width)
+    : createStepRng(context, 'placeCabin').pick(pool);
   const cabinX = chosen % size.width;
   const cabinY = Math.floor(chosen / size.width);
 

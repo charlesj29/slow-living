@@ -1,5 +1,7 @@
-// The cabin: 48×64 px. The bottom 48 px match its 3×3-tile footprint; the roof
+// The cabin: 80×64 px. The bottom 48 px match its 5×3-tile footprint; the roof
 // rises one extra tile above it (drawn over whatever stands behind the cabin).
+// Symmetric: door in the middle tile (matches the registry's door), one window
+// on each side.
 // Outlined, chunky shading in the classic handheld style (original design).
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
@@ -11,24 +13,31 @@ import {
 import { TILE_PX } from './paint';
 import { PALETTE } from './palette';
 
-const WIDTH = TILE_PX * 3;
+const WIDTH = TILE_PX * 5;
 const HEIGHT = TILE_PX * 4;
 const ROOF_TOP = 4;
-const ROOF_BOTTOM = 33;
+/** The wall below the eaves is a fixed height; the roof takes the rest. */
+const ROOF_BOTTOM = HEIGHT - 31;
 const WALL_LEFT = 3;
 const WALL_RIGHT = WIDTH - 4;
 const WALL_BOTTOM = HEIGHT - 3;
-const DOOR_LEFT = 19;
 const DOOR_WIDTH = 10;
-const DOOR_TOP = 44;
+const DOOR_LEFT = (WIDTH - DOOR_WIDTH) / 2;
+const DOOR_TOP = ROOF_BOTTOM + 11;
+const WINDOW_TOP = ROOF_BOTTOM + 6;
+const WINDOW_WIDTH = 10;
+const WINDOW_INSET = 12;
+const WINDOW_LEFTS = [WINDOW_INSET, WIDTH - WINDOW_INSET - WINDOW_WIDTH] as const;
+const CHIMNEY_LEFT = WIDTH - 18;
 
 function paintChimney(canvas: PixelCanvas): void {
   const { stone, stoneDark } = PALETTE.cabin;
-  fillRect(canvas, 32, 0, 8, 12, PALETTE.roof.outline);
-  fillRect(canvas, 33, 1, 6, 10, stone);
-  fillRect(canvas, 33, 1, 6, 1, PALETTE.foam.soft);
-  fillRect(canvas, 38, 2, 1, 9, stoneDark);
-  for (let y = 4; y < 11; y += 3) fillRect(canvas, 33, y, 5, 1, stoneDark);
+  const x = CHIMNEY_LEFT;
+  fillRect(canvas, x, 0, 8, 14, PALETTE.roof.outline);
+  fillRect(canvas, x + 1, 1, 6, 12, stone);
+  fillRect(canvas, x + 1, 1, 6, 1, PALETTE.foam.soft);
+  fillRect(canvas, x + 6, 2, 1, 11, stoneDark);
+  for (let y = 4; y < 13; y += 3) fillRect(canvas, x + 1, y, 5, 1, stoneDark);
 }
 
 function paintRoof(canvas: PixelCanvas): void {
@@ -80,17 +89,18 @@ function paintWall(canvas: PixelCanvas): void {
 function paintWindow(canvas: PixelCanvas, left: number): void {
   const { glass, shine } = PALETTE.cabin;
   const frame = PALETTE.wall.outline;
-  fillRect(canvas, left, 39, 10, 10, frame);
-  fillRect(canvas, left + 1, 40, 8, 8, glass);
-  fillRect(canvas, left + 5, 40, 1, 8, frame);
-  fillRect(canvas, left + 1, 44, 8, 1, frame);
-  setPixel(canvas, left + 2, 41, shine);
-  setPixel(canvas, left + 3, 41, shine);
-  setPixel(canvas, left + 2, 42, shine);
+  const top = WINDOW_TOP;
+  fillRect(canvas, left, top, 10, 10, frame);
+  fillRect(canvas, left + 1, top + 1, 8, 8, glass);
+  fillRect(canvas, left + 5, top + 1, 1, 8, frame);
+  fillRect(canvas, left + 1, top + 5, 8, 1, frame);
+  setPixel(canvas, left + 2, top + 2, shine);
+  setPixel(canvas, left + 3, top + 2, shine);
+  setPixel(canvas, left + 2, top + 3, shine);
   // Window box with a flower or two
-  fillRect(canvas, left, 49, 10, 2, PALETTE.wall.dark);
-  setPixel(canvas, left + 2, 48, PALETTE.flowers.red.petal);
-  setPixel(canvas, left + 7, 48, PALETTE.flowers.yellow.petal);
+  fillRect(canvas, left, top + 10, 10, 2, PALETTE.wall.dark);
+  setPixel(canvas, left + 2, top + 9, PALETTE.flowers.red.petal);
+  setPixel(canvas, left + 7, top + 9, PALETTE.flowers.yellow.petal);
 }
 
 function paintDoor(canvas: PixelCanvas): void {
@@ -127,8 +137,7 @@ export function paintCabinSprites(): SpriteSource[] {
   paintWall(canvas);
   paintRoof(canvas);
   paintChimney(canvas);
-  paintWindow(canvas, 6);
-  paintWindow(canvas, 32);
+  for (const left of WINDOW_LEFTS) paintWindow(canvas, left);
   paintDoor(canvas);
   return [{ key: 'cabin', frames: [canvas] }];
 }

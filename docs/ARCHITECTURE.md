@@ -126,7 +126,7 @@ scatterRocks → scatterTrees → scatterFlowers → chooseSpawn → validate`
 | `shapeIsland`    | Elevation = fractal noise blended with a radial gradient (`radialWeight`)                                                                                                                                                  |
 | `assignTerrain`  | Thresholds → deep/shallow sea, sand, grass; deep-sea edge band; keep the largest landmass; fill water not connected to the edge                                                                                            |
 | `carveLake`      | Noise-bent blob where the coast distance leaves room for lake + shore + gap; 8-way shallows rim and sand shore                                                                                                             |
-| `placeCabin`     | Site where footprint + margin + front clearance are grass, away from water, preferably near the lake; reserves the area                                                                                                    |
+| `placeCabin`     | Site where footprint + margin + front clearance are grass, away from water, preferably near the lake (or nearest the `cabin.anchor` authoring hint); reserves the area                                                     |
 | `placeDock`      | Straight dock from a lake-shore sand tile into open water, on the side closest to the cabin door                                                                                                                           |
 | `layPaths`       | A* trails from the door to the dock and to beaches (closest, then farthest), noise-perturbed costs so they wind, existing trail is cheap so trails merge; trail tiles reserved                                             |
 | `decorateCabin`  | Fence around the cabin's front yard (trail tiles left open = gate) and a mailbox beside the door                                                                                                                           |
@@ -197,7 +197,7 @@ flowchart LR
   u stride and the shader adds `stride × uFrame`.
 - **Objects:** `objectSpriteKey` picks each object's sprite (fence pieces by neighbouring
   fences, otherwise a stable variant); `placeObjectSprites` stands sprites on the bottom edge
-  of their footprint (big trees: 32×32 over a 2×1 trunk row; cabin: 48×64 over 3×3). One
+  of their footprint (big trees: 32×32 over a 2×1 trunk row; cabin: 80×64 over 5×3). One
   `InstancedMesh` per sprite key with the shared `spriteMaterial` (instancing-aware); flowers
   are 4-frame strips animated by the objects material's own `uFrame`.
 - **Style:** classic handheld-RPG-inspired, original, painted in code: colour ramps
@@ -240,7 +240,7 @@ the next step is loading chunks on demand instead of one JSON import (see ROADMA
 ### Add or change a sprite
 
 1. Paint it in the matching `assets/paint*.ts` file (16×16 per tile; standing sprites keep
-   their feet on the bottom row and may be taller, e.g. trees 16×32, the cabin 48×64).
+   their feet on the bottom row and may be taller, e.g. trees 16×32, the cabin 80×64).
 2. Return it as a `SpriteSource` with the key the registry uses (`spriteKey`, or `key.N` for
    variants; several frames = an animation strip with `WATER_FRAME_COUNT` frames).
 3. `islandSprites.test.ts` checks every registry entry has its sprite.

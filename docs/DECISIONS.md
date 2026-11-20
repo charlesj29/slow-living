@@ -367,3 +367,16 @@ alternatives → consequences.
   (canvas + controls hint). `/games` and the catalog stay for future games, reachable by URL.
 - **Consequences:** if more games are added, how visitors discover them needs a new decision
   (e.g. an in-game sign or a pause menu).
+
+## D37 — Bigger 5×3 cabin, pinned with an authoring anchor (user request)
+
+- **Context:** the user asked for a slightly bigger cabin (wider, same roof height, two
+  windows) with the door still at the top of the trail.
+- **Decision:** footprint 5×3 (sprite 80×64), door in the middle tile. `placeCabin` takes an
+  optional `cabin.anchor` (authoring hint): pick the suitable site nearest it instead of a
+  random one. Anchored at (113, 106) so the door front stays at (115, 109).
+- **Alternatives:** re-bake without an anchor — the cabin moved 16 tiles and the dock and
+  trails moved with it.
+- **Consequences:** landmarks can be pinned while placement rules evolve. Scatter steps still
+  use one random stream per step, so reserving different tiles reshuffles nearby rocks,
+  trees and flowers (ROADMAP: per-tile hashing would keep them stable).

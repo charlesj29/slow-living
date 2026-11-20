@@ -49,6 +49,12 @@ export interface IslandConfig {
     readonly minWaterDistanceTiles: number;
     /** Preferred maximum distance from the lake, so the cabin overlooks it. */
     readonly maxLakeDistanceTiles: number;
+    /**
+     * Authoring hint: put the cabin on the suitable site nearest this tile (its top-left)
+     * instead of a random one, so the landmark stays put when the cabin's size or the
+     * placement rules change. null = random.
+     */
+    readonly anchor: { readonly x: number; readonly y: number } | null;
   };
   readonly dock: {
     readonly lengthTiles: number;
@@ -168,6 +174,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     frontClearanceTiles: 3,
     minWaterDistanceTiles: 4,
     maxLakeDistanceTiles: 22,
+    anchor: { x: 113, y: 106 },
   },
   dock: { lengthTiles: 4 },
   paths: {

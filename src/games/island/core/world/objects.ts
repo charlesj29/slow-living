@@ -89,11 +89,11 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     kind: 'cabin',
     name: 'Wooden cabin',
     category: 'building',
-    footprint: { width: 3, height: 3 },
+    footprint: { width: 5, height: 3 },
     blocksMovement: true,
     spriteKey: 'cabin',
     mapColor: '#8b5a2b',
-    door: { x: 1, y: 2 },
+    door: { x: 2, y: 2 },
   },
 };
 

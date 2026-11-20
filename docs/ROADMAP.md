@@ -43,3 +43,5 @@ architecture should make each a natural addition.
 - More classic touches: tall-grass patches, stumps, a few signposts along trails
 - Gamepad and touch controls feeding the same input actions (`shared/engine/input.ts`)
 - Interactions: read the mailbox, open the cabin door (interior), sit on the dock
+- Per-tile hashed randomness in scatter steps, so local edits (e.g. a bigger yard) don't
+  reshuffle rocks/trees/flowers elsewhere on re-bake

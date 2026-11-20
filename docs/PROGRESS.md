@@ -61,6 +61,17 @@
 
 ## Session log
 
+### 2026-11-20 — Bigger cabin (user request)
+
+- **Why:** the user wanted the cabin a bit bigger: wider body (not a taller roof), only two
+  windows, door still opening onto the same trail tile.
+- **Done:** cabin footprint 3×3 → 5×3, sprite 48×64 → 80×64, symmetric (door in the middle
+  tile, one window each side). New authoring hint `cabin.anchor` (nearest suitable site to a
+  tile instead of a random one) keeps the cabin in place: anchor (113, 106), so the door front
+  stays at (115, 109). Re-baked seed 1: terrain, trails and dock unchanged; some rocks, trees
+  and flowers reshuffled because the wider yard frees/blocks different tiles.
+- **Verified:** checks pass; door aligned with the trail in screenshots.
+
 ### 2026-11-20 — No site menu on the island (user request)
 
 - **Why:** the user wants visitors to land straight in the game with nothing else on screen.

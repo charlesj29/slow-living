@@ -38,7 +38,7 @@ describe('island sprites', () => {
     expect(atlas.frame('tree_small.0')).toMatchObject({ width: 16, height: 32 });
     expect(atlas.frame('bush.0')).toMatchObject({ width: 16, height: 16 });
     expect(atlas.frame('mailbox')).toMatchObject({ width: 16, height: 24 });
-    expect(atlas.frame('cabin')).toMatchObject({ width: 48, height: 64 });
+    expect(atlas.frame('cabin')).toMatchObject({ width: 80, height: 64 });
     expect(atlas.frame('rock.0')).toMatchObject({ width: 16, height: 16 });
   });
 
