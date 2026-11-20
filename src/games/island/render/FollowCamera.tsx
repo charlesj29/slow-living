@@ -24,13 +24,14 @@ interface FollowCameraProps {
 
 /**
  * Smoothly follows a target, stays inside the map and keeps the pixel-perfect
- * handheld-like zoom (automatic for the window size, nudged with + / −).
+ * handheld-like zoom: automatic for the window size, starting `defaultZoomSteps` out (the
+ * user's preferred framing), adjusted with + / −.
  */
 export function FollowCamera({ getTarget, bounds, tileSizePx }: FollowCameraProps): JSX.Element {
   const settings = ISLAND_CONFIG.render;
   const size = useThree((state) => state.size);
   const dpr = useThree((state) => state.viewport.dpr);
-  const [zoomOffset, setZoomOffset] = useState(0);
+  const [zoomOffset, setZoomOffset] = useState(settings.defaultZoomSteps);
   const autoScale = autoPixelScale(size.width * dpr, size.height * dpr, {
     targetTilesAcross: settings.targetTilesAcross,
     minTilesTall: settings.minTilesTall,
@@ -43,13 +44,20 @@ export function FollowCamera({ getTarget, bounds, tileSizePx }: FollowCameraProp
   const focus = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
+    // Keep the offset within what can actually be shown, so pressing past a
+    // limit doesn't pile up presses that the opposite key must undo first.
+    const lowest = settings.minPixelScale - autoScale;
+    const highest = settings.maxPixelScale - autoScale;
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (ZOOM_IN_KEYS.has(event.code)) setZoomOffset((offset) => offset + 1);
-      else if (ZOOM_OUT_KEYS.has(event.code)) setZoomOffset((offset) => offset - 1);
+      if (ZOOM_IN_KEYS.has(event.code)) {
+        setZoomOffset((offset) => Math.min(highest, Math.max(lowest, offset) + 1));
+      } else if (ZOOM_OUT_KEYS.has(event.code)) {
+        setZoomOffset((offset) => Math.max(lowest, Math.min(highest, offset) - 1));
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [autoScale, settings.minPixelScale, settings.maxPixelScale]);
 
   useFrame((_, deltaSeconds) => {
     const target = getTarget();

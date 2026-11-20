@@ -122,6 +122,11 @@ export interface IslandConfig {
     readonly targetTilesAcross: number;
     /** ...but never fewer than this many tiles top to bottom (wide, short windows). */
     readonly minTilesTall: number;
+    /**
+     * Zoom steps applied on load, relative to the automatic framing (negative = further out).
+     * The user's preferred view is three steps out (as if pressing "−" three times).
+     */
+    readonly defaultZoomSteps: number;
     readonly minPixelScale: number;
     readonly maxPixelScale: number;
     readonly waterFrameSeconds: number;
@@ -212,6 +217,7 @@ export const ISLAND_CONFIG: IslandConfig = {
   render: {
     targetTilesAcross: 20,
     minTilesTall: 11,
+    defaultZoomSteps: -3,
     minPixelScale: 1,
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,

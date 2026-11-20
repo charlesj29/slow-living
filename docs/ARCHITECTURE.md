@@ -208,7 +208,9 @@ flowchart LR
   materials use hard alpha (`alphaTest` / `discard`), so nothing needs sorting.
 - **Camera:** `PixelPerfectCamera` (shared) keeps whole device pixels per source pixel, snaps
   to the device-pixel grid (half-pixel fix for odd buffers) and clamps to the map. The scale is
-  `autoPixelScale` (~20 tiles across, ≥11 tall) plus a +/− offset, driven by `FollowCamera`.
+  `autoPixelScale` (~20 tiles across, ≥11 tall) plus a zoom offset that starts at
+  `render.defaultZoomSteps` (−3, the user's preferred wider view) and changes with +/− within
+  the min/max scale; driven by `FollowCamera`.
 - **Colour:** the canvas is `flat` + `linear`, so painted colours reach the screen unchanged.
 - **Cleanup:** the atlas texture, chunk geometries, both sprite materials and the sprite
   geometries are disposed in effect cleanups; R3F disposes JSX-declared objects.

@@ -10,7 +10,8 @@
   and corner nudging; water, trees, rocks, bushes, the cabin, fence and mailbox block; grass,
   flowers, sand, trails and the dock are walkable. Fixed 60 Hz logic with render
   interpolation; the player is depth-sorted by the feet like every other standing sprite.
-  Smooth pixel-perfect follow camera clamped to the map (handheld-like zoom, +/−). Controls
+  Smooth pixel-perfect follow camera clamped to the map; it starts three zoom steps out from
+  the ~20-tiles framing (the user's preferred view), +/− adjust within limits. Controls
   hint at the bottom. ~240 FPS on GPU; production console empty. 244 tests.
 - **Exact next step:** the user is reviewing the redesigned character (chibi style, see the
   latest session log entry). Apply any character feedback first; then present the M4 plan and
@@ -50,7 +51,8 @@
 - Map size 192×192 (brief: 128×128), designed to be pleasant to stroll; the map format must
   allow growing the world later.
 - Classic handheld-RPG-inspired pixel art (Pokémon Emerald as a style reference only, no
-  copying); big 2×2 trees; handheld-like zoom (~20 tiles across).
+  copying); big 2×2 trees; the initial view is three zoom steps out from the ~20-tiles-across
+  framing ("press − three times", the user's preferred camera).
 - Player character: explorer with a cap, dark brown hair, orange/yellow outfit; walk + hold
   Shift to run. Redrawn in a chunky chibi handheld-RPG style after the user shared a style
   reference (style only — no copying of the reference character).
@@ -58,6 +60,18 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-20 — Wider initial camera (user request)
+
+- **Why:** the user found the start view too close; their ideal view is the old default after
+  pressing "−" three times.
+- **Done:** `render.defaultZoomSteps = -3` in `IslandConfig`; `FollowCamera` starts with that
+  offset on top of the automatic `autoPixelScale` framing, so it reproduces exactly that view
+  on any window (e.g. 2 device px per art px on a 1080p browser window, ~60 tiles across).
+  Zoom offsets now stop at the min/max scale (extra presses no longer pile up).
+  `scripts/browser-check.mjs`: `CHROME_WINDOW=1920,1040` sets the window size.
+- **Verified:** at 1920×1040 the new default is pixel-identical in framing to the old default
+  plus three "−" presses; four "−" then one "+" returns to the default; checks pass.
 
 ### 2026-11-20 — Character redesign (user request, before M4)
 

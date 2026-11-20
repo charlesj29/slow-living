@@ -24,7 +24,7 @@ const chrome = spawn(
     `--use-angle=${process.env.CHROME_ANGLE ?? 'swiftshader'}`,
     '--enable-unsafe-swiftshader',
     '--no-first-run',
-    '--window-size=900,760',
+    `--window-size=${process.env.CHROME_WINDOW ?? '900,760'}`,
     'about:blank',
   ],
   { stdio: 'ignore' },

@@ -348,3 +348,14 @@ alternatives → consequences.
 - **Alternatives:** tracing the reference sprites (not acceptable: copying a game's character).
 - **Consequences:** same 16×24 size, keys and walk cycle, so no code outside the pixel maps
   changed.
+
+## D35 — Initial camera: three zoom steps out (user preference)
+
+- **Context:** the user found the handheld-like default (D26) too close; their ideal view was
+  the default after pressing "−" three times.
+- **Decision:** keep the automatic framing and start with a zoom offset of
+  `render.defaultZoomSteps = -3`. This reproduces exactly that view for the user's window,
+  whatever its size. Offsets are clamped to the scale limits.
+- **Alternatives:** a fixed "tiles across" target — it can't match "three steps out" on every
+  window, because the old framing was sometimes height-limited.
+- **Consequences:** on small windows the view may reach the minimum scale (1); +/− still work.
