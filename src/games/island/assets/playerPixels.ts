@@ -1,21 +1,26 @@
-// The player character as pixel maps (16×24, feet on the bottom row): an
-// explorer with an orange cap and jacket, dark brown hair and a small brown
-// backpack. Original design. Each character is one pixel:
-//   . transparent  o outline  C/c cap/shade  y yellow trim  h/H hair/shade
-//   s/S skin/shade  w white collar  J/j jacket/shade  b/B backpack/strap shade
-//   p/P trousers/shade  k shoes
-// Upper body (rows 0–17) is per direction; legs (rows 18–23) are per frame.
+// The player character as pixel maps (16×24, feet on the bottom row), drawn in
+// a chunky handheld-RPG style: a big head and cap (about half the height),
+// visor overhanging the face, short body, swinging arms. Original design in
+// the user's colours: orange cap and jacket, dark brown hair, brown backpack.
+// Each character is one pixel:
+//   . transparent  o outline  L/C/c cap light/base/shade  v visor  y badge/zip
+//   h/H hair/shade  s/S skin/shade  w/W shirt/shade  J/j jacket/shade
+//   b/B backpack/shade  p/P trousers/shade  k shoes
+// A frame = head (rows 0–12) + torso with arms (rows 13–18) + legs (rows 19–23).
 
 export const PLAYER_PALETTE: Readonly<Record<string, string>> = {
   o: '#2a1a12',
+  L: '#ffc070',
   C: '#f08a24',
   c: '#b85414',
+  v: '#c85a10',
   y: '#f8d040',
   h: '#5a3418',
   H: '#3a2010',
   s: '#f8c8a0',
   S: '#d89870',
   w: '#f8f8f0',
+  W: '#c8c8d4',
   J: '#f8a030',
   j: '#c86818',
   b: '#8a5a30',
@@ -28,144 +33,181 @@ export const PLAYER_PALETTE: Readonly<Record<string, string>> = {
 export const PLAYER_WIDTH = 16;
 export const PLAYER_HEIGHT = 24;
 
-const FRONT_UPPER = [
-  '................',
+type Rows = readonly string[];
+
+const EMPTY_TOP: Rows = ['................', '................', '................'];
+
+const FRONT_HEAD: Rows = [
+  ...EMPTY_TOP,
   '.....oooooo.....',
-  '....oCCCCCCo....',
-  '...oCCCyyCCCo...',
-  '...oCCCCCCCCo...',
-  '..occccccccccc..',
+  '...ooLLCCCCoo...',
+  '..oLLCCCCCCCCo..',
+  '..oLCCCyyCCCCo..',
+  '..oCCCCCCCCCco..',
+  '.ovvvvvvvvvvvvo.',
   '..ohssssssssho..',
   '..ohsossssosho..',
-  '..ohsssSSsssho..',
-  '...osssssssso...',
-  '....ojwwwwjo....',
-  '...oJbJwwJbJo...',
-  '..oJJbJyyJbJJo..',
-  '..ojJbJyyJbJjo..',
-  '..ojJJJyyJJJjo..',
-  '..osjJJJJJJjso..',
-  '...oBBBBBBBBo...',
-  '...oppppppppo...',
+  '..ohsossssosho..',
+  '...osssSSssso...',
 ];
 
-const BACK_UPPER = [
-  '................',
+const BACK_HEAD: Rows = [
+  ...EMPTY_TOP,
   '.....oooooo.....',
-  '....oCCCCCCo....',
-  '...oCCCCCCCCo...',
-  '...ocCCCCCCco...',
-  '...occccccccc...',
-  '..ohhhhhhhhhho..',
+  '...ooLLCCCCoo...',
+  '..oLLCCCCCCCCo..',
+  '..oLCCCCCCCCco..',
+  '..oCCCCCCCCCco..',
+  '..occccoocccco..',
   '..ohhhhhhhhhho..',
   '..oHhhhhhhhhHo..',
   '...oHhhhhhhHo...',
-  '....ojjjjjjo....',
-  '...oJbbbbbbJo...',
-  '..oJbBbbbbBbJo..',
-  '..ojbbbbbbbbjo..',
-  '..ojbBBBBBBbjo..',
-  '..osbbbbbbbbso..',
-  '...oBBBBBBBBo...',
-  '...oppppppppo...',
+  '....oSssssSo....',
 ];
 
-/** Facing right; facing left is the mirror image. */
-const SIDE_UPPER = [
-  '................',
+/** Facing right (the visor juts forward); facing left is the mirror image. */
+const SIDE_HEAD: Rows = [
+  ...EMPTY_TOP,
   '....oooooo......',
-  '...oCCCCCCo.....',
-  '...oCCCCyCCo....',
-  '...oCCCCCCCo....',
-  '..ohhccccccccc..',
-  '..ohhhssssso....',
-  '..ohhhssosso....',
-  '..ohhhsssssso...',
-  '...ohhsssSo.....',
-  '....ojjwwo......',
-  '...obbJJJJo.....',
-  '..obBbJJJJJo....',
-  '..obbbJjJJJo....',
-  '..obBbJjJJJo....',
-  '..obbbJsJJJo....',
-  '...oBBBBBBo.....',
-  '...oppppppo.....',
+  '...oLLCCCCoo....',
+  '..oLCCCCCCCCo...',
+  '..oCCCCCCCyCo...',
+  '..occCCCCCCCCoo.',
+  '..ohccvvvvvvvvvo',
+  '..ohhhsssssoo...',
+  '..ohhhsssosso...',
+  '..ohhhsssossso..',
+  '...ohhssSSso....',
 ];
+
+const FRONT_TORSO = {
+  stand: [
+    '....ojJwwJjo....',
+    '..oJbJJyyJJbJo..',
+    '.ojJbJJyyJJbJjo.',
+    '.ojJbJJyyJJbJjo.',
+    '.osjJJJyyJJJjso.',
+    '..ojjjjjjjjjjo..',
+  ],
+  // Right hand swings forward (up), left hand back.
+  swing: [
+    '....ojJwwJjo....',
+    '..oJbJJyyJJbJo..',
+    '.ojJbJJyyJJbJjo.',
+    '.ojJbJJyyJJbJso.',
+    '.osjJJJyyJJJjo..',
+    '..ojjjjjjjjjjo..',
+  ],
+};
+
+const BACK_TORSO = {
+  stand: [
+    '....ojjjjjjo....',
+    '..oJbbbbbbbbJo..',
+    '.ojbBbbbbbbBbjo.',
+    '.ojbbbbbbbbbbjo.',
+    '.osbBBBBBBBBbso.',
+    '..ojjjjjjjjjjo..',
+  ],
+  swing: [
+    '....ojjjjjjo....',
+    '..oJbbbbbbbbJo..',
+    '.ojbBbbbbbbBbjo.',
+    '.ojbbbbbbbbbbso.',
+    '.osbBBBBBBBBbo..',
+    '..ojjjjjjjjjjo..',
+  ],
+};
+
+const SIDE_TORSO = {
+  stand: [
+    '....oojjwo......',
+    '...obbJJJJo.....',
+    '..obBbJojJJo....',
+    '..obbbJojJJo....',
+    '..obBbJosJJo....',
+    '...objjjjjjo....',
+  ],
+  forward: [
+    '....oojjwo......',
+    '...obbJJJJo.....',
+    '..obBbJJojJo....',
+    '..obbbJJJoso....',
+    '..obBbJJJJJo....',
+    '...objjjjjjo....',
+  ],
+  back: [
+    '....oojjwo......',
+    '...obbJJJJo.....',
+    '..obBbojJJJo....',
+    '..obbosJJJJo....',
+    '..obBbJJJJJo....',
+    '...objjjjjjo....',
+  ],
+};
 
 const FRONT_LEGS = {
   stand: [
+    '...oppppppppo...',
     '...opppoopppo...',
-    '...opppoopppo...',
-    '...opppoopppo...',
+    '...oPPpoopPPo...',
     '...okkkookkko...',
-    '..okkkkookkkko..',
     '...oooo..oooo...',
   ],
-  // Left foot down, right foot lifted.
-  stepLeft: [
+  // Right foot lifted.
+  step: [
+    '...oppppppppo...',
     '...opppoopppo...',
-    '...opppoopppo...',
-    '...opppookkko...',
-    '...okkkooooo....',
-    '..okkkko........',
+    '...oPPpookkko...',
+    '...okkkoooooo...',
     '...oooo.........',
-  ],
-  stepRight: [
-    '...opppoopppo...',
-    '...opppoopppo...',
-    '...okkkoopppo...',
-    '....oooookkko...',
-    '........okkkko..',
-    '.........oooo...',
   ],
 };
 
 const SIDE_LEGS = {
   stand: [
+    '...oppppppo.....',
     '....oppppo......',
-    '....oppppo......',
-    '....oppppo......',
-    '....okkkko......',
+    '....oPPPpo......',
     '....okkkkko.....',
     '....ooooooo.....',
   ],
-  stepLeft: [
-    '....oppppo......',
-    '...opppPppo.....',
-    '..oppo..oppo....',
-    '..okko..okkko...',
-    '.okkko..okkkko..',
-    '.ooooo..oooooo..',
+  stride: [
+    '...oppppppo.....',
+    '..opppoopppo....',
+    '..oPpo..oPpo....',
+    '..okkko.okkkko..',
+    '..ooooo.oooooo..',
   ],
-  stepRight: [
+  passing: [
+    '...oppppppo.....',
     '....oppppo......',
     '....oppppo......',
-    '....opPppo......',
     '...okkkkko......',
-    '...okkkkkko.....',
-    '...oooooooo.....',
+    '...ooooooo......',
   ],
 };
 
-type LegSet = typeof FRONT_LEGS;
+const mirror = (rows: Rows): string[] => rows.map((row) => [...row].reverse().join(''));
 
-function framesFor(upper: readonly string[], legs: LegSet): readonly (readonly string[])[] {
-  return [
-    [...upper, ...legs.stand],
-    [...upper, ...legs.stepLeft],
-    [...upper, ...legs.stepRight],
-  ];
+/** Front and back views are symmetric, so the other step is the mirrored one. */
+function symmetricFrames(head: Rows, torso: { stand: Rows; swing: Rows }): Rows[] {
+  const stepLeft = [...head, ...torso.swing, ...FRONT_LEGS.step];
+  return [[...head, ...torso.stand, ...FRONT_LEGS.stand], stepLeft, mirror(stepLeft)];
 }
 
-const mirror = (rows: readonly string[]): string[] =>
-  rows.map((row) => [...row].reverse().join(''));
+const SIDE_FRAMES: Rows[] = [
+  [...SIDE_HEAD, ...SIDE_TORSO.stand, ...SIDE_LEGS.stand],
+  [...SIDE_HEAD, ...SIDE_TORSO.forward, ...SIDE_LEGS.stride],
+  [...SIDE_HEAD, ...SIDE_TORSO.back, ...SIDE_LEGS.passing],
+];
 
 /** Pixel maps per direction: [standing, left step, right step]. */
 export const PLAYER_PIXEL_MAPS: Readonly<
-  Record<'down' | 'up' | 'left' | 'right', readonly (readonly string[])[]>
+  Record<'down' | 'up' | 'left' | 'right', readonly Rows[]>
 > = {
-  down: framesFor(FRONT_UPPER, FRONT_LEGS),
-  up: framesFor(BACK_UPPER, FRONT_LEGS),
-  right: framesFor(SIDE_UPPER, SIDE_LEGS),
-  left: framesFor(SIDE_UPPER, SIDE_LEGS).map(mirror),
+  down: symmetricFrames(FRONT_HEAD, FRONT_TORSO),
+  up: symmetricFrames(BACK_HEAD, BACK_TORSO),
+  right: SIDE_FRAMES,
+  left: SIDE_FRAMES.map(mirror),
 };

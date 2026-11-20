@@ -12,7 +12,9 @@
   interpolation; the player is depth-sorted by the feet like every other standing sprite.
   Smooth pixel-perfect follow camera clamped to the map (handheld-like zoom, +/−). Controls
   hint at the bottom. ~240 FPS on GPU; production console empty. 244 tests.
-- **Exact next step:** present the M4 plan to the user and wait for OK. Expected M4 scope
+- **Exact next step:** the user is reviewing the redesigned character (chibi style, see the
+  latest session log entry). Apply any character feedback first; then present the M4 plan and
+  wait for OK. Expected M4 scope
   (from the brief, adjusted for the fixed world): HUD polish (controls hint exists; decide on a
   title/location label — no seed in production), dev-only debug overlay on F3 (FPS, player
   tile, collision tiles drawn over the map) and dev-only R (new random `?seed=` preview),
@@ -50,11 +52,26 @@
 - Classic handheld-RPG-inspired pixel art (Pokémon Emerald as a style reference only, no
   copying); big 2×2 trees; handheld-like zoom (~20 tiles across).
 - Player character: explorer with a cap, dark brown hair, orange/yellow outfit; walk + hold
-  Shift to run.
+  Shift to run. Redrawn in a chunky chibi handheld-RPG style after the user shared a style
+  reference (style only — no copying of the reference character).
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-20 — Character redesign (user request, before M4)
+
+- **Why:** the user didn't like the first character and shared a classic handheld-RPG hero
+  sprite sheet as a style reference. Not copied: kept the user's own colours (orange cap and
+  jacket, dark brown hair, brown backpack) and drew a new design; adopted only the style —
+  chibi proportions (head + cap ≈ half the height), wide visor overhanging the face, hair
+  tufts at the sides, vertical 2-px eyes, thick outline, 3–4-tone shading, swinging arms,
+  big backpack in the back view, visor jutting forward in the side view.
+- **Done:** `assets/playerPixels.ts` rewritten as head + torso-with-arms + legs parts per
+  direction; front/back step frames mirror each other; side has stand / stride / passing with
+  the arm swinging forward and back. Reviewed via a 10× preview sheet and in-game screenshots.
+- **Verified:** typecheck, lint, all tests, build pass; console clean.
+- **Next:** wait for the user to review the character before starting M4.
 
 ### 2026-11-20 — M3 Player
 

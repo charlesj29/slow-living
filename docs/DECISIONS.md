@@ -337,3 +337,14 @@ alternatives → consequences.
   above the feet) with `approach` (frame-rate independent), then `PixelPerfectCamera` snaps and
   clamps. The player sprite is drawn at whole pixels.
 - **Consequences:** replaces the temporary free-look camera (D23).
+
+## D34 — Character redesign in a chibi handheld style (user request)
+
+- **Context:** the user shared a classic handheld-RPG hero sprite sheet as the look they want.
+- **Decision:** match the style, not the character: chibi proportions, wide overhanging visor,
+  side hair tufts, 2-px eyes, thick outline, swinging arms, big backpack — in the user's own
+  colours (orange cap/jacket, dark brown hair, brown backpack). Frames are composed from head,
+  torso-with-arms and leg parts; symmetric views mirror the step frame.
+- **Alternatives:** tracing the reference sprites (not acceptable: copying a game's character).
+- **Consequences:** same 16×24 size, keys and walk cycle, so no code outside the pixel maps
+  changed.
