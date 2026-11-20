@@ -32,4 +32,31 @@
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
+  transition: opacity 1.2s ease;
+}
+
+.island-controls-hint.is-faded {
+  opacity: 0;
+}
+
+.island-debug-overlay {
+  top: 0.75rem;
+  right: 0.75rem;
+  font-family: ui-monospace, Consolas, monospace;
+  line-height: 1.4;
+}
+
+.island-keyboard-notice {
+  display: none;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* Phones and tablets: no keyboard, so say so. */
+@media (hover: none) and (pointer: coarse) {
+  .island-keyboard-notice {
+    display: block;
+  }
 }

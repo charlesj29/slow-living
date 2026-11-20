@@ -1,10 +1,10 @@
 import { Canvas } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, type JSX } from 'react';
+import type { WebGLRenderer } from 'three';
 import { createIslandAtlas } from '../assets/islandSprites';
 import { WATER_FRAME_COUNT } from '../assets/paintTiles';
 import { ISLAND_CONFIG } from '../core/config';
-import { createGameState, interpolatedPlayerPosition } from '../core/game/gameState';
-import type { World } from '../core/world/world';
+import { interpolatedPlayerPosition, type GameState } from '../core/game/gameState';
 import { FollowCamera } from './FollowCamera';
 import { GameLoop } from './GameLoop';
 import { PlayerSprite } from './PlayerSprite';
@@ -14,11 +14,23 @@ import { WorldObjects } from './WorldObjects';
 import { worldYFromMapPx } from './worldSpace';
 
 const BACKGROUND_COLOR = '#1f4e79';
+
+declare global {
+  interface Window {
+    /** Dev only: lets performance/cleanup checks read `renderer.info` from the console. */
+    __islandRenderer?: WebGLRenderer;
+  }
+}
+
+function exposeRendererInDev({ gl }: { gl: WebGLRenderer }): void {
+  if (import.meta.env.DEV) window.__islandRenderer = gl;
+}
+
 /** The camera looks at the player's body rather than their feet. */
 const CAMERA_LOOK_ABOVE_FEET_PX = 8;
 
 interface GameCanvasProps {
-  readonly world: World;
+  readonly game: GameState;
 }
 
 /**
@@ -27,13 +39,12 @@ interface GameCanvasProps {
  * painted palette colours reach the screen unchanged; antialiasing is off
  * because it blurs pixel art.
  */
-export function GameCanvas({ world }: GameCanvasProps): JSX.Element {
+export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
+  const { world } = game;
   const { tileSizePx, chunkSizeTiles } = ISLAND_CONFIG.map;
   const atlas = useMemo(() => createIslandAtlas(), []);
   useEffect(() => () => atlas.dispose(), [atlas]);
 
-  // The simulation lives in a plain mutable object, created once per world.
-  const game = useMemo(() => createGameState(world, ISLAND_CONFIG), [world]);
   useKeyboardInput(game.input);
 
   const mapWidthPx = world.width * tileSizePx;
@@ -48,7 +59,7 @@ export function GameCanvas({ world }: GameCanvasProps): JSX.Element {
   }, [game]);
 
   return (
-    <Canvas flat linear gl={{ antialias: false }}>
+    <Canvas flat linear gl={{ antialias: false }} onCreated={exposeRendererInDev}>
       <color attach="background" args={[BACKGROUND_COLOR]} />
       <GameLoop state={game} />
       <FollowCamera getTarget={followTarget} bounds={bounds} tileSizePx={tileSizePx} />

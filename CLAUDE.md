@@ -7,13 +7,14 @@ project stands and wait for the user's go. The full spec is `PROJECT_BRIEF.md`.
 
 A games website (React + TypeScript + Three.js via React Three Fiber). The site opens straight
 into **Island** at `/`: a fixed 192×192 2D top-down world (pixel art, 16×16 tiles, orthographic
-camera) loaded from a baked map file. Other games will live under `/games/...`.
+camera) loaded from a baked map file. The site has one page: every other address redirects to
+`/`, and there is no site menu (user decision).
 User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`.
 
 ## Working agreement
 
-- One milestone at a time (M0–M4 in `docs/PROGRESS.md`). Show a short plan and wait for OK
-  before coding a milestone.
+- All planned milestones (M0–M4) are delivered. New work is agreed with the user first (ideas
+  in `docs/ROADMAP.md`): show a short plan and wait for OK before coding.
 - Finishing a milestone: `npm run check` passes → docs updated → one conventional commit on
   `master` (docs in the same commit) → short report → stop and wait. Don't push unless asked.
 - Ask when a requirement is unclear or a trade-off is real; give a recommendation.
@@ -58,6 +59,13 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
   `core/systems/` are pure functions taking `stepSeconds`; never read wall-clock time in core.
 - Input: key codes → actions in `core/systems/controls.ts`; DOM listeners only in
   `render/useKeyboardInput.ts`. Render reads interpolated positions and draws at whole pixels.
+
+## UI conventions
+
+- UI overlays live in `games/island/ui/` and read the shared `GameState` (sampled on a timer,
+  never per frame) or the zustand store (`state.ts`, UI flags only). F3 overlay: FPS + tile.
+- Dev-only features check `import.meta.env.DEV` (R preview key, `?seed=`,
+  `window.__islandRenderer`).
 
 ## Rendering conventions
 

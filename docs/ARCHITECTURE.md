@@ -1,7 +1,7 @@
 # Architecture
 
-> Status: M3 (player). Sections marked _(planned)_ describe the design the next
-> milestones will implement; update them as the code lands.
+> Status: M4 (polish & handover) — all milestones delivered. Sections marked _(planned)_
+> describe the design future work will implement; update them as the code lands.
 
 ## Layers
 
@@ -19,31 +19,31 @@ imports a game. All of this is enforced by `no-restricted-imports` blocks in
 
 ## Routes
 
-| Route           | What                                                                                                                         |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `/`             | **The world**, full screen (lazy; full-screen loading screen on first load). Dev only: `?seed=N` previews a generated island |
-| `/games`        | Games list (inside the site `Layout` with header)                                                                            |
-| `/games/island` | Redirects to `/` (keeps the query string)                                                                                    |
-| anything else   | 404 page                                                                                                                     |
+| Route         | What                                                                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `/`           | **The island**, full screen, no site chrome (lazy; full-screen "Cooking…" loading screen on first load). Dev only: `?seed=N` |
+| anything else | Redirects to `/`, keeping the query string                                                                                   |
+
+The browser tab title is "chilling" (`index.html`).
 
 ## Folder map
 
 ```
 src/
   main.tsx                  # Entry: mounts <App/>
-  app/                      # App shell: router (HydrateFallback), Layout, global.css
-  pages/                    # WorldPage (/), GamesIndexPage, IslandRedirectPage, loading/error/404
+  app/                      # App shell: router (HydrateFallback, catch-all redirect), global.css
+  pages/                    # WorldPage (/, dev R preview key), RedirectToIslandPage,
+                            #   RouteLoadingPage, RouteErrorPage
   shared/
     engine/                 # Pure TS: math, random, noise, grid, pathfinding (A*)
     render/                 # pixelCanvas, atlasLayout, spriteAtlas, pixelPerfect, PixelPerfectCamera
     ui/                     # (planned) shared UI components
   games/
-    catalog.ts              # Plain metadata for every game (used by the games list)
     island/
       index.ts              # Public API: IslandGame
-      IslandGame.tsx        # Loads the world; composes render + UI
+      IslandGame.tsx        # Loads the world, creates GameState; composes render + UI overlays
       loadWorld.ts          # Baked island, or a generated one for a dev seed; never throws
-      state.ts              # zustand store, UI-facing state only (unused until M4)
+      state.ts              # zustand store, UI-facing only: debug overlay flag, has-walked flag
       data/island.map.json  # THE world: baked, committed map file (chunked, readable)
       core/
         config.ts           # IslandConfig: every tunable number
@@ -61,11 +61,12 @@ src/
       assets/               # palette (ramps), paint helpers, foliage (clump shading),
                             #   paintTiles/Transitions/Objects/Structures/Cabin, playerPixels,
                             #   paintPlayer, islandSprites
-      ui/                   # DevSeedBadge, WorldErrorPanel, ControlsHint, islandUi.css
+      ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3),
+                            #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
   bake-island-map.mjs       # npm run bake:island [-- seed]: generator -> data/island.map.json
-  browser-check.mjs         # Dev-only headless Chrome check (screenshot + console)
+  browser-check.mjs         # Dev-only headless Chrome check (keys, screenshot, FPS, console)
 ```
 
 ## Data flow
@@ -81,13 +82,14 @@ flowchart LR
   Parse -- "World (plain data)" --> Game["IslandGame"]
   DevSeed["dev only: ?seed="] -.-> Gen2["generateWorld (live preview)"] -.-> Game
   Game --> Render["render/*<br/>GameCanvas"]
-  Game --> UI["ui/*<br/>badges, error panel"]
+  Game --> UI["ui/*<br/>controls hint, F3 overlay, notices"]
   Input["keyboard input"] --> Loop["fixed-timestep loop<br/>core/game + core/systems"]
   Game --> Loop
   Loop --> Entities["player<br/>plain mutable object"]
   Entities --> Render
-  Loop -. "UI-relevant changes only" .-> Store["state.ts (zustand)"]
-  Store -.-> UI
+  Loop -- "first walk (once)" --> Store["state.ts (zustand)"]
+  Store --> UI
+  Entities -- "sampled 4×/s while F3 is open" --> UI
 ```
 
 ## The world is a baked map file
@@ -165,7 +167,14 @@ flowchart LR
   direction), Shift runs, +/− zoom. Losing window focus releases all keys.
 - **Collision:** a 10×6 px feet hitbox against `world.blocked`; X and Y move separately
   (wall sliding), stop flush at tile edges, and nudge around corners clipped by ≤ 5 px.
-- Only UI-relevant values (from M4: the debug flag) go into zustand.
+- Only UI-relevant values go into zustand: `isDebugOverlayVisible` (F3) and
+  `hasStartedWalking` (set once by `GameLoop`; the controls hint fades). The F3 overlay reads
+  `game.framesPerSecond` (smoothed in `advanceGame`) and `playerTile` on a 250 ms timer while
+  visible, so React never re-renders per frame.
+- `GameState` is created by `IslandGame` (one per world) and passed to both `GameCanvas`
+  (which drives it) and the UI overlays (which read it).
+- Dev only: `window.__islandRenderer` exposes the WebGL renderer for performance and cleanup
+  checks (`renderer.info`).
 
 ## Rendering
 
@@ -260,10 +269,11 @@ dither). Edge and corner sprites are generated for all directions automatically.
 
 1. Create `src/games/<name>/` with `core/`, `render/`, `ui/`, `state.ts`, `index.ts` and a
    root component composing render + UI. Export only the root component from `index.ts`.
-2. Add an entry to `GAME_CATALOG` in `src/games/catalog.ts`.
-3. Add a page wrapper and a lazy route `games/<name>` in the router.
-4. Lint layer rules apply automatically through the `src/games/*/...` globs.
-5. Reuse `shared/engine` (random, noise, grid, pathfinding) instead of copying it.
+2. Add a page wrapper and a lazy route (e.g. `games/<name>`) in the router, above the
+   catch-all redirect. Decide how visitors find it: the island page deliberately has no site
+   menu (D36), and the old games list was removed in M4 (D38).
+3. Lint layer rules apply automatically through the `src/games/*/...` globs.
+4. Reuse `shared/engine` (random, noise, grid, pathfinding) instead of copying it.
 
 ### Add a tile type
 

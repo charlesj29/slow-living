@@ -2,27 +2,21 @@
 
 ## Current status
 
-- **Milestone:** M3 — Player ✅ complete. Next: **M4 — Polish & handover**.
-- **What works:** you arrive in front of the cabin door as an explorer (orange cap and jacket,
-  dark brown hair, brown backpack — the user's choices) and walk with WASD/arrow keys, Shift to
-  run. 4-direction facing (most recently pressed key wins) with a stand/step walk cycle;
-  diagonal movement at the same speed; tile collision on a small feet hitbox with wall sliding
-  and corner nudging; water, trees, rocks, bushes, the cabin, fence and mailbox block; grass,
-  flowers, sand, trails and the dock are walkable. Fixed 60 Hz logic with render
-  interpolation; the player is depth-sorted by the feet like every other standing sprite.
-  Smooth pixel-perfect follow camera clamped to the map; it starts three zoom steps out from
-  the ~20-tiles framing (the user's preferred view), +/− adjust within limits. Controls
-  hint at the bottom. ~240 FPS on GPU; production console empty. 244 tests.
-- **Exact next step:** the user is reviewing the redesigned character (chibi style, see the
-  latest session log entry). Apply any character feedback first; then present the M4 plan and
-  wait for OK. Expected M4 scope
-  (from the brief, adjusted for the fixed world): HUD polish (controls hint exists; decide on a
-  title/location label — no seed in production), dev-only debug overlay on F3 (FPS, player
-  tile, collision tiles drawn over the map) and dev-only R (new random `?seed=` preview),
-  zustand store for UI-facing state (debug flag), performance check on the real GPU path
-  (60 FPS target; currently ~240 headless), resource-cleanup check (mount/unmount via
-  navigating `/` ↔ `/games` repeatedly, watch `renderer.info` memory counts), final docs
-  pass (README, ARCHITECTURE, ROADMAP) and handover notes.
+- **Milestone:** M4 — Polish & handover ✅ complete. **All milestones (M0–M4) delivered.**
+- **What works:** opening the site (`/`, tab title "chilling") shows a "Cooking…" loading
+  screen, then drops you in front of the cabin on the baked 192×192 island, full screen with
+  no site chrome. Walk with WASD/arrows, run with Shift, zoom with +/− (starts three steps out,
+  the user's preferred view). The controls hint fades after your first steps. F3 shows FPS and
+  your tile (dev and production). Dev only: R jumps to a random preview island, `?seed=N`
+  previews a seed. Touch devices see "Best played with a keyboard". Every other address
+  redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
+  renderer memory stays flat across regenerations. 249 tests.
+- **Exact next step:** discuss the two items the user deferred until after M4:
+  1. **Real-machine performance:** ask the user to run `npm run dev` (or `npm run build` +
+     `npm run preview`), press F3, walk around (including zoomed out) and report the FPS.
+  2. **GitHub:** nothing has been pushed. Remote `origin` has both `master` and `main`; ask
+     which branch to push to (default suggestion: push `master`), then push only on the user's
+     go. After that, pick next features from `docs/ROADMAP.md` with the user.
 
 ## Milestones
 
@@ -39,10 +33,10 @@
       2×2 trees, mixed forests, swaying flowers, cabin fence + mailbox, handheld-like zoom
 - [x] **M3 — Player:** input, 4-direction walk animation, movement + collision with sliding,
       spawn at door, camera follow with bounds
-- [ ] **M4 — Polish & handover:** HUD (controls hint), debug overlay (F3), dev regenerate key
+- [x] **M4 — Polish & handover:** HUD (controls hint), debug overlay (F3), dev regenerate key
       (R → new dev-preview seed), 60 FPS check, resource cleanup check, final docs + roadmap
 
-## User decisions that override PROJECT_BRIEF.md (2026-11-20)
+## User decisions that override PROJECT_BRIEF.md (2026-11-20/21)
 
 - The site opens straight into the world at `/` (brief: `/` home, `/games/island` game).
 - The world is fixed: always the same layout, loaded from a baked map file (brief: random seed
@@ -56,10 +50,51 @@
 - Player character: explorer with a cap, dark brown hair, orange/yellow outfit; walk + hold
   Shift to run. Redrawn in a chunky chibi handheld-RPG style after the user shared a style
   reference (style only — no copying of the reference character).
+- No site chrome: no menu on the island, no `/games` page; every address redirects to `/`.
+- Debug overlay (F3) shows only FPS and the player's tile, in dev and production (the brief
+  asked for collision tiles too, dev only). `R` = dev-only random preview island.
+- Controls hint fades after the first walk; no seed or place name on screen; tab title
+  "chilling"; loading text "Cooking…" / "Doing its magic…"; touch devices get a keyboard notice.
+- Bigger 5×3 cabin pinned with an authoring anchor; camera starts three zoom steps out.
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — M4 Polish & handover
+
+- **User choices (Q&A before M4):** controls hint fades after the first walk; no place-name
+  label; tab title "chilling"; loading text "Cooking…" / "Doing its magic…"; F3 shows FPS +
+  tile only, in dev _and_ production (no collision-tile view); R = dev-only random preview;
+  remove the `/games` page; keyboard notice on touch devices; performance check on the user's
+  machine and GitHub push to be discussed after M4.
+- **Done:**
+  - `state.ts` (zustand): `isDebugOverlayVisible`, `hasStartedWalking` (first real use).
+  - `core/game/gameState.ts`: smoothed `framesPerSecond` in `advanceGame`, `playerTile()`;
+    `IslandConfig.debug` (FPS smoothing, overlay refresh).
+  - `IslandGame` creates the `GameState` and shares it with `GameCanvas` and the overlays;
+    `GameLoop` reports the first walk to the store once.
+  - UI: `ControlsHint` fades (CSS transition), `DebugOverlay` (F3, samples every 250 ms while
+    visible, prevents the browser's F3 find), `KeyboardNotice` (CSS `hover: none` +
+    `pointer: coarse`).
+  - Site: removed `/games`, `GamesIndexPage`, `Layout`, `NotFoundPage`, `games/catalog.ts`
+    and their CSS; catch-all `RedirectToIslandPage` keeps the query string; `RouteLoadingPage`
+    cycles the two messages; `index.html` title "chilling"; dev-only R in `WorldPage`.
+  - Dev-only `window.__islandRenderer` for checks; `browser-check.mjs` gained `CHECK_EXPR`,
+    `PHONE=1`, `MEDIA`, `CHROME_WINDOW`.
+  - Docs final pass: README (controls table, run instructions), ARCHITECTURE, DECISIONS
+    D38–D39, ROADMAP reorganised, CLAUDE.md.
+- **Verified (dev + production preview, headless Chrome on GPU):**
+  - Title "chilling"; hint opacity 1 before walking, 0 after; F3 shows "FPS ~239 · Tile 115,
+    109"; `/games?seed=5` → `/?seed=5`; unknown paths → `/`; production ignores R and has no
+    dev hook; phone emulation shows the keyboard notice, desktop hides it.
+  - Performance: ~237–240 FPS (uncapped) at the default view, which on small windows is
+    already the widest zoom; 31–34 draw calls, ~26k triangles, 1 texture, 2 shader programs.
+  - Cleanup: renderer memory flat across 1 and 5 island regenerations (31–34 geometries,
+    1 texture, 2 programs) — no leaks.
+  - typecheck, lint, 249 tests, build, format:check pass; production console empty.
+- **Known issues / notes:** on portrait phones the view zooms far out (no touch play anyway;
+  ROADMAP). Walking _behind_ a crown is unit-tested rather than screenshot-verified.
 
 ### 2026-11-20 — Bigger cabin (user request)
 

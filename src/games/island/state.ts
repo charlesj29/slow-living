@@ -6,20 +6,21 @@ import { create } from 'zustand';
  * so React does not re-render every frame.
  */
 export interface IslandUiState {
-  /** Seed of the current world; null until the first world is generated. */
-  readonly seed: number | null;
+  /** F3 overlay with FPS and the player's tile. */
   readonly isDebugOverlayVisible: boolean;
-  setSeed: (seed: number) => void;
+  /** Set once the player first walks; the controls hint fades out after that. */
+  readonly hasStartedWalking: boolean;
   toggleDebugOverlay: () => void;
+  markStartedWalking: () => void;
 }
 
 export const useIslandUiStore = create<IslandUiState>()((set) => ({
-  seed: null,
   isDebugOverlayVisible: false,
-  setSeed: (seed) => {
-    set({ seed });
-  },
+  hasStartedWalking: false,
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
+  },
+  markStartedWalking: () => {
+    set({ hasStartedWalking: true });
   },
 }));

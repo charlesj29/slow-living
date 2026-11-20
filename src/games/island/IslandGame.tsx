@@ -1,8 +1,12 @@
 import { useMemo, type JSX } from 'react';
+import { ISLAND_CONFIG } from './core/config';
+import { createGameState } from './core/game/gameState';
 import { loadWorld } from './loadWorld';
 import { GameCanvas } from './render/GameCanvas';
-import { DevSeedBadge } from './ui/DevSeedBadge';
 import { ControlsHint } from './ui/ControlsHint';
+import { DebugOverlay } from './ui/DebugOverlay';
+import { DevSeedBadge } from './ui/DevSeedBadge';
+import { KeyboardNotice } from './ui/KeyboardNotice';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
 
 export interface IslandGameProps {
@@ -13,18 +17,31 @@ export interface IslandGameProps {
   readonly devSeed?: number;
 }
 
-/** Loads the world and composes the game's render layer (canvas) and UI layer (overlays). */
+/** Loads the world, creates the simulation, and composes the render layer (canvas) and UI overlays. */
 export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
   // Loading is synchronous and fast (parse ~5 ms, dev generation ~60 ms).
   const result = useMemo(() => loadWorld(devSeed), [devSeed]);
+  // The simulation lives in a plain mutable object, created once per world and
+  // shared by the canvas (which drives it) and the overlays (which read it).
+  const game = useMemo(
+    () => (result.ok ? createGameState(result.world, ISLAND_CONFIG) : null),
+    [result],
+  );
 
-  if (!result.ok) {
-    return <WorldErrorPanel title={result.title} details={result.details} />;
+  if (!result.ok || !game) {
+    return (
+      <WorldErrorPanel
+        title={result.ok ? 'The game could not start' : result.title}
+        details={result.ok ? [] : result.details}
+      />
+    );
   }
   return (
     <>
-      <GameCanvas world={result.world} />
+      <GameCanvas game={game} />
       <ControlsHint />
+      <DebugOverlay game={game} />
+      <KeyboardNotice />
       {devSeed !== undefined && <DevSeedBadge seed={devSeed} />}
     </>
   );

@@ -123,6 +123,12 @@ export interface IslandConfig {
     readonly walkFrameSeconds: number;
     readonly runFrameSeconds: number;
   };
+  readonly debug: {
+    /** How quickly the FPS readout follows frame-time changes (higher = jumpier). */
+    readonly fpsSmoothingSharpness: number;
+    /** How often the F3 overlay refreshes its text. */
+    readonly overlayRefreshMs: number;
+  };
   readonly render: {
     /** Handheld-like framing: pick the whole-number scale that shows about this many tiles across. */
     readonly targetTilesAcross: number;
@@ -221,6 +227,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     walkFrameSeconds: 0.16,
     runFrameSeconds: 0.1,
   },
+  debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
   render: {
     targetTilesAcross: 20,
     minTilesTall: 11,

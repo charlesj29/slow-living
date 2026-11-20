@@ -1,47 +1,46 @@
 # Roadmap
 
-Ideas beyond the current milestones, grouped and roughly ordered. Out of scope for now, but the
-architecture should make each a natural addition.
+Ideas beyond the delivered milestones, grouped and roughly ordered. None are started; the
+architecture is set up so each is a natural addition.
 
-## Island game — next features
+## Island — play
 
-1. Day/night cycle (tint + lighting over time; time lives in core, render reads it)
-2. Inventory and item pickups (flowers, wood)
-3. NPCs with simple wandering / dialogue
-4. Saving and loading (serialize world seed + mutations; world is plain data already)
-5. Audio: ambient waves, footsteps, music
-6. Interiors (enter the cabin)
+1. Interactions: read the mailbox, open the cabin door (interior scene), sit on the dock
+2. Day/night cycle (time lives in core, render tints the scene)
+3. Ambient audio: waves, birds, footsteps (per ground type), gentle music
+4. Inventory and pickups (flowers, shells, wood)
+5. NPCs that wander the trails (A\* in `shared/engine/pathfinding.ts` is ready)
+6. Saving (player position, picked-up items; the world itself is already plain data)
 
-## Site & platform
+## Island — world and art
 
-1. More games under `/games/...` reusing `src/shared/engine` and `src/shared/render`
-2. Mobile touch controls (virtual joystick mapped through the input system)
-3. Backend and accounts
-4. Multiplayer
+- New regions as extra map chunks (a second beach, hills, a small village)
+- Landmarks along the trails: benches, signposts, a lighthouse on the peninsula
+- Smoother trails: allow diagonal steps or turn staircases into gentle curves
+- Tall-grass patches, stumps, more flower and tree variety
+- Dedicated side-view fence pieces (side fences currently read as a row of posts)
+- Inner-corner shoreline pieces and animated foam
+- Real sprite sheets (PNG) loaded into the same atlas keys
+- A stream with a bridge (needs a rule change: the lake must not touch the sea)
+
+## Controls and devices
+
+- Touch controls (virtual joystick) and gamepad, feeding the same input actions
+  (`shared/engine/input.ts`); then drop the "Best played with a keyboard" notice
+- Better phone framing (portrait windows currently zoom far out)
+
+## Site
+
+- More games: re-add a games list/route, reuse `shared/engine` and `shared/render`, and decide
+  how visitors discover them (the island page has no site menu by design)
+- Backend, accounts, multiplayer
 
 ## Tech
 
-- Replace placeholder procedural sprites with real sprite sheets through the same atlas
-  interface
-- Typed linting (`strictTypeChecked`) once async code grows
-- Move to TypeScript 7 when typescript-eslint supports it
-- Minimap built from the registries' `mapColor` (the M1 preview texture already does this)
-- Move to three r183+ once a stable `@react-three/fiber` stops using `THREE.Clock`
-- Load map chunks on demand (fetch per chunk) once the world grows well beyond 192×192
-- Map editing in a visual editor (e.g. import/export the Tiled JSON format) instead of
-  editing `island.map.json` by hand
-
-## World design ideas
-
-- New regions as extra chunks (a second beach, a hill area, a small village)
-- A stream with a bridge (needs a rule change: the lake must stay isolated from the sea)
-- Landmarks along the trails (benches, signposts, a lighthouse on the peninsula)
-- Smoother trails: allow diagonal steps or post-process staircases into gentle curves
-- Real sprite sheets (PNG) loaded into the same atlas keys; richer tiles (inner-corner
-  shoreline pieces, more grass/sand variety, animated foam)
-- Side fences: dedicated side-view fence pieces (currently read as a row of posts)
-- More classic touches: tall-grass patches, stumps, a few signposts along trails
-- Gamepad and touch controls feeding the same input actions (`shared/engine/input.ts`)
-- Interactions: read the mailbox, open the cabin door (interior), sit on the dock
-- Per-tile hashed randomness in scatter steps, so local edits (e.g. a bigger yard) don't
-  reshuffle rocks/trees/flowers elsewhere on re-bake
+- Per-tile hashed randomness in scatter steps, so local edits don't reshuffle rocks, trees and
+  flowers elsewhere on re-bake
+- Load map chunks on demand once the world grows well beyond 192×192
+- Visual map editing (e.g. Tiled JSON import/export) instead of editing `island.map.json`
+- Minimap from the registries' `mapColor`
+- Move to three r183+ once a stable `@react-three/fiber` stops using `THREE.Clock` (D9)
+- TypeScript 7 once typescript-eslint supports it; typed linting (`strictTypeChecked`)

@@ -380,3 +380,26 @@ alternatives → consequences.
 - **Consequences:** landmarks can be pinned while placement rules evolve. Scatter steps still
   use one random stream per step, so reserving different tiles reshuffles nearby rocks,
   trees and flowers (ROADMAP: per-tile hashing would keep them stable).
+
+## D38 — M4 interface and site choices (user decisions)
+
+- **Context:** M4 polish; the user answered a list of questions.
+- **Decision:** the controls hint fades (CSS) once `hasStartedWalking` is set; no place name;
+  tab title "chilling"; loading screen cycles "Cooking…" / "Doing its magic…"; the F3 overlay
+  shows FPS and the player's tile in every build (sampled every 250 ms while open); R is a
+  dev-only random preview; the `/games` page, site `Layout`, 404 page and games catalog are
+  removed and every unknown address redirects to `/`; touch-first devices see "Best played
+  with a keyboard" (pure CSS media query).
+- **Alternatives:** the brief's dev-only overlay with collision tiles; keeping a hidden games
+  list for future games.
+- **Consequences:** zustand now holds two UI flags. Adding another game means re-adding a
+  route and choosing how visitors discover it.
+
+## D39 — Dev-only renderer hook for performance and cleanup checks
+
+- **Context:** M4 asks for a 60 FPS check and a resource-cleanup check.
+- **Decision:** in dev builds `GameCanvas` sets `window.__islandRenderer` (the WebGL
+  renderer); `scripts/browser-check.mjs` reads `renderer.info` via `CHECK_EXPR`.
+- **Consequences:** results (M4): 31–34 draw calls, ~26k triangles, 1 texture, 2 programs,
+  memory flat across repeated island regenerations; ~240 FPS uncapped on GPU (headless). The
+  hook is absent in production (verified).

@@ -1,11 +1,7 @@
 :root {
   --color-bg: #14161c;
-  --color-surface: #1e2129;
-  --color-border: #2e323d;
   --color-text: #e8e6e3;
-  --color-text-muted: #9a9ca3;
   --color-accent: #7fc8a9;
-  --header-height: 3.25rem;
 
   color-scheme: dark;
   font-family:
@@ -36,86 +32,10 @@ a {
   color: var(--color-accent);
 }
 
-.layout {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.layout__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--header-height);
-  padding: 0 1.25rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
-.layout__brand {
-  font-weight: 700;
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.layout__nav {
-  display: flex;
-  gap: 1rem;
-}
-
-.layout__nav a {
-  color: var(--color-text-muted);
-  text-decoration: none;
-}
-
-.layout__nav a.active {
-  color: var(--color-text);
-}
-
-.layout__main {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-
 .page {
   max-width: 60rem;
   margin: 0 auto;
   padding: 2rem 1.25rem;
-}
-
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: 1rem;
-  padding: 0;
-  list-style: none;
-}
-
-.game-card {
-  display: block;
-  height: 100%;
-  padding: 1.25rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  background: var(--color-surface);
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.game-card:hover,
-.game-card:focus-visible {
-  border-color: var(--color-accent);
-}
-
-.game-card h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.15rem;
-}
-
-.game-card p {
-  margin: 0;
-  color: var(--color-text-muted);
 }
 
 .world-page {

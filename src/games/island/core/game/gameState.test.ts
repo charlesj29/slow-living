@@ -5,7 +5,13 @@ import { playerFrameIndex } from '../systems/animation';
 import { ISLAND_KEY_BINDINGS, readMovementIntent } from '../systems/controls';
 import { makeTestWorld, TEST_TILE } from '../systems/testWorld';
 import { loadBakedIsland } from '../world/bakedIsland';
-import { advanceGame, createGameState, interpolatedPlayerPosition, stepGame } from './gameState';
+import {
+  advanceGame,
+  createGameState,
+  interpolatedPlayerPosition,
+  playerTile,
+  stepGame,
+} from './gameState';
 
 const open = (): ReturnType<typeof makeTestWorld> =>
   makeTestWorld(Array.from({ length: 10 }, () => ',,,,,,,,,,'));
@@ -71,5 +77,29 @@ describe('game state', () => {
     const { x } = interpolatedPlayerPosition(state);
     expect(x).toBeGreaterThan(state.player.previousX);
     expect(x).toBeLessThan(state.player.x);
+  });
+});
+
+describe('debug stats', () => {
+  it('tracks a smoothed frames-per-second value from frame times', () => {
+    const state = createGameState(open(), ISLAND_CONFIG);
+    for (let i = 0; i < 120; i++) advanceGame(state, 1 / 60, ISLAND_CONFIG);
+    expect(state.framesPerSecond).toBeCloseTo(60, 0);
+    for (let i = 0; i < 240; i++) advanceGame(state, 1 / 30, ISLAND_CONFIG);
+    expect(state.framesPerSecond).toBeCloseTo(30, 0);
+  });
+
+  it('ignores zero-length frames', () => {
+    const state = createGameState(open(), ISLAND_CONFIG);
+    advanceGame(state, 0, ISLAND_CONFIG);
+    expect(state.framesPerSecond).toBe(0);
+  });
+
+  it('reports the tile under the player', () => {
+    const state = createGameState(open(), ISLAND_CONFIG);
+    expect(playerTile(state, TEST_TILE)).toEqual(state.world.spawn);
+    state.player.x = 3 * TEST_TILE + 15.9;
+    state.player.y = 7 * TEST_TILE;
+    expect(playerTile(state, TEST_TILE)).toEqual({ x: 3, y: 7 });
   });
 });

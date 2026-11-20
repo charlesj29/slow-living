@@ -82,6 +82,24 @@ const send = (method, params = {}) =>
 await send('Runtime.enable');
 await send('Log.enable');
 await send('Page.enable');
+// PHONE=1 emulates a touch phone (touch input + mobile viewport), so pointer/hover media match.
+if (process.env.PHONE) {
+  await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 2,
+    mobile: true,
+  });
+}
+// MEDIA="hover=none,pointer=coarse" emulates CSS media features (e.g. a touch device).
+if (process.env.MEDIA) {
+  const features = process.env.MEDIA.split(',').map((pair) => {
+    const [name, value] = pair.split('=');
+    return { name, value };
+  });
+  await send('Emulation.setEmulatedMedia', { features });
+}
 const started = Date.now();
 await send('Page.navigate', { url });
 let hasCanvas = false;
@@ -146,6 +164,18 @@ const fps = await send('Runtime.evaluate', {
   awaitPromise: true,
   returnByValue: true,
 });
+// CHECK_EXPR="..." is evaluated in the page at the end and printed (e.g. renderer stats).
+if (process.env.CHECK_EXPR) {
+  const checked = await send('Runtime.evaluate', {
+    expression: process.env.CHECK_EXPR,
+    awaitPromise: true,
+    returnByValue: true,
+  });
+  console.log(
+    'check:',
+    JSON.stringify(checked.result?.result?.value ?? checked.result?.exceptionDetails?.text),
+  );
+}
 const shot = await send('Page.captureScreenshot', { format: 'png' });
 writeFileSync(outPng, Buffer.from(shot.result.data, 'base64'));
 console.log(

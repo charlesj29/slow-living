@@ -2,7 +2,9 @@
 // calls `advanceGame` once per frame and reads positions; React never holds
 // any of this in state.
 import { advanceClock, createFixedStepClock, type FixedStepClock } from '@/shared/engine/fixedStep';
+import type { TilePoint } from '@/shared/engine/grid';
 import { createInputState, type InputState } from '@/shared/engine/input';
+import { approach } from '@/shared/engine/math';
 import type { IslandConfig } from '../config';
 import { createPlayer, type Player } from '../entities/player';
 import type { World } from '../world/world';
@@ -17,6 +19,8 @@ export interface GameState {
   readonly clock: FixedStepClock;
   /** 0..1: how far rendering is between the previous and the current logic step. */
   interpolation: number;
+  /** Smoothed frames per second, from the frame times the render loop reports. */
+  framesPerSecond: number;
 }
 
 export function createGameState(world: World, config: IslandConfig): GameState {
@@ -26,6 +30,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     input: createInputState<IslandAction>(),
     clock: createFixedStepClock(config.loop.stepsPerSecond, config.loop.maxStepsPerFrame),
     interpolation: 0,
+    framesPerSecond: 0,
   };
 }
 
@@ -45,6 +50,26 @@ export function advanceGame(state: GameState, frameSeconds: number, config: Isla
   state.interpolation = advanceClock(state.clock, frameSeconds, (step) =>
     stepGame(state, step, config),
   );
+  if (frameSeconds > 0) {
+    const instant = 1 / frameSeconds;
+    state.framesPerSecond =
+      state.framesPerSecond === 0
+        ? instant
+        : approach(
+            state.framesPerSecond,
+            instant,
+            config.debug.fpsSmoothingSharpness,
+            frameSeconds,
+          );
+  }
+}
+
+/** The tile under the player's feet. */
+export function playerTile(state: GameState, tileSizePx: number): TilePoint {
+  return {
+    x: Math.floor(state.player.x / tileSizePx),
+    y: Math.floor(state.player.y / tileSizePx),
+  };
 }
 
 /** Player position between the last two steps, for smooth rendering on any refresh rate. */
