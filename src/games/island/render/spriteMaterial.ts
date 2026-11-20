@@ -1,4 +1,4 @@
-import { FrontSide, ShaderMaterial, type Texture } from 'three';
+import { FrontSide, LessDepth, ShaderMaterial, type Texture } from 'three';
 
 // One shader for every sprite (terrain quads and instanced objects). Animated
 // sprites are horizontal strips in the atlas; each vertex carries the u
@@ -59,4 +59,33 @@ export function showAnimationFrameAt(
 /** Shows a specific frame of every animated sprite drawn with this material (e.g. the player's walk cycle). */
 export function setAnimationFrame(material: SpriteMaterial, frameIndex: number): void {
   material.uniforms.uFrame.value = frameIndex;
+}
+
+// Shadows keep their painted alpha (blended), unlike every other sprite.
+const SHADOW_FRAGMENT_SHADER = /* glsl */ `
+  uniform sampler2D map;
+  varying vec2 vUv;
+  void main() {
+    vec4 color = texture2D(map, vUv);
+    if (color.a < 0.01) discard;
+    gl_FragColor = color;
+  }
+`;
+
+/**
+ * Material for soft cast shadows. They blend over the ground, but write depth
+ * and use a strict depth test: where two shadows overlap (same depth), the
+ * second is rejected, so overlaps never get darker. Anything standing is
+ * closer to the camera and hides the shadow underneath it.
+ */
+export function createShadowMaterial(atlasTexture: Texture): SpriteMaterial {
+  return new ShaderMaterial({
+    uniforms: { map: { value: atlasTexture }, uFrame: { value: 0 } },
+    vertexShader: VERTEX_SHADER,
+    fragmentShader: SHADOW_FRAGMENT_SHADER,
+    side: FrontSide,
+    transparent: true,
+    depthWrite: true,
+    depthFunc: LessDepth,
+  }) as SpriteMaterial;
 }

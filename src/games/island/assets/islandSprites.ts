@@ -3,6 +3,7 @@ import { buildSpriteAtlas, type SpriteAtlas } from '@/shared/render/spriteAtlas'
 import { paintCabinSprites } from './paintCabin';
 import { paintObjectSprites } from './paintObjects';
 import { paintPlayerSprites } from './paintPlayer';
+import { paintShadowSprites } from './paintShadows';
 import { paintStructureSprites } from './paintStructures';
 import { paintTileSprites } from './paintTiles';
 import { paintTransitionSprites } from './paintTransitions';
@@ -16,6 +17,7 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintStructureSprites(),
     ...paintCabinSprites(),
     ...paintPlayerSprites(),
+    ...paintShadowSprites(),
   ];
 }
 

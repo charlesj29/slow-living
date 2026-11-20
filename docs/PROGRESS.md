@@ -11,7 +11,14 @@
   previews a seed. Touch devices see "Best played with a keyboard". Every other address
   redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
   renderer memory stays flat across regenerations. 249 tests.
-- **Exact next step:** discuss the two items the user deferred until after M4:
+- **Visual overhaul in progress** (user request, `pixel_art_visual_overhaul_prompt.md` + a
+  cozy 16-bit reference image): Phase 2 (foundation) done; **next: Phase 3** — trees with
+  dense leaf-cluster crowns (+ a 3-tile-wide forest tree), a ~6×4 reference-style cottage
+  (door kept on the trail tile via `cabin.anchor`), refined explorer (softer outlines, idle
+  breathing). Then Phase 4 (props by the house, stumps/branches, rocky coastal ledges) and
+  Phase 5 (refine, before/after screenshots). The user asked to see Phase 2 screenshots
+  before Phase 3 — wait for their feedback.
+- **Still open from M4:** discuss the two items the user deferred until after M4:
   1. **Real-machine performance:** ask the user to run `npm run dev` (or `npm run build` +
      `npm run preview`), press F3, walk around (including zoomed out) and report the FPS.
   2. **GitHub:** nothing has been pushed. Remote `origin` has both `master` and `main`; ask
@@ -62,6 +69,33 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Visual overhaul, Phase 1–2 (user request)
+
+- **Brief:** `pixel_art_visual_overhaul_prompt.md` with a cozy 16-bit farming-RPG reference
+  image (style only). User answers: art drawn in code; bigger reference-style cottage (~6×4,
+  door on the same trail tile); extras: props by the house, stumps & fallen branches, rocky
+  ledges; keep the explorer and refine its style.
+- **Phase 1 audit (baseline screenshots):** biggest gaps were no soft shadows, visibly
+  repeating grass, flat trees, a basic cabin, blocky paths, few props, heavy outlines, flat
+  terrain.
+- **Phase 2 done:**
+  - Palette retuned (warmer greens, sandier dirt, softer water ramps).
+  - Grass tiles: calm base, soft 2-px mottling, sparse tufts; 4 variants.
+  - Dirt: lighter, soft mottling, occasional pebble.
+  - Grass edges: 2-px wobble, blades poking into paths/sand, softer rim, a dirt shadow
+    line; two variants of every edge/corner piece (`edge_<m>_<d>.<v>`), picked per tile.
+  - Soft cast shadows: `assets/paintShadows.ts` (semi-transparent ellipses + cabin block),
+    `render/objectShadows.ts` (per-kind placement, light from the top-left),
+    `createShadowMaterial` (blended, strict depth test = no double darkening),
+    `SHADOW_Z`; object shadows in `WorldObjects`, player shadow in `PlayerSprite`; the old
+    opaque ground patches inside tree/bush/rock sprites were removed.
+  - Dithered grass patches: `render/grassPatches.ts` (per-tile noise texture, bilinear) +
+    `render/tilemapMaterial.ts` (4×4 Bayer dither per art pixel, grass quads only via a
+    `patchable` vertex flag). A first per-tile version showed hard square patches and was
+    replaced.
+- **Verified:** typecheck, lint, 265 tests, build pass; screenshots at the default and a
+  close zoom; console clean; ~240 FPS.
 
 ### 2026-11-21 — 4-way movement (user request)
 

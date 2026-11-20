@@ -4,6 +4,8 @@
 
 /** Terrain is drawn at z = 0; all tile layers share it and draw in index order. */
 export const TERRAIN_Z = 0;
+/** Soft cast shadows: above the ground, below decorations and everything standing. */
+export const SHADOW_Z = 0.25;
 /** Flat decorations (flowers, grass tufts) always lie under anything standing. */
 export const GROUND_DECAL_Z = 0.5;
 const SORTED_BASE_Z = 1;

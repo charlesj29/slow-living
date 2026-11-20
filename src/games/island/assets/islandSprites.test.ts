@@ -42,12 +42,33 @@ describe('island sprites', () => {
     expect(atlas.frame('rock.0')).toMatchObject({ width: 16, height: 16 });
   });
 
-  it('has every shoreline overlay for every edge material', () => {
+  it('has two variants of every shoreline overlay for every edge material', () => {
     for (const material of EDGE_MATERIALS) {
-      for (const direction of ['n', 'e', 's', 'w'])
-        expect(atlas.has(`edge_${material}_${direction}`)).toBe(true);
-      for (const direction of ['ne', 'se', 'sw', 'nw'])
-        expect(atlas.has(`corner_${material}_${direction}`)).toBe(true);
+      const pieces = [
+        ...['n', 'e', 's', 'w'].map((d) => `edge_${material}_${d}`),
+        ...['ne', 'se', 'sw', 'nw'].map((d) => `corner_${material}_${d}`),
+      ];
+      for (const piece of pieces) {
+        const variants = atlas.variants(piece);
+        expect(variants, piece).toHaveLength(2);
+        for (const key of variants) expect(atlas.has(key), key).toBe(true);
+      }
+    }
+  });
+
+  it('has several grass variants so meadows do not repeat', () => {
+    expect(atlas.variants('tile_grass').length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('paints cast shadows semi-transparent and everything else with hard alpha', () => {
+    for (const source of paintIslandSprites()) {
+      const alphas = new Set<number>();
+      for (const frame of source.frames) {
+        for (let i = 3; i < frame.data.length; i += 4) alphas.add(frame.data[i] ?? 0);
+      }
+      const partial = [...alphas].filter((a) => a > 0 && a < 255);
+      if (source.key.startsWith('shadow_')) expect(partial.length, source.key).toBeGreaterThan(0);
+      else expect(partial, source.key).toEqual([]);
     }
   });
 

@@ -8,9 +8,15 @@ export function variantKeyAt(atlas: SpriteAtlas, base: string, x: number, y: num
   return keys[hashCoords(x, y) % keys.length] ?? base;
 }
 
+/** True if the atlas has the sprite itself or `base.N` variants of it. */
+export function hasSprite(atlas: SpriteAtlas, key: string): boolean {
+  return atlas.has(key) || atlas.variants(key)[0] !== key;
+}
+
+/** Sprite lookup for the tilemap: stable variants per tile, for tiles and overlay pieces. */
 export function spriteCatalogFor(atlas: SpriteAtlas): SpriteCatalog {
   return {
-    has: atlas.has,
+    has: (key) => hasSprite(atlas, key),
     variantAt: (base, x, y) => variantKeyAt(atlas, base, x, y),
   };
 }

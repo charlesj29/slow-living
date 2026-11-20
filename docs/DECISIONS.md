@@ -413,3 +413,26 @@ alternatives → consequences.
   previous held key; opposite keys don't cancel. Supersedes the 8-way part of D30.
 - **Consequences:** wall sliding along diagonals no longer happens in play (the movement
   system still supports it); corner nudging (D31) keeps tight spots easy to walk through.
+
+## D41 — Soft cast shadows as the one blended sprite layer
+
+- **Context:** the visual overhaul reference grounds every object with translucent shadows;
+  all sprites so far used hard alpha.
+- **Decision:** semi-transparent `shadow_*` sprites drawn at `SHADOW_Z` with
+  `createShadowMaterial` (transparent, depth write on, `LessDepth`). Overlapping shadows at
+  the same depth reject each other, so they never double-darken; standing sprites (closer to
+  the camera) hide shadows under them. Placement per object kind lives in
+  `render/objectShadows.ts`.
+- **Alternatives:** opaque darker-grass patches baked into sprites (wrong over sand/paths);
+  a render-to-texture shadow pass (more machinery for the same look).
+- **Consequences:** CLAUDE.md "hard alpha only" now names this exception.
+
+## D42 — Grass patches dithered in the tilemap shader
+
+- **Context:** large meadows looked tiled; a first attempt swapping whole tiles to a darker
+  set produced hard square patches.
+- **Decision:** a per-tile noise texture sampled with bilinear filtering, compared per art
+  pixel against a 4×4 Bayer matrix, shades grass quads (flagged per vertex) by a constant
+  factor. Patch edges are pixel-dithered and ignore tile borders.
+- **Consequences:** grass pixels in patches are a multiplied tone of the palette colour;
+  tunables in `render.grassPatches` (noise, threshold, shade, ditherSpread).

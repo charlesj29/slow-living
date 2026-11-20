@@ -14,7 +14,7 @@ import { PALETTE, type Ramp } from './palette';
 
 /** Every animated terrain sprite shares this frame count (one frame counter drives all water). */
 export const WATER_FRAME_COUNT = 3;
-const GROUND_VARIANTS = 3;
+const GROUND_VARIANTS = 4;
 const WATER_VARIANTS = 2;
 
 const tileRng = (key: string): Rng => createRng(hashString(key));
@@ -34,20 +34,39 @@ function spreadSpots(rng: Rng, cells: number, margin = 1): { x: number; y: numbe
   return spots;
 }
 
-function grassTile(rng: Rng): PixelCanvas {
+/** A small grass tuft: dark blades with a light tip, 3–5 px wide. */
+function grassTuft(tile: PixelCanvas, tones: Ramp, x: number, y: number): void {
+  setPixel(tile, x, y, tones.dark);
+  setPixel(tile, x + 1, y - 1, tones.dark);
+  setPixel(tile, x + 1, y - 2, tones.light);
+  setPixel(tile, x + 2, y, tones.dark);
+  setPixel(tile, x + 3, y - 1, tones.dark);
+  setPixel(tile, x + 3, y - 2, tones.highlight);
+  setPixel(tile, x + 4, y, tones.dark);
+}
+
+/**
+ * Grass: a calm base with soft mottling (2-px clusters of a lighter and a
+ * darker tone) and, on some tiles only, a small tuft. Sparse detail keeps
+ * meadows readable and stops the eye picking out a repeating grid.
+ */
+function grassTile(tones: Ramp, rng: Rng): PixelCanvas {
   const tile = createPixelCanvas(TILE_PX, TILE_PX);
-  const { dark, base, light, highlight } = PALETTE.grass;
-  fill(tile, base);
-  // Little "^" tufts on a jittered grid: the classic patterned-lawn look.
-  for (const { x, y } of spreadSpots(rng, 3)) {
-    if (rng.chance(0.25)) continue;
-    setPixel(tile, x, y, dark);
-    setPixel(tile, x + 1, y - 1, dark);
-    setPixel(tile, x + 2, y, dark);
-    setPixel(tile, x + 1, y, light);
+  fill(tile, tones.base);
+  for (let i = 0; i < 5; i++) {
+    const x = rng.int(0, 15);
+    const y = rng.int(0, 15);
+    setPixel(tile, x, y, tones.light);
+    if (rng.chance(0.6)) setPixel(tile, (x + 1) % TILE_PX, y, tones.light);
   }
-  for (let i = 0; i < 6; i++) setPixel(tile, rng.int(0, 15), rng.int(0, 15), light);
-  setPixel(tile, rng.int(0, 15), rng.int(0, 15), highlight);
+  for (let i = 0; i < 4; i++) {
+    const x = rng.int(0, 15);
+    const y = rng.int(0, 15);
+    setPixel(tile, x, y, tones.dark);
+    if (rng.chance(0.5)) setPixel(tile, x, (y + 1) % TILE_PX, tones.dark);
+  }
+  const tufts = rng.chance(0.55) ? (rng.chance(0.3) ? 2 : 1) : 0;
+  for (let i = 0; i < tufts; i++) grassTuft(tile, tones, rng.int(1, 10), rng.int(4, 14));
   return tile;
 }
 
@@ -64,18 +83,26 @@ function sandTile(rng: Rng): PixelCanvas {
   return tile;
 }
 
+/**
+ * Dirt: warm, sandy and soft — gentle mottling, a few dark specks and the odd
+ * pebble (light top, dark underside), never a regular pattern.
+ */
 function pathTile(rng: Rng): PixelCanvas {
   const tile = createPixelCanvas(TILE_PX, TILE_PX);
   const { outline, dark, base, light } = PALETTE.path;
   fill(tile, base);
-  for (const { x, y } of spreadSpots(rng, 2, 2)) {
-    // A pebble: light top, dark underside.
+  for (let i = 0; i < 6; i++) {
+    const x = rng.int(0, 14);
+    const y = rng.int(0, 15);
+    fillRect(tile, x, y, rng.int(1, 2), 1, light);
+  }
+  for (let i = 0; i < 5; i++) setPixel(tile, rng.int(0, 15), rng.int(0, 15), dark);
+  if (rng.chance(0.6)) {
+    const x = rng.int(2, 12);
+    const y = rng.int(2, 12);
     fillRect(tile, x, y, 2, 1, light);
     fillRect(tile, x, y + 1, 2, 1, dark);
-    if (rng.chance(0.5)) setPixel(tile, x + 2, y + 1, outline);
-  }
-  for (let i = 0; i < 8; i++) {
-    setPixel(tile, rng.int(0, 15), rng.int(0, 15), rng.chance(0.5) ? dark : light);
+    setPixel(tile, x + 2, y + 1, outline);
   }
   return tile;
 }
@@ -135,7 +162,7 @@ function variants(key: string, count: number, paint: (rng: Rng) => PixelCanvas[]
 
 export function paintTileSprites(): SpriteSource[] {
   return [
-    ...variants('tile_grass', GROUND_VARIANTS, (rng) => [grassTile(rng)]),
+    ...variants('tile_grass', GROUND_VARIANTS, (rng) => [grassTile(PALETTE.grass, rng)]),
     ...variants('tile_sand', GROUND_VARIANTS, (rng) => [sandTile(rng)]),
     ...variants('tile_path', GROUND_VARIANTS, (rng) => [pathTile(rng)]),
     ...variants('tile_deep_sea', WATER_VARIANTS, (rng) => waterFrames(PALETTE.deepSea, rng)),

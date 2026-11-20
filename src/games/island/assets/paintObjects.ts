@@ -11,7 +11,7 @@ import {
   type Rgba,
 } from '@/shared/render/pixelCanvas';
 import { paintClumps, type Clump } from './foliage';
-import { fillEllipse, TILE_PX } from './paint';
+import { TILE_PX } from './paint';
 import { PALETTE } from './palette';
 
 /** Frames in every animated object strip (one counter drives them all). */
@@ -47,10 +47,6 @@ function paintTrunk(
   setPixel(canvas, left + width + 1, bottom, outline);
 }
 
-function groundShadow(canvas: PixelCanvas, cx: number, rx: number): void {
-  fillEllipse(canvas, cx, canvas.height - 1.5, rx, 1.8, PALETTE.shadow);
-}
-
 const OAK_CROWN: readonly Clump[] = [
   { cx: 16, cy: 7, r: 7.5 },
   { cx: 8.5, cy: 10, r: 6.5 },
@@ -64,7 +60,6 @@ const OAK_CROWN: readonly Clump[] = [
 
 function bigOak(rng: Rng): PixelCanvas {
   const canvas = createPixelCanvas(TILE_PX * 2, TILE_PX * 2);
-  groundShadow(canvas, 16, 11);
   paintTrunk(canvas, 13, 22, 6, 30);
   paintClumps(canvas, jitter(OAK_CROWN, rng, 0.6), PALETTE.oak);
   return canvas;
@@ -73,7 +68,6 @@ function bigOak(rng: Rng): PixelCanvas {
 /** Stacked tiers of small clumps, widening downwards, so tiers overlap with creases. */
 function bigPine(rng: Rng): PixelCanvas {
   const canvas = createPixelCanvas(TILE_PX * 2, TILE_PX * 2);
-  groundShadow(canvas, 16, 10);
   paintTrunk(canvas, 14, 24, 4, 30);
   const tiers: Clump[] = [{ cx: 16, cy: 2.5, r: 2.5 }];
   const rows = [
@@ -94,7 +88,6 @@ function bigPine(rng: Rng): PixelCanvas {
 
 function smallTree(rng: Rng): PixelCanvas {
   const canvas = createPixelCanvas(TILE_PX, TILE_PX * 2);
-  groundShadow(canvas, 8, 5.5);
   paintTrunk(canvas, 7, 19, 3, 30);
   const crown: Clump[] = [
     { cx: 8, cy: 8, r: 5.5 },
@@ -108,7 +101,6 @@ function smallTree(rng: Rng): PixelCanvas {
 
 function bush(rng: Rng): PixelCanvas {
   const canvas = createPixelCanvas(TILE_PX, TILE_PX);
-  groundShadow(canvas, 8, 6.5);
   const clumps: Clump[] = [
     { cx: 8, cy: 6.5, r: 4.5 },
     { cx: 4.5, cy: 10, r: 4 },
@@ -121,7 +113,6 @@ function bush(rng: Rng): PixelCanvas {
 
 function rock(rng: Rng): PixelCanvas {
   const canvas = createPixelCanvas(TILE_PX, TILE_PX);
-  groundShadow(canvas, 8, 6.5);
   const clumps: Clump[] = [
     { cx: 6, cy: 9.5, r: 4.5 },
     { cx: 10.5, cy: 10.5, r: 4.5 },

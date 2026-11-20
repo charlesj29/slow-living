@@ -82,7 +82,7 @@ export function tileLayersAt(
   }
   overlays.sort((a, b) => a.priority - b.priority);
   for (const overlay of overlays) {
-    if (sprites.has(overlay.key)) layers.push(overlay.key);
+    if (sprites.has(overlay.key)) layers.push(sprites.variantAt(overlay.key, x, y));
   }
 
   if (ownId === TileId.Dock) layers.push(dockSpriteKey(view, x, y));

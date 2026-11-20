@@ -5,10 +5,16 @@ import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { FLOWER_FRAME_COUNT } from '../assets/paintObjects';
 import type { World } from '../core/world/world';
+import { placeObjectShadows } from './objectShadows';
 import { placeObjectSprites, type SpriteInstance } from './objectSprites';
 import { objectSpriteKey } from './objectSpriteKeys';
 import { createSpriteGeometry } from './spriteGeometry';
-import { createSpriteMaterial, showAnimationFrameAt, type SpriteMaterial } from './spriteMaterial';
+import {
+  createShadowMaterial,
+  createSpriteMaterial,
+  showAnimationFrameAt,
+  type SpriteMaterial,
+} from './spriteMaterial';
 
 interface SpriteBatchProps {
   readonly frame: AtlasFrame;
@@ -51,7 +57,10 @@ interface WorldObjectsProps {
   readonly flowerFrameSeconds: number;
 }
 
-/** Trees, bushes, rocks, flowers, tufts, fence, mailbox and cabin: one instanced mesh per sprite. */
+/**
+ * Trees, bushes, rocks, flowers, tufts, fence, mailbox and cabin — one instanced
+ * mesh per sprite — plus their soft shadows (one blended instanced mesh per shadow shape).
+ */
 export function WorldObjects({
   world,
   atlas,
@@ -59,7 +68,9 @@ export function WorldObjects({
   flowerFrameSeconds,
 }: WorldObjectsProps): JSX.Element {
   const material = useMemo(() => createSpriteMaterial(atlas.texture), [atlas]);
+  const shadowMaterial = useMemo(() => createShadowMaterial(atlas.texture), [atlas]);
   useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
 
   useFrame(({ clock }) => {
     showAnimationFrameAt(material, clock.elapsedTime, flowerFrameSeconds, FLOWER_FRAME_COUNT);
@@ -76,9 +87,21 @@ export function WorldObjects({
     ],
     [world, atlas, tileSizePx],
   );
+  const shadowBatches = useMemo(
+    () => [...placeObjectShadows(world.objects, tileSizePx)],
+    [world, tileSizePx],
+  );
 
   return (
     <group>
+      {shadowBatches.map(([key, instances]) => (
+        <SpriteBatch
+          key={`shadow:${key}:${String(instances.length)}`}
+          frame={atlas.frame(key)}
+          material={shadowMaterial}
+          instances={instances}
+        />
+      ))}
       {batches.map(([key, instances]) => (
         <SpriteBatch
           key={`${key}:${String(instances.length)}`}

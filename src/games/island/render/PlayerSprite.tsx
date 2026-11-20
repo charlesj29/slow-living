@@ -7,9 +7,10 @@ import { ISLAND_CONFIG } from '../core/config';
 import { playerFootY } from '../core/entities/player';
 import { interpolatedPlayerPosition, type GameState } from '../core/game/gameState';
 import { playerFrameIndex } from '../core/systems/animation';
+import { PLAYER_SHADOW } from './objectShadows';
 import { createSpriteGeometry, setSpriteGeometryFrame } from './spriteGeometry';
-import { createSpriteMaterial, setAnimationFrame } from './spriteMaterial';
-import { standingSpriteZ, worldYFromMapPx } from './worldSpace';
+import { createShadowMaterial, createSpriteMaterial, setAnimationFrame } from './spriteMaterial';
+import { SHADOW_Z, standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
 interface PlayerSpriteProps {
   readonly state: GameState;
@@ -30,8 +31,16 @@ export function PlayerSprite({ state, atlas }: PlayerSpriteProps): JSX.Element {
     [atlas, state],
   );
   const material = useMemo(() => createSpriteMaterial(atlas.texture), [atlas]);
+  const shadowRef = useRef<Mesh>(null);
+  const shadowGeometry = useMemo(
+    () => createSpriteGeometry(atlas.frame(PLAYER_SHADOW.key)),
+    [atlas],
+  );
+  const shadowMaterial = useMemo(() => createShadowMaterial(atlas.texture), [atlas]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => () => shadowGeometry.dispose(), [shadowGeometry]);
+  useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
 
   useFrame(() => {
     const mesh = meshRef.current;
@@ -50,7 +59,17 @@ export function PlayerSprite({ state, atlas }: PlayerSpriteProps): JSX.Element {
       worldYFromMapPx(footY) + frame.height / 2,
       standingSpriteZ(footY),
     );
+    shadowRef.current?.position.set(
+      Math.round(x) + PLAYER_SHADOW.offsetX,
+      worldYFromMapPx(footY + PLAYER_SHADOW.offsetY),
+      SHADOW_Z,
+    );
   });
 
-  return <mesh ref={meshRef} geometry={geometry} material={material} />;
+  return (
+    <>
+      <mesh ref={shadowRef} geometry={shadowGeometry} material={shadowMaterial} />
+      <mesh ref={meshRef} geometry={geometry} material={material} />
+    </>
+  );
 }

@@ -48,6 +48,13 @@ describe('buildChunkGeometryData', () => {
     ]);
   });
 
+  it('flags quads for soft grass patches only where asked', () => {
+    const flagged = buildChunkGeometryData(region, 16, layersAt, frameOf, (key) => key === 'grass');
+    // Quad 0 = grass (flagged), quad 1 = edge, quad 2 = water.
+    expect([...flagged.patchables]).toEqual([1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect([...data.patchables].every((value) => value === 0)).toBe(true);
+  });
+
   it('winds triangles counter-clockwise towards the camera', () => {
     const [a, b, c] = [...data.indices.slice(0, 3)].map((i) => [
       data.positions[i * 3] ?? 0,

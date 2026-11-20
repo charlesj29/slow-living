@@ -143,6 +143,13 @@ export interface IslandConfig {
     readonly maxPixelScale: number;
     readonly waterFrameSeconds: number;
     readonly flowerFrameSeconds: number;
+    /** Soft, dithered patches of slightly deeper grass (shaded in the tilemap shader). */
+    readonly grassPatches: {
+      readonly noise: FractalNoiseOptions;
+      readonly threshold: number;
+      readonly shade: number;
+      readonly ditherSpread: number;
+    };
     /** How quickly the camera catches up with the player (higher = snappier). */
     readonly cameraFollowSharpness: number;
   };
@@ -236,6 +243,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,
     flowerFrameSeconds: 0.6,
+    grassPatches: { noise: noise(0.07, 2), threshold: 0.55, shade: 0.9, ditherSpread: 0.14 },
     cameraFollowSharpness: 8,
   },
   validation: { minLandShare: 0.2, maxLandShare: 0.65, minReachableShare: 0.3 },

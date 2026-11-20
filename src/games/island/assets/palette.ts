@@ -1,6 +1,6 @@
-// Placeholder pixel-art palette, inspired by the bright, outlined look of
-// classic handheld RPGs (original colours, not copied). Each material has a
-// small ramp: outline → dark → base → light → highlight.
+// Pixel-art palette for a cozy 16-bit look: warm, saturated naturals with
+// coloured (not black) outlines. Original colours. Each material has a small
+// ramp: outline → dark → base → light → highlight. Light comes from the top-left.
 import { hexToRgba, type Rgba } from '@/shared/render/pixelCanvas';
 
 const c = (hex: string): Rgba => hexToRgba(hex);
@@ -28,11 +28,11 @@ const ramp = (
 });
 
 export const PALETTE = {
-  grass: ramp('#2f6e2c', '#4f9a40', '#73c458', '#8fd86c', '#b4ec8c'),
-  sand: ramp('#a88c50', '#d4b878', '#f0dca0', '#f8eabc', '#fff6d8'),
-  path: ramp('#7a5a34', '#a88050', '#d0aa70', '#e2c088', '#f0d6a4'),
-  deepSea: ramp('#1c4888', '#2c62b0', '#3c7ccc', '#5a98e0', '#a4d0f8'),
-  shallowSea: ramp('#2c6cb4', '#4a8ed8', '#60a8ec', '#7cc0f4', '#d0ecff'),
+  grass: ramp('#2d6a2a', '#47963a', '#62b844', '#7ccb52', '#9edc6c'),
+  sand: ramp('#b08e58', '#d8b980', '#f0d89e', '#f8e7bb', '#fff4d8'),
+  path: ramp('#8a6a3c', '#bf9a5e', '#dcbc80', '#e9cf98', '#f4e2b4'),
+  deepSea: ramp('#1d4f8c', '#2a64a8', '#3779c0', '#5294d4', '#9cc8ee'),
+  shallowSea: ramp('#2f74b8', '#4a92d4', '#5eaae6', '#7cc2f0', '#cfeaff'),
   lakeWater: ramp('#1c6080', '#2a7ea0', '#3894b8', '#54b0d0', '#b0e4f0'),
   lakeShallow: ramp('#2c84a4', '#4aa6c4', '#64bed8', '#80d2e6', '#d4f4fa'),
   foam: { bright: c('#ffffff'), soft: c('#d4eefc') },
@@ -43,6 +43,8 @@ export const PALETTE = {
   leafy: ramp('#1c4420', '#33783a', '#4a9a44', '#68ba56', '#9ad878'),
   rock: ramp('#36363e', '#66666e', '#8e8e98', '#b4b4be', '#dedee6'),
   shadow: c('#4a9040'),
+  /** Soft cast shadows: a dark green-blue drawn semi-transparently over the ground. */
+  castShadow: { core: hexToRgba('#14301e', 110), edge: hexToRgba('#14301e', 70) },
   stem: c('#2e7a2c'),
   flowers: {
     red: { petal: c('#f05050'), shade: c('#b83030') },

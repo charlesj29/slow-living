@@ -222,7 +222,17 @@ flowchart LR
   `autoPixelScale` (~20 tiles across, ≥11 tall) plus a zoom offset that starts at
   `render.defaultZoomSteps` (−3, the user's preferred wider view) and changes with +/− within
   the min/max scale; driven by `FollowCamera`.
-- **Colour:** the canvas is `flat` + `linear`, so painted colours reach the screen unchanged.
+- **Soft shadows:** `shadow_*` sprites are the only translucent art. `placeObjectShadows`
+  puts one under each standing kind (offset down-right; light from the top-left) at
+  `SHADOW_Z` (between terrain and decorations); `createShadowMaterial` blends them with a
+  strict depth test, so overlapping shadows never get darker and anything standing hides
+  the shadow beneath it. The player has its own shadow mesh.
+- **Grass patches:** `createTilemapMaterial` shades grass quads (vertex flag `patchable`,
+  set for `tile_grass*`/`edge_grass_*`/`corner_grass_*`) where a bilinear-sampled per-tile
+  noise texture plus a 4×4 Bayer dither per art pixel passes a threshold: organic,
+  pixel-dithered patches with no tile seams.
+- **Colour:** the canvas is `flat` + `linear`, so painted colours reach the screen unchanged
+  (grass patches multiply grass pixels by `grassPatches.shade`).
 - **Cleanup:** the atlas texture, chunk geometries, both sprite materials and the sprite
   geometries are disposed in effect cleanups; R3F disposes JSX-declared objects.
 

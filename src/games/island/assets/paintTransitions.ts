@@ -3,8 +3,9 @@
 // outer corner when they only touch diagonally). Overlays are transparent
 // elsewhere, so the base tile (even animated water) shows through.
 //
-// Keys: `edge_<material>_<n|e|s|w>` and `corner_<material>_<ne|se|sw|nw>`,
-// where <material> is the tile key of the higher tile.
+// Keys: `edge_<material>_<n|e|s|w>.<v>` and `corner_<material>_<ne|se|sw|nw>.<v>`,
+// where <material> is the tile key of the higher tile and <v> a variant (two
+// per piece, so long edges don't repeat).
 import { createRng, hashString, type Rng } from '@/shared/engine/random';
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
@@ -30,7 +31,14 @@ interface EdgeStyle {
   readonly rim?: Rgba;
   /** Checkerboard the outermost row so water-on-water blends softly. */
   readonly dither?: boolean;
+  /** How far (px) the boundary wanders in and out; bigger = more natural, irregular edge. */
+  readonly wobble: number;
+  /** Chance per column of a blade poking out past the boundary (grass onto dirt/sand). */
+  readonly bladeChance?: number;
+  readonly blade?: Rgba;
 }
+
+const EDGE_VARIANTS = 2;
 
 const EDGE_STYLES: Readonly<Record<string, EdgeStyle>> = {
   sand: {
@@ -39,24 +47,32 @@ const EDGE_STYLES: Readonly<Record<string, EdgeStyle>> = {
     speckle: PALETTE.sand.light,
     fringe: PALETTE.foam.bright,
     softFringe: PALETTE.foam.soft,
+    wobble: 1,
   },
   grass: {
     depth: 3,
     fill: PALETTE.grass.base,
     speckle: PALETTE.grass.light,
-    rim: PALETTE.grass.outline,
+    rim: PALETTE.grass.dark,
+    // A soft shadow line on the ground just below the grass edge.
+    fringe: PALETTE.path.dark,
+    wobble: 2,
+    bladeChance: 0.3,
+    blade: PALETTE.grass.dark,
   },
   shallow_sea: {
     depth: 3,
     fill: PALETTE.shallowSea.base,
     speckle: PALETTE.shallowSea.light,
     dither: true,
+    wobble: 1,
   },
   lake_shallow: {
     depth: 3,
     fill: PALETTE.lakeShallow.base,
     speckle: PALETTE.lakeShallow.light,
     dither: true,
+    wobble: 1,
   },
 };
 
@@ -81,7 +97,13 @@ function paintBand(
       outermost && style.rim ? style.rim : rng.chance(0.15) ? style.speckle : style.fill;
     setPixel(canvas, x, y, color);
   }
-  if (style.fringe) setPixel(canvas, x, depth, style.fringe);
+  if (style.blade && style.bladeChance && rng.chance(style.bladeChance)) {
+    // A blade overhangs the edge: the shadow line moves down under it.
+    setPixel(canvas, x, depth, style.blade);
+    if (style.fringe) setPixel(canvas, x, depth + 1, style.fringe);
+  } else if (style.fringe) {
+    setPixel(canvas, x, depth, style.fringe);
+  }
   if (style.softFringe && x % 3 !== 2) setPixel(canvas, x, depth + 1, style.softFringe);
 }
 
@@ -92,7 +114,9 @@ function northEdge(style: EdgeStyle, rng: Rng): PixelCanvas {
   const phase = rng.range(0, Math.PI * 2);
   for (let x = 0; x < TILE_PX; x++) {
     const wobble = Math.round(
-      Math.sin((x / TILE_PX) * Math.PI * 2 + phase) * Math.sin((x / TILE_PX) * Math.PI),
+      style.wobble *
+        Math.sin((x / TILE_PX) * Math.PI * 2 + phase) *
+        Math.sin((x / TILE_PX) * Math.PI),
     );
     paintBand(canvas, style, rng, x, style.depth + wobble);
   }
@@ -130,18 +154,23 @@ export function paintTransitionSprites(): SpriteSource[] {
   for (const material of EDGE_MATERIALS) {
     const style = EDGE_STYLES[material];
     if (!style) continue;
-    const rng = createRng(hashString(`edge_${material}`));
-    const edge = northEdge(style, rng);
-    const corner = northEastCorner(style, rng);
-    EDGE_DIRECTIONS.forEach((direction, turns) => {
-      sources.push({ key: `edge_${material}_${direction}`, frames: [rotateTimes(edge, turns)] });
-    });
-    CORNER_DIRECTIONS.forEach((direction, turns) => {
-      sources.push({
-        key: `corner_${material}_${direction}`,
-        frames: [rotateTimes(corner, turns)],
+    for (let variant = 0; variant < EDGE_VARIANTS; variant++) {
+      const rng = createRng(hashString(`edge_${material}.${String(variant)}`));
+      const edge = northEdge(style, rng);
+      const corner = northEastCorner(style, rng);
+      EDGE_DIRECTIONS.forEach((direction, turns) => {
+        sources.push({
+          key: `edge_${material}_${direction}.${String(variant)}`,
+          frames: [rotateTimes(edge, turns)],
+        });
       });
-    });
+      CORNER_DIRECTIONS.forEach((direction, turns) => {
+        sources.push({
+          key: `corner_${material}_${direction}.${String(variant)}`,
+          frames: [rotateTimes(corner, turns)],
+        });
+      });
+    }
   }
   return sources;
 }

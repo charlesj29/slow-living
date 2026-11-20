@@ -9,6 +9,8 @@ export interface ChunkGeometryData {
   readonly uvs: Float32Array;
   /** Per vertex: u offset per animation frame (0 for static sprites). */
   readonly animStrides: Float32Array;
+  /** Per vertex: 1 where soft grass patches may shade the quad, else 0. */
+  readonly patchables: Float32Array;
   readonly indices: Uint32Array;
   readonly quadCount: number;
 }
@@ -28,20 +30,24 @@ export function buildChunkGeometryData(
   tileSizePx: number,
   layersAt: (x: number, y: number) => readonly string[],
   frameOf: (key: string) => AtlasFrame,
+  isPatchable: (key: string) => boolean = () => false,
 ): ChunkGeometryData {
-  const quads: { x: number; y: number; frame: AtlasFrame }[] = [];
+  const quads: { x: number; y: number; frame: AtlasFrame; patchable: boolean }[] = [];
   for (let y = region.top; y < region.top + region.height; y++) {
     for (let x = region.left; x < region.left + region.width; x++) {
-      for (const key of layersAt(x, y)) quads.push({ x, y, frame: frameOf(key) });
+      for (const key of layersAt(x, y)) {
+        quads.push({ x, y, frame: frameOf(key), patchable: isPatchable(key) });
+      }
     }
   }
 
   const positions = new Float32Array(quads.length * VERTICES_PER_QUAD * 3);
   const uvs = new Float32Array(quads.length * VERTICES_PER_QUAD * 2);
   const animStrides = new Float32Array(quads.length * VERTICES_PER_QUAD);
+  const patchables = new Float32Array(quads.length * VERTICES_PER_QUAD);
   const indices = new Uint32Array(quads.length * INDICES_PER_QUAD);
 
-  quads.forEach(({ x, y, frame }, quad) => {
+  quads.forEach(({ x, y, frame, patchable }, quad) => {
     const left = x * tileSizePx;
     const right = left + tileSizePx;
     const top = worldYFromMapPx(y * tileSizePx);
@@ -59,11 +65,12 @@ export function buildChunkGeometryData(
       positions.set([px, py, TERRAIN_Z], vertex * 3);
       uvs.set([u, v], vertex * 2);
       animStrides[vertex] = stride;
+      patchables[vertex] = patchable ? 1 : 0;
     });
     const base = quad * VERTICES_PER_QUAD;
     // Counter-clockwise when seen from the camera (+z).
     indices.set([base, base + 2, base + 1, base + 1, base + 2, base + 3], quad * INDICES_PER_QUAD);
   });
 
-  return { positions, uvs, animStrides, indices, quadCount: quads.length };
+  return { positions, uvs, animStrides, patchables, indices, quadCount: quads.length };
 }
