@@ -9,7 +9,7 @@
 // A frame = head (rows 0–12) + torso with arms (rows 13–18) + legs (rows 19–23).
 
 export const PLAYER_PALETTE: Readonly<Record<string, string>> = {
-  o: '#2a1a12',
+  o: '#3a2416',
   L: '#ffc070',
   C: '#f08a24',
   c: '#b85414',
@@ -190,19 +190,28 @@ const SIDE_LEGS = {
 
 const mirror = (rows: Rows): string[] => rows.map((row) => [...row].reverse().join(''));
 
+/** Idle breathing: the head sinks one pixel into the shoulders (the collar row is covered). */
+const HEAD_ROWS = 13;
+function breathing(frame: Rows): string[] {
+  return [EMPTY_TOP[0] ?? '', ...frame.slice(0, HEAD_ROWS), ...frame.slice(HEAD_ROWS + 1)];
+}
+
 /** Front and back views are symmetric, so the other step is the mirrored one. */
 function symmetricFrames(head: Rows, torso: { stand: Rows; swing: Rows }): Rows[] {
   const stepLeft = [...head, ...torso.swing, ...FRONT_LEGS.step];
-  return [[...head, ...torso.stand, ...FRONT_LEGS.stand], stepLeft, mirror(stepLeft)];
+  const standing = [...head, ...torso.stand, ...FRONT_LEGS.stand];
+  return [standing, stepLeft, mirror(stepLeft), breathing(standing)];
 }
 
+const SIDE_STANDING: Rows = [...SIDE_HEAD, ...SIDE_TORSO.stand, ...SIDE_LEGS.stand];
 const SIDE_FRAMES: Rows[] = [
-  [...SIDE_HEAD, ...SIDE_TORSO.stand, ...SIDE_LEGS.stand],
+  SIDE_STANDING,
   [...SIDE_HEAD, ...SIDE_TORSO.forward, ...SIDE_LEGS.stride],
   [...SIDE_HEAD, ...SIDE_TORSO.back, ...SIDE_LEGS.passing],
+  breathing(SIDE_STANDING),
 ];
 
-/** Pixel maps per direction: [standing, left step, right step]. */
+/** Pixel maps per direction: [standing, left step, right step, breathing]. */
 export const PLAYER_PIXEL_MAPS: Readonly<
   Record<'down' | 'up' | 'left' | 'right', readonly Rows[]>
 > = {

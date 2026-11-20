@@ -5,6 +5,7 @@ import type { TilePoint } from '@/shared/engine/grid';
 export const OBJECT_KINDS = [
   'tree_oak',
   'tree_pine',
+  'tree_giant',
   'tree_small',
   'bush',
   'flower_red',
@@ -75,6 +76,8 @@ function decoration(
 export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   tree_oak: solid('tree_oak', 'Oak tree', 'tree', '#2f6b2a', BIG_TREE_FOOTPRINT),
   tree_pine: solid('tree_pine', 'Pine tree', 'tree', '#1c4a2c', BIG_TREE_FOOTPRINT),
+  // A wide forest tree: same trunk footprint, a crown that spreads well past it.
+  tree_giant: solid('tree_giant', 'Great tree', 'tree', '#2a5f28', BIG_TREE_FOOTPRINT),
   tree_small: solid('tree_small', 'Small tree', 'tree', '#3d7f35'),
   bush: solid('bush', 'Bush', 'bush', '#4c8f3e'),
   flower_red: decoration('flower_red', 'Red flowers', 'flower', '#d64545'),
@@ -87,13 +90,13 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   mailbox: solid('mailbox', 'Mailbox', 'structure', '#d04040'),
   cabin: {
     kind: 'cabin',
-    name: 'Wooden cabin',
+    name: 'Cottage',
     category: 'building',
-    footprint: { width: 5, height: 3 },
+    footprint: { width: 6, height: 4 },
     blocksMovement: true,
     spriteKey: 'cabin',
     mapColor: '#8b5a2b',
-    door: { x: 2, y: 2 },
+    door: { x: 2, y: 3 },
   },
 };
 

@@ -12,12 +12,12 @@
   redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
   renderer memory stays flat across regenerations. 249 tests.
 - **Visual overhaul in progress** (user request, `pixel_art_visual_overhaul_prompt.md` + a
-  cozy 16-bit reference image): Phase 2 (foundation) done; **next: Phase 3** — trees with
-  dense leaf-cluster crowns (+ a 3-tile-wide forest tree), a ~6×4 reference-style cottage
-  (door kept on the trail tile via `cabin.anchor`), refined explorer (softer outlines, idle
-  breathing). Then Phase 4 (props by the house, stumps/branches, rocky coastal ledges) and
-  Phase 5 (refine, before/after screenshots). The user asked to see Phase 2 screenshots
-  before Phase 3 — wait for their feedback.
+  cozy 16-bit reference image): Phase 2 (foundation) and Phase 3 (trees, cottage, explorer)
+  done; **next: Phase 4** — props by the house (barrels, flower pots, sign, wood pile,
+  stepping stones; never blocking paths), sparse stumps and fallen branches, rocky coastal
+  ledges where grass meets the beach (impassable, beaches still reachable — new validation
+  - tests, re-bake from the same seed). Then Phase 5 (refine, before/after screenshots,
+    final summary).
 - **Still open from M4:** discuss the two items the user deferred until after M4:
   1. **Real-machine performance:** ask the user to run `npm run dev` (or `npm run build` +
      `npm run preview`), press F3, walk around (including zoomed out) and report the FPS.
@@ -64,11 +64,27 @@
   asked for collision tiles too, dev only). `R` = dev-only random preview island.
 - Controls hint fades after the first walk; no seed or place name on screen; tab title
   "chilling"; loading text "Cooking…" / "Doing its magic…"; touch devices get a keyboard notice.
-- Bigger 5×3 cabin pinned with an authoring anchor; camera starts three zoom steps out.
+- Bigger cabin pinned with an authoring anchor (5×3, then a 6×4 reference-style cottage in
+  the visual overhaul); camera starts three zoom steps out.
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Visual overhaul, Phase 3 (user request)
+
+- **Done:**
+  - Trees: crowns of many small leaf clusters (`leafClusters`, `paintLeafCrown`), softer
+    outlines; oak ×3, pine ×2, small ×2, bush ×3 variants; new 3-tile-wide `tree_giant`
+    (48×48, ×2 variants, `trees.giantShare` 0.3) with crown extents kept off reserved tiles.
+  - Cottage: 6×4 footprint, 96×96 sprite in the reference style (red tiled gable,
+    timber-framed plaster, side wing + chimney, shutters and flower boxes, stone foundation
+    and steps); door on the same trail tile (`cabin.anchor` (113, 105)); dedicated shadow.
+  - Explorer: same design, dark-brown outline, soft shadow, idle breathing (4th frame).
+  - Map re-baked from the same seed: terrain, trails, dock and spawn (115, 109) unchanged.
+- **Decisions:** D43–D45.
+- **Verified:** typecheck, lint, 267 tests, build pass; screenshots at the default view and
+  close-ups (cottage, forest edge); console clean; ~240 FPS on GPU.
 
 ### 2026-11-21 — Visual overhaul, Phase 1–2 (user request)
 

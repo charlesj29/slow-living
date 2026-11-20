@@ -3,6 +3,7 @@
 // only translucent sprites; the tilemap draws them in their own blended layer.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { createPixelCanvas, setPixel, type PixelCanvas } from '@/shared/render/pixelCanvas';
+import { OBJECT_REGISTRY } from '../core/world/objects';
 import { insideEllipse, TILE_PX } from './paint';
 import { PALETTE } from './palette';
 
@@ -41,18 +42,21 @@ function blockShadow(width: number, height: number): PixelCanvas {
 
 /** Shadow sprite keys, by size. */
 export const SHADOW_KEYS = {
+  xlarge: 'shadow_xlarge',
   large: 'shadow_large',
   medium: 'shadow_medium',
   small: 'shadow_small',
   cabin: 'shadow_cabin',
 } as const;
 
-/** The cabin's footprint in tiles (5×3); its shadow block matches it plus a margin. */
-const CABIN_FOOTPRINT_TILES = { width: 5, height: 3 } as const;
-const CABIN_SHADOW_MARGIN_PX = 8;
+/** The cottage's shadow block matches its footprint plus a margin. */
+const CABIN_FOOTPRINT_TILES = OBJECT_REGISTRY.cabin.footprint;
+/** Narrower than the footprint: with light from the top-left only the right and bottom show. */
+const CABIN_SHADOW_MARGIN_PX = -8;
 
 export function paintShadowSprites(): SpriteSource[] {
   return [
+    { key: SHADOW_KEYS.xlarge, frames: [ellipseShadow(50, 17)] },
     { key: SHADOW_KEYS.large, frames: [ellipseShadow(36, 13)] },
     { key: SHADOW_KEYS.medium, frames: [ellipseShadow(18, 8)] },
     { key: SHADOW_KEYS.small, frames: [ellipseShadow(13, 6)] },

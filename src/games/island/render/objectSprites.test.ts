@@ -8,7 +8,7 @@ const SIZES: Readonly<Record<string, SpriteSize>> = {
   tree_small: { width: 16, height: 32 },
   tree_oak: { width: 32, height: 32 },
   flower_red: { width: 16, height: 16 },
-  cabin: { width: 80, height: 64 },
+  cabin: { width: 96, height: 96 },
 };
 const sizeOf = (key: string): SpriteSize => SIZES[key] ?? { width: 16, height: 16 };
 const keyFor = (object: WorldObject): string => object.kind;
@@ -31,10 +31,10 @@ describe('placeObjectSprites', () => {
     expect(tree?.y).toBe(-(6 * TILE) + 16);
   });
 
-  it('centres the cabin sprite on its 5×3 footprint, roof extending upwards', () => {
+  it('centres the cottage sprite on its 6×4 footprint, roof extending upwards', () => {
     const [cabin] = place([{ id: 0, kind: 'cabin', x: 10, y: 10 }]).get('cabin') ?? [];
-    expect(cabin?.x).toBe(10 * TILE + 40);
-    expect(cabin?.y).toBe(-(13 * TILE) + 32);
+    expect(cabin?.x).toBe(10 * TILE + 48);
+    expect(cabin?.y).toBe(-(14 * TILE) + 48);
   });
 
   it('puts things lower on the map in front (higher z)', () => {

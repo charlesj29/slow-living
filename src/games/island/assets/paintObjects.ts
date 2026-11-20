@@ -1,6 +1,7 @@
 // Natural objects. Standing sprites keep their base on the bottom row:
-// big trees 32×32 (crown over the row above their 2-tile trunk footprint),
-// small trees 16×32, bushes and rocks 16×16. Flowers sway (4-frame strips).
+// big trees 32×32 and giant forest trees 48×48 (crowns over their 2-tile
+// trunk footprint), small trees 16×32, bushes and rocks 16×16. Leafy crowns
+// are built from many small leaf clusters. Flowers sway (4-frame strips).
 import { createRng, hashString, type Rng } from '@/shared/engine/random';
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
@@ -10,7 +11,14 @@ import {
   type PixelCanvas,
   type Rgba,
 } from '@/shared/render/pixelCanvas';
-import { paintClumps, type Clump } from './foliage';
+import {
+  leafClusters,
+  paintClumps,
+  paintLeafCrown,
+  type Clump,
+  type CrownShape,
+  type LeafClusterOptions,
+} from './foliage';
 import { TILE_PX } from './paint';
 import { PALETTE } from './palette';
 
@@ -47,67 +55,81 @@ function paintTrunk(
   setPixel(canvas, left + width + 1, bottom, outline);
 }
 
-const OAK_CROWN: readonly Clump[] = [
-  { cx: 16, cy: 7, r: 7.5 },
-  { cx: 8.5, cy: 10, r: 6.5 },
-  { cx: 23.5, cy: 10, r: 6.5 },
-  { cx: 5.5, cy: 17, r: 5.5 },
-  { cx: 26.5, cy: 17, r: 5.5 },
-  { cx: 11, cy: 18, r: 6.5 },
-  { cx: 21, cy: 18, r: 6.5 },
-  { cx: 16, cy: 14, r: 7 },
-];
-
-function bigOak(rng: Rng): PixelCanvas {
-  const canvas = createPixelCanvas(TILE_PX * 2, TILE_PX * 2);
-  paintTrunk(canvas, 13, 22, 6, 30);
-  paintClumps(canvas, jitter(OAK_CROWN, rng, 0.6), PALETTE.oak);
+/** Round broadleaf crown over a short trunk, sized to the canvas. */
+function broadleafTree(
+  rng: Rng,
+  size: { readonly width: number; readonly height: number },
+  crown: CrownShape,
+  clusters: LeafClusterOptions,
+  trunk: { readonly left: number; readonly width: number; readonly top: number },
+): PixelCanvas {
+  const canvas = createPixelCanvas(size.width, size.height);
+  paintTrunk(canvas, trunk.left, trunk.top, trunk.width, size.height - 2);
+  paintLeafCrown(canvas, leafClusters(crown, clusters, rng), crown, PALETTE.oak);
   return canvas;
 }
 
-/** Stacked tiers of small clumps, widening downwards, so tiers overlap with creases. */
+function bigOak(rng: Rng): PixelCanvas {
+  return broadleafTree(
+    rng,
+    { width: TILE_PX * 2, height: TILE_PX * 2 },
+    { cx: 16, cy: 12, rx: 15, ry: 11.5 },
+    { clusterRadius: 4.5, spacing: 6, rimClusters: 10 },
+    { left: 13, width: 6, top: 21 },
+  );
+}
+
+/** The big forest tree: a 48×48 crown that spreads past its 2-tile trunk footprint. */
+function giantTree(rng: Rng): PixelCanvas {
+  return broadleafTree(
+    rng,
+    { width: TILE_PX * 3, height: TILE_PX * 3 },
+    { cx: 24, cy: 18, rx: 23, ry: 17 },
+    { clusterRadius: 5.5, spacing: 7, rimClusters: 14 },
+    { left: 20, width: 8, top: 32 },
+  );
+}
+
+/** Stacked tiers of leaf clusters, widening downwards, shaded as one cone. */
 function bigPine(rng: Rng): PixelCanvas {
   const canvas = createPixelCanvas(TILE_PX * 2, TILE_PX * 2);
   paintTrunk(canvas, 14, 24, 4, 30);
   const tiers: Clump[] = [{ cx: 16, cy: 2.5, r: 2.5 }];
   const rows = [
-    { y: 5, half: 3, r: 3.5 },
-    { y: 10, half: 6, r: 4 },
-    { y: 15, half: 9, r: 4.5 },
-    { y: 20.5, half: 11.5, r: 5 },
+    { y: 5, half: 3, r: 3 },
+    { y: 9.5, half: 6, r: 3.5 },
+    { y: 14, half: 9, r: 4 },
+    { y: 19, half: 11.5, r: 4.5 },
   ];
   for (const row of rows) {
-    const count = Math.max(1, Math.round(row.half / 3));
+    const count = Math.max(2, Math.round(row.half / 2.2));
     for (let i = 0; i <= count; i++) {
-      tiers.push({ cx: 16 - row.half + (i / count) * row.half * 2, cy: row.y, r: row.r });
+      tiers.push({
+        cx: 16 - row.half + (i / count) * row.half * 2 + rng.range(-0.5, 0.5),
+        cy: row.y + rng.range(-0.4, 0.4),
+        r: row.r,
+      });
     }
   }
-  paintClumps(canvas, jitter(tiers, rng, 0.4), PALETTE.pine);
+  paintLeafCrown(canvas, tiers, { cx: 16, cy: 12, rx: 12, ry: 12 }, PALETTE.pine);
   return canvas;
 }
 
 function smallTree(rng: Rng): PixelCanvas {
-  const canvas = createPixelCanvas(TILE_PX, TILE_PX * 2);
-  paintTrunk(canvas, 7, 19, 3, 30);
-  const crown: Clump[] = [
-    { cx: 8, cy: 8, r: 5.5 },
-    { cx: 4.5, cy: 13, r: 4 },
-    { cx: 11.5, cy: 13, r: 4 },
-    { cx: 8, cy: 14, r: 5 },
-  ];
-  paintClumps(canvas, jitter(crown, rng, 0.4), PALETTE.leafy);
-  return canvas;
+  return broadleafTree(
+    rng,
+    { width: TILE_PX, height: TILE_PX * 2 },
+    { cx: 8, cy: 10, rx: 7.5, ry: 8 },
+    { clusterRadius: 3, spacing: 4, rimClusters: 8 },
+    { left: 7, width: 3, top: 17 },
+  );
 }
 
 function bush(rng: Rng): PixelCanvas {
   const canvas = createPixelCanvas(TILE_PX, TILE_PX);
-  const clumps: Clump[] = [
-    { cx: 8, cy: 6.5, r: 4.5 },
-    { cx: 4.5, cy: 10, r: 4 },
-    { cx: 11.5, cy: 10, r: 4 },
-    { cx: 8, cy: 10.5, r: 4.5 },
-  ];
-  paintClumps(canvas, jitter(clumps, rng, 0.3), PALETTE.leafy);
+  const crown: CrownShape = { cx: 8, cy: 9.5, rx: 7.5, ry: 6 };
+  const clumps = leafClusters(crown, { clusterRadius: 3, spacing: 4, rimClusters: 8 }, rng);
+  paintLeafCrown(canvas, clumps, crown, PALETTE.leafy);
   return canvas;
 }
 
@@ -189,10 +211,11 @@ function flowers(key: string, colors: FlowerColors, center: Rgba): SpriteSource 
 export function paintObjectSprites(): SpriteSource[] {
   const f = PALETTE.flowers;
   return [
-    ...variants('tree_oak', 2, bigOak),
+    ...variants('tree_oak', 3, bigOak),
+    ...variants('tree_giant', 2, giantTree),
     ...variants('tree_pine', 2, bigPine),
     ...variants('tree_small', 2, smallTree),
-    ...variants('bush', 2, bush),
+    ...variants('bush', 3, bush),
     ...variants('rock', 2, rock),
     flowers('flower_red', f.red, f.centerWarm),
     flowers('flower_yellow', f.yellow, f.centerDark),

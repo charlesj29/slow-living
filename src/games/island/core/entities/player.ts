@@ -20,6 +20,8 @@ export interface Player {
   running: boolean;
   /** Seconds spent moving since the player last stood still (drives the walk cycle). */
   animationTime: number;
+  /** Seconds spent standing still (drives the idle breathing). */
+  idleTime: number;
 }
 
 export interface Box {
@@ -47,6 +49,7 @@ export function createPlayer(spawn: TilePoint, tileSizePx: number): Player {
     moving: false,
     running: false,
     animationTime: 0,
+    idleTime: 0,
   };
 }
 

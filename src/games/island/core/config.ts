@@ -92,6 +92,8 @@ export interface IslandConfig {
     readonly looseDensity: number;
     /** Share of loose-forest and meadow trees that are big (2×2) rather than small. */
     readonly bigTreeShare: number;
+    /** Share of broadleaf big trees that are great (wide-crowned) forest trees. */
+    readonly giantShare: number;
     readonly meadowTreeChance: number;
     readonly meadowBushChance: number;
     /** Low-frequency noise that groups oaks and pines into stands. */
@@ -122,6 +124,8 @@ export interface IslandConfig {
     readonly cornerSlidePx: number;
     readonly walkFrameSeconds: number;
     readonly runFrameSeconds: number;
+    /** Idle breathing: each half of the cycle. */
+    readonly breathFrameSeconds: number;
   };
   readonly debug: {
     /** How quickly the FPS readout follows frame-time changes (higher = jumpier). */
@@ -187,7 +191,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     frontClearanceTiles: 3,
     minWaterDistanceTiles: 4,
     maxLakeDistanceTiles: 22,
-    anchor: { x: 113, y: 106 },
+    anchor: { x: 113, y: 105 },
   },
   dock: { lengthTiles: 4 },
   paths: {
@@ -212,6 +216,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     characterThreshold: 0.45,
     looseDensity: 0.2,
     bigTreeShare: 0.6,
+    giantShare: 0.3,
     meadowTreeChance: 0.005,
     meadowBushChance: 0.008,
     speciesNoise: noise(0.022),
@@ -233,6 +238,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     cornerSlidePx: 5,
     walkFrameSeconds: 0.16,
     runFrameSeconds: 0.1,
+    breathFrameSeconds: 0.7,
   },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
   render: {

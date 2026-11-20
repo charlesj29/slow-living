@@ -208,11 +208,18 @@ flowchart LR
   u stride and the shader adds `stride × uFrame`.
 - **Objects:** `objectSpriteKey` picks each object's sprite (fence pieces by neighbouring
   fences, otherwise a stable variant); `placeObjectSprites` stands sprites on the bottom edge
-  of their footprint (big trees: 32×32 over a 2×1 trunk row; cabin: 80×64 over 5×3). One
+  of their footprint (big trees: 32×32 over a 2×1 trunk row; giant trees: 48×48 over 2×1,
+  crown spilling one tile sideways; cottage: 96×96 over 6×4). One
   `InstancedMesh` per sprite key with the shared `spriteMaterial` (instancing-aware); flowers
   are 4-frame strips animated by the objects material's own `uFrame`.
 - **Style:** classic handheld-RPG-inspired, original, painted in code: colour ramps
-  (outline → dark → base → light → highlight), dark outlines, clumpy top-left-lit foliage.
+  (outline → dark → base → light → highlight), soft dark-green/brown outlines, crowns built
+  from many small leaf clusters (`leafClusters` + `paintLeafCrown` in `assets/foliage.ts`:
+  top-left light per crown and per cluster, a crease only under a cluster that sits behind
+  another).
+- **Player frames:** 4 per direction (standing, left step, right step, breathing). Standing
+  still alternates standing/breathing every `player.breathFrameSeconds`
+  (`playerFrameIndex`, `player.idleTime`).
 - **Depth:** terrain z = 0 (layers draw in index order), flat decorations z = 0.5, standing
   sprites `standingSpriteZ(footYPx) = 1 + footYPx × 0.01` — the depth buffer puts things lower
   on the map in front, so crowns and the cabin roof cover whatever stands behind them. All
@@ -261,7 +268,7 @@ the next step is loading chunks on demand instead of one JSON import (see ROADMA
 ### Add or change a sprite
 
 1. Paint it in the matching `assets/paint*.ts` file (16×16 per tile; standing sprites keep
-   their feet on the bottom row and may be taller, e.g. trees 16×32, the cabin 80×64).
+   their feet on the bottom row and may be taller, e.g. trees 16×32, the cottage 96×96).
 2. Return it as a `SpriteSource` with the key the registry uses (`spriteKey`, or `key.N` for
    variants; several frames = an animation strip with `WATER_FRAME_COUNT` frames).
 3. `islandSprites.test.ts` checks every registry entry has its sprite.

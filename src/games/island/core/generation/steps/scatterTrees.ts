@@ -7,8 +7,17 @@ import { createStepRng, type GenerationContext, type GenerationStep } from '../c
 import { addObject, copyObjectLayer, type ObjectLayer } from '../objectLayer';
 
 const SPECIES_SPLIT = 0.5;
-/** Tree sprites rise one tile above their footprint (the crown). */
-const CROWN_ROWS = 1;
+/**
+ * Tiles a tree's crown covers beyond its trunk footprint, in tiles: how far it
+ * spreads left/right of the footprint and how many rows it rises above it.
+ * Must match the sprite sizes (big 32×32, giant 48×48, small 16×32).
+ */
+const CROWN_EXTENTS: Partial<Readonly<Record<ObjectKind, { side: number; up: number }>>> = {
+  tree_oak: { side: 0, up: 1 },
+  tree_pine: { side: 0, up: 1 },
+  tree_giant: { side: 1, up: 2 },
+  tree_small: { side: 0, up: 1 },
+};
 
 function canPlace(
   context: GenerationContext,
@@ -17,12 +26,14 @@ function canPlace(
   x: number,
   y: number,
 ): boolean {
-  const { footprint, category } = OBJECT_REGISTRY[kind];
+  const { footprint } = OBJECT_REGISTRY[kind];
   // Crowns may overhang grass and other trees, but never reserved tiles, so
   // trails and the cabin yard (fence, mailbox) stay visible.
-  if (category === 'tree') {
-    for (let dy = 1; dy <= CROWN_ROWS; dy++) {
-      for (let dx = 0; dx < footprint.width; dx++) {
+  const crown = CROWN_EXTENTS[kind];
+  if (crown) {
+    for (let dy = 0; dy <= crown.up; dy++) {
+      for (let dx = -crown.side; dx < footprint.width + crown.side; dx++) {
+        if (dy === 0 && dx >= 0 && dx < footprint.width) continue; // the trunk row itself
         const tx = x + dx;
         const ty = y - dy;
         if (
@@ -62,8 +73,10 @@ export const scatterTrees: GenerationStep = (context) => {
   const character = createFractalNoise2D(rng.next, settings.characterNoise);
   const species = createFractalNoise2D(rng.next, settings.speciesNoise);
   const layer = copyObjectLayer(context);
-  const bigKindAt = (x: number, y: number): ObjectKind =>
-    species(x, y) > SPECIES_SPLIT ? 'tree_oak' : 'tree_pine';
+  const bigKindAt = (x: number, y: number): ObjectKind => {
+    if (species(x, y) <= SPECIES_SPLIT) return 'tree_pine';
+    return rng.chance(settings.giantShare) ? 'tree_giant' : 'tree_oak';
+  };
   const tryPlace = (kind: ObjectKind, x: number, y: number): boolean => {
     if (!canPlace(context, layer, kind, x, y)) return false;
     addObject(layer, kind, x, y);

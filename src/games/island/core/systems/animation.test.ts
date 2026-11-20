@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createPlayer } from '../entities/player';
 import { playerFrameIndex, updatePlayerAnimation } from './animation';
 
-const SETTINGS = { walkFrameSeconds: 0.1, runFrameSeconds: 0.05 };
+const SETTINGS = { walkFrameSeconds: 0.1, runFrameSeconds: 0.05, breathFrameSeconds: 0.5 };
 
 describe('player animation', () => {
   it('shows the standing frame when idle', () => {
@@ -27,6 +27,25 @@ describe('player animation', () => {
     player.running = true;
     updatePlayerAnimation(player, 0.05);
     expect(playerFrameIndex(player, SETTINGS)).toBe(0);
+  });
+
+  it('breathes while standing still: standing, then the breathing frame, alternating', () => {
+    const player = createPlayer({ x: 0, y: 0 }, 16);
+    const frames: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      frames.push(playerFrameIndex(player, SETTINGS));
+      updatePlayerAnimation(player, 0.5);
+    }
+    expect(frames).toEqual([0, 3, 0, 3]);
+  });
+
+  it('starts walking from the step frame and resets breathing', () => {
+    const player = createPlayer({ x: 0, y: 0 }, 16);
+    updatePlayerAnimation(player, 0.6);
+    player.moving = true;
+    updatePlayerAnimation(player, 0);
+    expect(player.idleTime).toBe(0);
+    expect(playerFrameIndex(player, SETTINGS)).toBe(1);
   });
 
   it('restarts the cycle after standing still', () => {

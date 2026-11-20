@@ -436,3 +436,35 @@ alternatives → consequences.
   factor. Patch edges are pixel-dithered and ignore tile borders.
 - **Consequences:** grass pixels in patches are a multiplied tone of the palette colour;
   tunables in `render.grassPatches` (noise, threshold, shade, ditherSpread).
+
+## D43 — Leaf-cluster crowns and a 3-tile-wide giant tree
+
+- **Context:** the reference's trees have dense round crowns made of many small leaf
+  clusters; ours were a few big clumps that looked flat.
+- **Decision:** crowns are a jittered grid of small clusters plus a rim ring
+  (`leafClusters`), lit at two scales (whole crown and each cluster from the top-left); a dark
+  crease is drawn only under a cluster that sits behind another, so it reads as layered
+  foliage instead of a pebble mosaic. New kind `tree_giant` (48×48 sprite on the same 2×1
+  trunk footprint, `trees.giantShare` of the broadleaf big trees). Crown extents per kind
+  (`CROWN_EXTENTS` in `scatterTrees`) keep crowns off reserved tiles (fence, trails, yard).
+- **Consequences:** collision is unchanged (trunk row only); the giant crown is walk-behind.
+
+## D44 — Reference-style 6×4 cottage (user decision)
+
+- **Context:** the user asked for a bigger cottage in the reference style, door on the same
+  trail tile.
+- **Decision:** footprint 5×3 → 6×4, sprite 96×96: steep red tiled front gable with
+  timber-framed plaster, a side wing with a lower roof and chimney, shuttered windows with
+  flower boxes, a stone foundation and steps. The door is at footprint `{x: 2, y: 3}`;
+  `cabin.anchor` moved to (113, 105) so the door still opens onto the same trail tile.
+  The map was re-baked from the same seed (terrain, trails, dock and spawn unchanged).
+- **Consequences:** the cottage blocks 24 tiles; its shadow is a dedicated `shadow_cabin`.
+
+## D45 — Idle breathing as a fourth player frame
+
+- **Context:** refine the explorer without redesigning it (user decision).
+- **Decision:** a fourth frame per direction where the head sinks one pixel into the
+  shoulders; standing still alternates it with the standing frame every
+  `player.breathFrameSeconds` (0.7 s). Outlines softened to dark brown; the player gets a
+  soft shadow like every other standing thing (D41).
+- **Consequences:** `PLAYER_FRAME_COUNT = 4`; walking resets the idle timer.

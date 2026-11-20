@@ -18,12 +18,13 @@ export interface ShadowSpec {
 export const SHADOW_SPECS: Partial<Readonly<Record<ObjectKind, ShadowSpec>>> = {
   tree_oak: { key: SHADOW_KEYS.large, offsetX: 3, offsetY: -3 },
   tree_pine: { key: SHADOW_KEYS.large, offsetX: 3, offsetY: -3 },
+  tree_giant: { key: SHADOW_KEYS.xlarge, offsetX: 4, offsetY: -4 },
   tree_small: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   bush: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   rock: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -2 },
   mailbox: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
   // The block covers the footprint, shifted right and down so it shows along those sides.
-  cabin: { key: SHADOW_KEYS.cabin, offsetX: 6, offsetY: -20 },
+  cabin: { key: SHADOW_KEYS.cabin, offsetX: 10, offsetY: -27 },
 };
 
 /** The player's shadow, relative to the bottom of the feet. */
