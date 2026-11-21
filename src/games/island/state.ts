@@ -24,6 +24,10 @@ export interface IslandUiState {
   readonly isScreenDark: boolean;
   /** Set the first time the player enters the studio (remembered); its marker then goes away. */
   readonly hasVisitedStudio: boolean;
+  /** Zoom steps away from the automatic scale (+ closer); null until the camera sets its default. */
+  readonly zoomOffset: number | null;
+  /** The Résumé page is open over the game. */
+  readonly isResumeOpen: boolean;
   /** Day/night: follow the clock, or hold day or night (the top-left button). */
   readonly dayNightMode: DayNightMode;
   toggleDebugOverlay: () => void;
@@ -37,6 +41,10 @@ export interface IslandUiState {
   setMap: (mapId: string) => void;
   setScreenDark: (dark: boolean) => void;
   setVisitedStudio: (visited: boolean) => void;
+  setZoomOffset: (offset: number) => void;
+  /** One or more zoom steps (+ closer); ignored until the camera has set a default. */
+  zoomBy: (steps: number) => void;
+  setResumeOpen: (open: boolean) => void;
   setDayNightMode: (mode: DayNightMode) => void;
   /** Auto → Always day → Always night → Auto. */
   cycleDayNightMode: () => void;
@@ -51,6 +59,8 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   mapId: 'island',
   isScreenDark: false,
   hasVisitedStudio: false,
+  zoomOffset: null,
+  isResumeOpen: false,
   dayNightMode: 'auto',
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
@@ -84,6 +94,15 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   setVisitedStudio: (visited) => {
     set({ hasVisitedStudio: visited });
+  },
+  setZoomOffset: (offset) => {
+    set({ zoomOffset: offset });
+  },
+  zoomBy: (steps) => {
+    set((state) => (state.zoomOffset === null ? {} : { zoomOffset: state.zoomOffset + steps }));
+  },
+  setResumeOpen: (open) => {
+    set({ isResumeOpen: open });
   },
   setDayNightMode: (mode) => {
     set({ dayNightMode: mode });

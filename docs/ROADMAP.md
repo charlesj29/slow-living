@@ -69,7 +69,7 @@ report.
 - A signpost at the village gate and near the start; optionally a guide villager by the spawn.
 - A soft marker over the studio until it has been visited (remembered locally).
 
-### M10 — Phones and the quick view
+### M10 — Phones and the quick view ✅ (2026-11-21; real-phone check by Charles)
 
 - Touch controls: tap to walk (path to the tapped tile), tap to interact; better portrait
   framing; drop the "Best played with a keyboard" notice.
@@ -79,6 +79,7 @@ report.
 
 ### M11 — Launch
 
+- Make `og:image` (and add `og:url`) absolute once the domain is known.
 - Hosting and deployment (e.g. Vercel, Netlify or GitHub Pages), a custom domain if available,
   optional privacy-friendly analytics.
 - Final content pass with Charles, accessibility pass, a launch checklist.

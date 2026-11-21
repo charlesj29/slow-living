@@ -130,9 +130,12 @@ export function PortfolioPageView({ page }: { readonly page: PortfolioPage }): J
           ))}
         </div>
       )}
-      <p className={notice ? 'portfolio-notice is-shown' : 'portfolio-notice'} role="status">
-        {notice}
-      </p>
+      {page.links?.some((link) => 'copy' in link) && (
+        // Room for the "copied" notice, only on pages with a copy button.
+        <p className={notice ? 'portfolio-notice is-shown' : 'portfolio-notice'} role="status">
+          {notice}
+        </p>
+      )}
     </article>
   );
 }

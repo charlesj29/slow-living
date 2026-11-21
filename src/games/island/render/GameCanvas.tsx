@@ -12,6 +12,7 @@ import { DayNightLighting } from './DayNightLighting';
 import { GameLoop } from './GameLoop';
 import { InteractPrompt } from './InteractPrompt';
 import { StudioMarker } from './StudioMarker';
+import { TapToWalk } from './TapToWalk';
 import { createLightingUniforms } from './lighting';
 import { PlayerSprite } from './PlayerSprite';
 import { Tilemap } from './Tilemap';
@@ -80,6 +81,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
     <Canvas flat linear gl={{ antialias: false }} onCreated={exposeRendererInDev}>
       <color attach="background" args={[background]} />
       <GameLoop state={game} />
+      <TapToWalk state={game} />
       <DayNightLighting
         key={`light:${mapId}`}
         state={game}

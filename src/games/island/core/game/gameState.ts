@@ -28,6 +28,7 @@ import {
   type PanelOpen,
 } from '../systems/interaction';
 import { movePlayer } from '../systems/movement';
+import { followWalk, planTap, type AutoWalk } from '../systems/tapToWalk';
 import { startTalking, updateVillager } from '../systems/wander';
 import type { Transition } from '../systems/doors';
 import { buildInteriorWorld, INTERIORS } from '../world/interiors';
@@ -62,6 +63,10 @@ export interface GameState {
   dialog: Dialog | null;
   /** The portfolio panel, if open; the UI closes it (the player stands still meanwhile). */
   panel: PanelOpen | null;
+  /** A page over the game (the Résumé) is open: the player stands still. */
+  overlayOpen: boolean;
+  /** Walking to a tapped spot (touch or mouse), if any; keys take over at once. */
+  autoWalk: AutoWalk | null;
   /** Fraction of a day (0 = midnight, 0.5 = noon); keeps running in every day/night mode. */
   timeOfDay: number;
   /** The village's people (none if the world has no village). */
@@ -103,6 +108,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     interactTarget: null,
     dialog: null,
     panel: null,
+    overlayOpen: false,
+    autoWalk: null,
     timeOfDay: config.dayNight.startTime,
     villagers: createVillagers(world, config.map.tileSizePx),
     wanderRng: createRng(world.generationSeed ^ WANDER_SEED_SALT),
@@ -130,14 +137,26 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     stepTransition(state, stepSeconds, config);
     player.moving = false;
     state.interactTarget = null;
+    state.autoWalk = null;
   } else if (state.dialog) {
     if (consumePress(input, 'interact')) turnPage(state, state.dialog);
     player.moving = false;
-  } else if (state.panel) {
-    // The panel's own keys and buttons page through it and close it (UI).
+  } else if (state.panel || state.overlayOpen) {
+    // The panel or page has its own keys and buttons (UI); the game waits.
     player.moving = false;
   } else {
-    const intent = readMovementIntent(input);
+    let intent = readMovementIntent(input);
+    let interactNow = false;
+    if (intent.facing) {
+      state.autoWalk = null; // the keyboard takes over from a tap
+    } else if (state.autoWalk) {
+      const step = followWalk(state.autoWalk, player, stepSeconds, tileSizePx);
+      if (step.kind === 'move') intent = step.intent;
+      else {
+        interactNow = step.kind === 'interact';
+        state.autoWalk = null;
+      }
+    }
     if (intent.facing) player.facing = intent.facing;
     movePlayer(player, intent, state.world, stepSeconds, config.player, tileSizePx);
     const villagersHere = onIsland(state) ? state.villagers : [];
@@ -157,7 +176,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     if (checkDoors(state, intent, config)) {
       player.moving = false;
       state.interactTarget = null;
-    } else if (consumePress(input, 'interact') && state.interactTarget) {
+    } else if ((consumePress(input, 'interact') || interactNow) && state.interactTarget) {
       openDialog(state);
     }
   }
@@ -206,6 +225,7 @@ function openDialog(state: GameState): void {
   const target = state.interactTarget;
   if (!target) return;
   state.player.moving = false;
+  state.autoWalk = null;
   if (target.kind === 'object' && target.panel) {
     state.panel = target.panel;
     return;
@@ -232,6 +252,34 @@ function closeDialog(state: GameState): void {
 /** The UI closed the portfolio panel: play goes on, and the key that closed it must not reopen it. */
 export function closePortfolioPanel(state: GameState): void {
   state.panel = null;
+  clearPresses(state.input);
+}
+
+/**
+ * A tap (or click) at a map point: turns the page of an open message, or walks
+ * to the spot (and interacts with what's there). Ignored during a door fade or
+ * while a panel or page is open.
+ */
+export function tapAt(
+  state: GameState,
+  point: { readonly x: number; readonly y: number },
+  config: IslandConfig,
+): void {
+  if (state.transition || state.panel || state.overlayOpen) return;
+  if (state.dialog) {
+    turnPage(state, state.dialog);
+    return;
+  }
+  const tileSizePx = config.map.tileSizePx;
+  const tile = { x: Math.floor(point.x / tileSizePx), y: Math.floor(point.y / tileSizePx) };
+  const villagers = onIsland(state) ? state.villagers : [];
+  state.autoWalk = planTap(state.world, state.player, villagers, tile, tileSizePx);
+}
+
+/** A page over the game (the Résumé) opened or closed; the game waits while it is open. */
+export function setOverlayOpen(state: GameState, open: boolean): void {
+  state.overlayOpen = open;
+  state.autoWalk = null;
   clearPresses(state.input);
 }
 

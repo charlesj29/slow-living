@@ -1,7 +1,12 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { ISLAND_CONFIG } from '../core/config';
-import { advanceGame, closePortfolioPanel, type GameState } from '../core/game/gameState';
+import {
+  advanceGame,
+  closePortfolioPanel,
+  setOverlayOpen,
+  type GameState,
+} from '../core/game/gameState';
 import { STUDIO_MAP } from '../core/game/mapTravel';
 import { useIslandUiStore } from '../state';
 
@@ -19,6 +24,7 @@ export function GameLoop({ state }: GameLoopProps): null {
   const shownMap = useRef(state.mapId);
   const shownDark = useRef(false);
   const shownPanel = useRef(false);
+  const shownOverlay = useRef(false);
   useFrame((_, deltaSeconds) => {
     advanceGame(state, deltaSeconds, ISLAND_CONFIG);
     // Tell the UI once (not every frame) that the player has started walking.
@@ -40,6 +46,11 @@ export function GameLoop({ state }: GameLoopProps): null {
     } else if (shownPanel.current && ui.panel === null) {
       shownPanel.current = false;
       closePortfolioPanel(state);
+    }
+    // A page over the game (the Résumé): the game waits while it is open.
+    if (ui.isResumeOpen !== shownOverlay.current) {
+      shownOverlay.current = ui.isResumeOpen;
+      setOverlayOpen(state, ui.isResumeOpen);
     }
     // Door transitions: darken while fading out; swap the map (React rebuilds the scene).
     const dark = state.transition?.phase === 'out';

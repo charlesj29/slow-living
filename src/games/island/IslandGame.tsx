@@ -11,12 +11,13 @@ import { DebugOverlay } from './ui/DebugOverlay';
 import { DevSeedBadge } from './ui/DevSeedBadge';
 import { DialogBox } from './ui/DialogBox';
 import { IslandSwitcher } from './ui/IslandSwitcher';
-import { KeyboardNotice } from './ui/KeyboardNotice';
 import { MusicToggle } from './ui/MusicToggle';
 import { PortfolioPanel } from './ui/PortfolioPanel';
+import { ResumeButton, ResumeView } from './ui/ResumeView';
 import { ScreenFade } from './ui/ScreenFade';
 import { StudioVisitMemory } from './ui/StudioVisitMemory';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
+import { ZoomButtons } from './ui/ZoomButtons';
 
 export interface IslandGameProps {
   /** A generated island for this seed; undefined = the baked home island. */
@@ -44,6 +45,7 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
     ui.setMap(game?.mapId ?? 'island');
     ui.setDialogMessage(null);
     ui.closePanel();
+    ui.setResumeOpen(false);
     ui.setScreenDark(false);
   }, [game]);
 
@@ -62,7 +64,7 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
           title={result.ok ? 'The game could not start' : result.title}
           details={result.ok ? [] : result.details}
         />
-        {switcher}
+        <div className="island-hud-stack">{switcher}</div>
       </>
     );
   }
@@ -74,12 +76,18 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
       <ScreenFade />
       <StudioVisitMemory />
       <DialogBox />
+      <ZoomButtons />
+      {/* The top-left buttons, in one column. */}
+      <div className="island-hud-stack">
+        <DayNightToggle />
+        <MusicToggle song={CHILL_TUNE} />
+        <ResumeButton />
+        {switcher}
+        {import.meta.env.DEV && seed !== undefined && <DevSeedBadge seed={seed} />}
+      </div>
+      <ResumeView />
+      {/* Last, so it covers the buttons too while open. */}
       <PortfolioPanel />
-      <KeyboardNotice />
-      <DayNightToggle />
-      <MusicToggle song={CHILL_TUNE} />
-      {switcher}
-      {import.meta.env.DEV && seed !== undefined && <DevSeedBadge seed={seed} />}
     </>
   );
 }

@@ -9,31 +9,38 @@
   user-select: none;
 }
 
-.island-dev-badge {
-  top: 11.75rem; /* below the four top-left buttons */
-  left: 0.75rem;
-}
-
-/* Small square buttons stacked in the top-left: day/night, music, another island, home. */
-.island-day-night-toggle {
+/* The top-left buttons (day/night, music, Résumé, another island, home), in one column. */
+.island-hud-stack {
+  position: absolute;
   top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
 }
 
-.island-music-toggle {
-  top: 3.5rem;
+.island-hud-stack .island-hud-panel {
+  position: static;
 }
 
-.island-new-island {
-  top: 6.25rem;
+/* Zoom on phones (no keyboard): bottom-right, above the safe area. */
+.island-zoom-buttons {
+  position: absolute;
+  right: 0.75rem;
+  /* Above the controls hint along the bottom. */
+  bottom: calc(3.25rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.island-home {
-  top: 9rem;
+.island-zoom-buttons .island-hud-button {
+  font-size: 1.4rem;
+  line-height: 1;
 }
 
 .island-hud-button {
-  position: absolute;
-  left: 0.75rem;
   display: grid;
   place-items: center;
   width: 2.25rem;
@@ -104,6 +111,7 @@
 
 .island-dialog {
   position: absolute;
+  pointer-events: none; /* taps go through to the game, which turns the page */
   bottom: 1.25rem;
   left: 50%;
   display: flex;
@@ -155,17 +163,11 @@
   line-height: 1.4;
 }
 
-.island-keyboard-notice {
-  display: none;
-  top: 0.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
-/* Phones and tablets: no keyboard, so say so. */
+/* Phones and tablets: bigger buttons, easier to tap. */
 @media (hover: none) and (pointer: coarse) {
-  .island-keyboard-notice {
-    display: block;
+  .island-hud-button {
+    width: 2.75rem;
+    height: 2.75rem;
+    opacity: 0.85;
   }
 }

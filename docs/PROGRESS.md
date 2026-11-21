@@ -8,7 +8,7 @@
   no site chrome. Walk with WASD/arrows, run with Shift, zoom with +/− (starts three steps out,
   the user's preferred view). The controls hint fades after your first steps. F3 shows FPS and
   your tile (dev and production). R or the dice button (top-left) visits a random generated island
-  (`/?seed=N`, shareable); Home returns to the default island. Touch devices see "Best played with a keyboard". Every other address
+  (`/?seed=N`, shareable); Home returns to the default island. On phones: tap to walk and interact, + / − zoom buttons, a closer camera. Every other address
   redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
   renderer memory stays flat across regenerations. Smooth character animation (walk, run,
   breathing, blinking) and looping chill music composed in code (top-left mute button / M).
@@ -21,8 +21,9 @@
   doors are locked). M8 Compact island ✅ (96×96, default seed 46, R / dice / Home and
   shareable `?seed=` links for everyone). M7 Developer's Studio ✅ (placeholder texts until
   the CV arrives). M9 Guidance ✅ (villager hints, signposts, studio marker). M5 Portfolio content ✅
-  (Charles's CV in the studio's panels). **Next:** M10 phones + quick view, then M11 launch;
-  agree with the user first.
+  (Charles's CV in the studio's panels). M10 Phones + quick view ✅ (tap to walk, phone
+  framing, Résumé page, link previews). **Next:** M11 launch (hosting, domain); agree with the
+  user first. Real-phone check is the user's.
 - **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
   the project is pushed to GitHub `origin/master` (the only branch; `main` no longer exists). Push only
   when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
@@ -87,6 +88,26 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — M10 Phones and the quick view (portfolio roadmap)
+
+- **User choices:** tap to walk; a Résumé button with an overlay (the site stays one page); link
+  previews titled "Charles Jonathan · Software Engineer (Flutter)" (tab title stays "chilling").
+  Camera: on phones, the framing the user found perfect (three zoom steps in).
+- **Done (D63):** `core/systems/tapToWalk.ts`: a tap (or click) on a tile plans an A* route
+  and what to do on arrival (stop, interact, or step into a door); taps just above a small
+  interactive thing (villager, sign, mailbox) count for it; keys cancel a walk; a tap turns the
+  page of an open message. `render/TapToWalk` turns pointer taps into map points. Phones: the
+  camera aims for ~18 tiles across (any pixel density), + / − buttons (zoom offset moved to the
+  store), bigger buttons, a touch controls hint; the keyboard notice is gone. The top-left
+  buttons are one column. `ui/ResumeView`: the whole portfolio on one scrollable page (game
+  paused). `index.html`: description, Open Graph / Twitter preview with `public/og-image.jpg`,
+  and (from `core/content/portfolioHtml.ts` via a Vite plugin) schema.org Person data and a
+  `<noscript>` copy of the portfolio.
+- **Verified:** typecheck, lint, tests, build pass; phone emulation (390×844, touch): framing,
+  tap the mailbox (reads it), tap to close, tap the studio (walks in), tap a phone (opens the
+  project), Résumé scrolls with all sections; ~240 FPS on the GPU (uncapped); desktop unchanged
+  (keyboard hint, no zoom buttons); console clean. Not tested: a real phone, landscape.
 
 ### 2026-11-21 — Collapsible project screenshots (user request)
 

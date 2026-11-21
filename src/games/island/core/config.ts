@@ -234,6 +234,12 @@ export interface IslandConfig {
      * The user's preferred view is three steps out (as if pressing "−" three times).
      */
     readonly defaultZoomSteps: number;
+    /**
+     * Phones and tablets: the automatic scale aims for this many tiles across instead (about
+     * the framing three zoom steps in from the desktop default), then `touchDefaultZoomSteps`.
+     */
+    readonly touchTargetTilesAcross: number;
+    readonly touchDefaultZoomSteps: number;
     readonly minPixelScale: number;
     readonly maxPixelScale: number;
     readonly waterFrameSeconds: number;
@@ -370,6 +376,8 @@ export const ISLAND_CONFIG: IslandConfig = {
     targetTilesAcross: 20,
     minTilesTall: 11,
     defaultZoomSteps: -3,
+    touchTargetTilesAcross: 18,
+    touchDefaultZoomSteps: 0,
     minPixelScale: 1,
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,

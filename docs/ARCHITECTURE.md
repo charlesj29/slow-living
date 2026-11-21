@@ -51,6 +51,7 @@ src/
       core/
         config.ts           # IslandConfig: every tunable number
         content/            # portfolio.ts (the portfolio: panels of pages), studio.ts (piece → panel),
+                            #   portfolioHtml.ts (static HTML + JSON-LD for index.html, at build),
                             #   guidance.ts (villager talks, sign labels)
         world/              # tiles, objects (registries), world (type), collision,
                             #   mapFile (format + writer), parseMapFile, bakedIsland (loader)
@@ -75,7 +76,8 @@ src/
       ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, top-right),
                             #   DayNightToggle, MusicToggle,
                             #   DialogBox (messages), ScreenFade (door transitions),
-                            #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel,
+                            #   ZoomButtons (phones), ResumeView (+ ResumeButton), DevSeedBadge,
+                            #   WorldErrorPanel,
                             #   IslandSwitcher (dice / R / Home, fades then asks the page),
                             #   StudioVisitMemory (remembers the first studio visit),
                             #   PortfolioPanel + PortfolioPageView (the portfolio card)
@@ -231,6 +233,11 @@ flowchart LR
   turns the page, closing after the last. `ui/DialogBox` shows the current page (no reply
   choices). Wall-mounted pieces (`wallMounted`) hang on an interior's back wall and answer when
   faced from the floor below.
+- **Tap to walk (D63):** `render/TapToWalk` unprojects a tap through the camera and calls
+  `tapAt`; `core/systems/tapToWalk.ts` plans the route (`planTap`) and `followWalk` turns it
+  into movement intents each step (keys cancel it). `GameState.overlayOpen` (the Résumé, via
+  `setOverlayOpen` from `GameLoop`) pauses the player. `device.ts` (`isTouchFirst`) picks the
+  phone camera framing (`render.touchTargetTilesAcross`) and phone-only UI.
 - **Portfolio panel (D61):** an interaction can be `{ panel, pagePerTile? }` instead of pages.
   Opening sets `GameState.panel` (the player stands still); `GameLoop` mirrors it to the store's
   `panel`; `ui/PortfolioPanel` shows `PORTFOLIO[id]` page by page and closes it in the store;

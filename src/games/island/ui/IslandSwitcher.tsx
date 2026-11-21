@@ -59,6 +59,9 @@ export function IslandSwitcher({ isHome, onNewIsland, onHome }: IslandSwitcherPr
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.code !== NEW_ISLAND_KEY || event.repeat) return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
+      // Not while reading: the Résumé or a portfolio panel is open.
+      const ui = useIslandUiStore.getState();
+      if (ui.isResumeOpen || ui.panel) return;
       travel('new');
     };
     window.addEventListener('keydown', onKeyDown);

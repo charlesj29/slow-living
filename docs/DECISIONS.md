@@ -754,3 +754,23 @@ alternatives → consequences.
   third-person wording, no LinkedIn, and the contact buttons.
 - **Consequences:** updating contact details means editing `EMAIL` / `WHATSAPP` in
   `core/content/portfolio.ts`.
+
+## D63 — Phones: tap to walk, phone framing, a Résumé page, link previews
+
+- **Context:** M10. The user chose tap to walk, a Résumé button with an overlay (the site stays
+  one page) and a name + role preview title; on phones the camera should start three zoom steps
+  closer than on desktop.
+- **Decision:** taps are planned in core (`planTap`: A* over `world.blocked` to the tile, or to
+  the best standing spot for an object — the door front for buildings, the floor below wall
+  pieces — with an arrival action) and followed step by step (`followWalk`: 4-way, snapping to
+  tile centres, running on long routes, giving up when stuck). Small interactive things win a
+  tap on the tile above them, because their sprites rise into it. The message box lets taps
+  through (`pointer-events: none`) so a tap anywhere turns the page. "Three steps closer" became
+  a framing rule rather than a step count: phones aim for ~18 tiles across, so phones with
+  different pixel densities look alike. The zoom offset moved to the store so on-screen buttons
+  can change it. The Résumé reuses `PortfolioPageView` (one content source) and pauses the game.
+  For search engines and no-JS visitors a Vite plugin writes JSON-LD and a `<noscript>` copy of
+  the portfolio into `index.html` from the same content. The preview image is JPEG (not every
+  link-preview crawler reads WebP).
+- **Consequences:** `og:image` is a relative URL until the site has a domain (M11 should make it
+  absolute). Mouse clicks also walk on desktop.

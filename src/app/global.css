@@ -38,6 +38,13 @@ a {
   padding: 2rem 1.25rem;
 }
 
+/* Taps on the island are the game's: no page scrolling or pinch zoom there. */
+.world-page canvas {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
 .world-page {
   position: relative;
   width: 100%;
