@@ -238,7 +238,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   },
   fireplace_small: {
     ...solid('fireplace_small', 'Small fireplace', 'structure', '#8c8c94'),
-    interaction: says('A small fire keeps the studio warm.'),
+    interaction: says('A small fire keeps the workspace warm.'),
     litAtNight: true,
   },
   fireplace: {
@@ -272,7 +272,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   // A big workshop near the cottage, where Charles shows his work (interior: studio).
   studio: {
     kind: 'studio',
-    name: "Developer's Studio",
+    name: "Charles's Workspace",
     category: 'building',
     footprint: { width: 7, height: 4 },
     blocksMovement: true,

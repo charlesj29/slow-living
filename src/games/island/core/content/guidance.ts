@@ -11,10 +11,10 @@ export const VILLAGER_TALKS: readonly (readonly (readonly string[])[])[] = [
   [
     [
       'Hi there! New on the island?',
-      "Charles works in his studio, the big workshop {studio} of here. That's where he keeps his apps.",
+      "Charles works in his workspace, the log lodge {studio} of here. That's where he keeps his apps.",
     ],
     [
-      'The lantern at the studio burns late most nights.',
+      'The lanterns at the workspace glow late most nights.',
       'If you want to see what Charles builds, head {studio}.',
     ],
     ['Hi! Mind the haystacks.'],
@@ -22,19 +22,19 @@ export const VILLAGER_TALKS: readonly (readonly (readonly string[])[])[] = [
   // The girl.
   [
     [
-      "Hi! Have you been to the Developer's Studio yet?",
-      "It's the workshop with the teal roof, {studio} of here. Charles's work is all inside.",
+      "Hi! Have you been to Charles's Workspace yet?",
+      "It's the log lodge with the cedar roof, {studio} of here. Charles's work is all inside.",
     ],
-    ['I love the phones on the shelf in the studio. Each one is a project of his!'],
+    ['I love the phones on the shelf in the workspace. Each one is a project of his!'],
     ['Hi! Say hello to Charles if you see him.'],
   ],
   // The baker.
   [
     [
       'Fresh bread this morning! Hi!',
-      "Charles came by for a loaf. He's busy in his studio, {studio} of here.",
+      "Charles came by for a loaf. He's busy in his workspace, {studio} of here.",
     ],
-    ["Looking for Charles's work? Walk {studio} to the workshop with the sign over the door."],
+    ["Looking for Charles's work? Walk {studio} to the log lodge with the carved sign."],
     ['Hi! Come back for a cinnamon roll sometime.'],
   ],
 ];

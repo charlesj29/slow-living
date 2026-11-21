@@ -141,7 +141,7 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         tags: ['React', 'TypeScript', 'Three.js', 'AI-generated'],
         image: {
           src: 'portfolio/island.webp',
-          alt: 'The island from above: the village, the cottage, the lake with its dock and the studio',
+          alt: 'The island from above: the village, the cottage, the lake with its dock and the workspace',
         },
       },
     ],

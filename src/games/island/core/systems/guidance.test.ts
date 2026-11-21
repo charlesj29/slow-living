@@ -39,9 +39,9 @@ describe('villagerTalk', () => {
     }
   });
 
-  it('every villager hints at the studio in their first conversation', () => {
+  it('every villager hints at the workspace in their first conversation', () => {
     VILLAGER_TALKS.forEach((_, look) => {
-      expect(villagerTalk(look, 0, { x: 0, y: 0 }, studio).join(' ')).toMatch(/studio/i);
+      expect(villagerTalk(look, 0, { x: 0, y: 0 }, studio).join(' ')).toMatch(/workspace/i);
     });
   });
 });

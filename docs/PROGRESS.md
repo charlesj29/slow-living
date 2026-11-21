@@ -89,6 +89,16 @@
 
 ## Session log
 
+### 2026-11-22 — "Workspace" everywhere, a bigger message box on desktop (user request)
+
+- Visitor-facing text says "workspace": villager hints (now describing the log lodge with the
+  cedar roof and carved sign), the building's name ("Charles's Workspace"), the small
+  fireplace's line, image alt texts. Code names (`studio`) stay.
+- The message box is larger on desktop (`min-width: 900px` with hover): bigger text, wider,
+  more padding, a bigger "more" arrow; phones keep the compact box.
+- **Verified:** typecheck, lint, tests, build; browser: the sign's message on desktop and in
+  phone emulation.
+
 ### 2026-11-22 — Sign names (user request)
 
 - Signposts read "Charles's Cottage", "Charles's Workspace" (the studio) and "The Village"
