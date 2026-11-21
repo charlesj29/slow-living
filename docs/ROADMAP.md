@@ -41,7 +41,7 @@ report.
 - Interior art: wooden floor, walls and windows, rugs, furniture; lighting follows day/night
   (warm lamps inside at night).
 
-### M7 — The Developer's Studio
+### M7 — The Developer's Studio ✅ (2026-11-21, placeholder texts until M5)
 
 - A new landmark building on the island (bigger than the village houses, its own style) whose
   door leads into the studio interior. The village and studio are always generated together.

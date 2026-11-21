@@ -56,7 +56,51 @@ const COTTAGE: InteriorDefinition = {
   entry: { x: 6, y: 8, facing: 'up' },
 };
 
-export const INTERIORS: Readonly<Record<string, InteriorDefinition>> = { cottage: COTTAGE };
+/**
+ * The Developer's Studio: every piece is part of the portfolio. Framed
+ * certificates, a wall of phones (the apps) and a timeline hang on the back
+ * wall; a tech bookshelf and a trophy shelf stand by the side walls; the desk
+ * with the laptop and the post desk face the room around a rug.
+ */
+const STUDIO: InteriorDefinition = {
+  id: 'studio',
+  // prettier-ignore
+  rows: [
+    'wwwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwwww',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wfffffffffffffffw',
+    'wwwwwwwwdwwwwwwww',
+  ],
+  furniture: [
+    { kind: 'certificates', x: 2, y: 1 },
+    { kind: 'phone_wall', x: 6, y: 1 },
+    { kind: 'timeline_board', x: 12, y: 1 },
+    { kind: 'plant', x: 1, y: 2 },
+    { kind: 'floor_lamp', x: 15, y: 2 },
+    { kind: 'tech_shelf', x: 1, y: 4 },
+    { kind: 'trophy_shelf', x: 14, y: 4 },
+    { kind: 'rug', x: 7, y: 5 },
+    { kind: 'chair', x: 4, y: 6 },
+    { kind: 'desk_laptop', x: 3, y: 7 },
+    { kind: 'post_desk', x: 12, y: 7 },
+    { kind: 'plant', x: 1, y: 10 },
+    { kind: 'plant', x: 15, y: 10 },
+  ],
+  entry: { x: 8, y: 10, facing: 'up' },
+};
+
+export const INTERIORS: Readonly<Record<string, InteriorDefinition>> = {
+  cottage: COTTAGE,
+  studio: STUDIO,
+};
 
 /** Builds a walkable world from an interior's rows and furniture. */
 export function buildInteriorWorld(definition: InteriorDefinition): World {

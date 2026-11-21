@@ -126,6 +126,18 @@ export interface IslandConfig {
     /** Each tree or rock a site would clear counts like this many tiles of distance. */
     readonly clearedObjectCost: number;
   };
+  /** The Developer's Studio: placed near the cottage, after the village. */
+  readonly studio: {
+    /** How far from the cottage door (in tiles) to look. */
+    readonly searchRadiusTiles: number;
+    /** Ideal distance from the cottage door: a short walk. */
+    readonly preferredDistanceTiles: number;
+    readonly minDistanceTiles: number;
+    /** Rows of clear ground kept in front of the door. */
+    readonly frontClearanceTiles: number;
+    /** Each tree or rock the site would clear counts like this many tiles of distance. */
+    readonly clearedObjectCost: number;
+  };
   readonly ledges: {
     /** Runs of ledge follow this noise along the coast. */
     readonly noise: FractalNoiseOptions;
@@ -313,6 +325,13 @@ export const ISLAND_CONFIG: IslandConfig = {
     lampPosts: 4,
     shapeAttempts: 12,
     clearedObjectCost: 3,
+  },
+  studio: {
+    searchRadiusTiles: 28,
+    preferredDistanceTiles: 12,
+    minDistanceTiles: 8,
+    frontClearanceTiles: 2,
+    clearedObjectCost: 1,
   },
   ledges: { noise: noise(0.08, 2), threshold: 0.35, minRunTiles: 2 },
   deadwood: { searchRadiusTiles: 2, minNearbyTrees: 2, stumpChance: 0.015, branchChance: 0.03 },

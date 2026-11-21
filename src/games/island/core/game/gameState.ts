@@ -51,7 +51,7 @@ export interface GameState {
   framesPerSecond: number;
   /** What Space would interact with right now (drives the arrow above it). */
   interactTarget: InteractTarget | null;
-  /** The open message, if any; the player stands still until Space closes it. */
+  /** The open message, if any; the player stands still while Space turns its pages, then closes it. */
   dialog: Dialog | null;
   /** Fraction of a day (0 = midnight, 0.5 = noon); keeps running in every day/night mode. */
   timeOfDay: number;
@@ -100,7 +100,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
 /**
  * One fixed logic step: read input, face, move with collision, animate, then
  * see what's in reach. Space opens that thing's message; while a message is
- * open the player stands still and Space closes it.
+ * open the player stands still and Space turns its pages, then closes it.
  */
 export function stepGame(state: GameState, stepSeconds: number, config: IslandConfig): void {
   const { player, input } = state;
@@ -118,7 +118,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     player.moving = false;
     state.interactTarget = null;
   } else if (state.dialog) {
-    if (consumePress(input, 'interact')) closeDialog(state);
+    if (consumePress(input, 'interact')) turnPage(state, state.dialog);
     player.moving = false;
   } else {
     const intent = readMovementIntent(input);
@@ -172,9 +172,15 @@ function stepVillagers(state: GameState, stepSeconds: number, config: IslandConf
 function openDialog(state: GameState): void {
   const target = state.interactTarget;
   if (!target) return;
-  state.dialog = { message: target.message };
+  state.dialog = { pages: target.pages, page: 0 };
   state.player.moving = false;
   if (target.kind === 'villager') startTalking(target.villager, state.player);
+}
+
+/** Space shows the next page; after the last one it closes the message. */
+function turnPage(state: GameState, dialog: Dialog): void {
+  if (dialog.page + 1 < dialog.pages.length) dialog.page += 1;
+  else closeDialog(state);
 }
 
 function closeDialog(state: GameState): void {

@@ -43,7 +43,7 @@ describe('interaction', () => {
   it('finds the mailbox when standing next to it and facing it', () => {
     const target = findInteractTarget(world, playerAt(2, 2, 'up'), [], SETTINGS, TEST_TILE);
     expect(target?.kind === 'object' && target.object.kind).toBe('mailbox');
-    expect(target?.message).toBe("It's empty.");
+    expect(target?.pages).toEqual(["It's empty."]);
   });
 
   it('finds nothing when facing away or when the thing has nothing to say', () => {
@@ -59,7 +59,7 @@ describe('interaction', () => {
     expect(target?.kind === 'object' && target.object.kind).toBe('mailbox');
 
     tapSpace(state);
-    expect(state.dialog).toEqual({ message: "It's empty." });
+    expect(state.dialog).toEqual({ pages: ["It's empty."], page: 0 });
 
     const y = state.player.y;
     pressKey(state.input, ISLAND_KEY_BINDINGS, 'ArrowDown');
@@ -94,6 +94,6 @@ describe('interaction', () => {
       TEST_TILE,
     );
     expect(target?.kind).toBe('villager');
-    expect(target?.message).toBe('Hi!');
+    expect(target?.pages).toEqual(['Hi!']);
   });
 });

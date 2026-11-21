@@ -1,6 +1,7 @@
 // Interacting with things: the player reaches a little way past their feet in
 // the direction they face; whatever interactive thing or villager is there can
-// be checked / talked to with Space, which opens a message (no reply choices).
+// be checked / talked to with Space, which opens a message of one or more pages
+// (no reply choices).
 import { isInBounds, toIndex } from '@/shared/engine/grid';
 import { hitboxAt, type HitboxSize, type Player } from '../entities/player';
 import type { Villager } from '../entities/villager';
@@ -9,11 +10,13 @@ import { NO_OBJECT, type World, type WorldObject } from '../world/world';
 
 /** Something the player can interact with right now. */
 export type InteractTarget =
-  | { readonly kind: 'object'; readonly object: WorldObject; readonly message: string }
-  | { readonly kind: 'villager'; readonly villager: Villager; readonly message: string };
+  | { readonly kind: 'object'; readonly object: WorldObject; readonly pages: readonly string[] }
+  | { readonly kind: 'villager'; readonly villager: Villager; readonly pages: readonly string[] };
 
+/** An open message box: its pages and the one showing. */
 export interface Dialog {
-  readonly message: string;
+  readonly pages: readonly string[];
+  page: number;
 }
 
 const FACING_STEP = {
@@ -72,7 +75,7 @@ export function findInteractTarget(
 ): InteractTarget | null {
   const point = reachPoint(player, settings, settings.reachPx);
   const villager = villagerAt(villagers, point);
-  if (villager) return { kind: 'villager', villager, message: settings.greeting };
+  if (villager) return { kind: 'villager', villager, pages: [settings.greeting] };
 
   const tileX = Math.floor(point.x / tileSizePx);
   const tileY = Math.floor(point.y / tileSizePx);
@@ -83,5 +86,5 @@ export function findInteractTarget(
   const { interaction, door } = OBJECT_REGISTRY[object.kind];
   // A building answers only at its door, not when you face one of its walls.
   const atDoor = !door || (tileX === object.x + door.x && tileY === object.y + door.y);
-  return interaction && atDoor ? { kind: 'object', object, message: interaction.message } : null;
+  return interaction && atDoor ? { kind: 'object', object, pages: interaction.pages } : null;
 }

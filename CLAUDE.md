@@ -63,6 +63,11 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 - Input: key codes → actions in `core/systems/controls.ts`; DOM listeners only in
   `render/useKeyboardInput.ts`. Render reads interpolated positions and draws at whole pixels.
 
+## Content
+
+- Portfolio text lives in `src/games/island/core/content/` (`studio.ts`: pages per studio
+  piece). Placeholders until M5 brings Charles's CV.
+
 ## UI conventions
 
 - UI overlays live in `games/island/ui/` and read the shared `GameState` (sampled on a timer,

@@ -25,7 +25,7 @@ export function GameLoop({ state }: GameLoopProps): null {
       useIslandUiStore.getState().markStartedWalking();
     }
     // Mirror the open message into the UI store only when it changes.
-    const message = state.dialog?.message ?? null;
+    const message = state.dialog ? (state.dialog.pages[state.dialog.page] ?? null) : null;
     if (message !== shownMessage.current) {
       shownMessage.current = message;
       useIslandUiStore.getState().setDialogMessage(message);

@@ -19,8 +19,9 @@
   ledges, warm palette. The user approved it.
 - **Portfolio roadmap (2026-11-21):** M6 Interiors ✅ (walk into the cottage; village house
   doors are locked). M8 Compact island ✅ (96×96, default seed 46, R / dice / Home and
-  shareable `?seed=` links for everyone). **Next:** pick with the user: M7 studio, M9
-  guidance, M10 phones, or M5 once the CV arrives.
+  shareable `?seed=` links for everyone). M7 Developer's Studio ✅ (placeholder texts until
+  the CV arrives). **Next:** M9 guidance (agreed with M7: villager hints, signposts, studio
+  marker; no guide villager).
 - **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
   the project is pushed to GitHub `origin/master` (the only branch; `main` no longer exists). Push only
   when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
@@ -85,6 +86,22 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — M7 The Developer's Studio (portfolio roadmap)
+
+- **User choices:** short placeholder texts until the CV arrives; a cosy workshop look (bigger
+  than the village houses, sign over the door); no guide villager (M9).
+- **Done (D59):** a `studio` building (7×4: plank walls on stone, teal shingle roof with a
+  skylight and chimney, workshop windows, a "</>" sign and a lantern; glass glows at night)
+  placed by a new `placeStudio` step near the cottage, with a path to the trails; validation
+  `studio-missing`. The studio interior (17×12) holds the seven portfolio pieces: framed
+  certificates, a wall of framed phones and a timeline board on the back wall (new
+  `wallMounted` flag), a tech bookshelf, a trophy shelf, a desk with a laptop and a post desk.
+  Messages now have pages (Space turns them); the pieces' texts live in `core/content/studio.ts`.
+  Seed 46 re-baked: the studio stands in the meadow east of the cottage.
+- **Verified:** typecheck, lint, tests, build pass; seeds 1–48 all get a studio; in the
+  browser: walk to the studio, enter, read the laptop (two pages, then closed), night view;
+  console clean.
 
 ### 2026-11-21 — M8 Compact island and the default seed (portfolio roadmap)
 

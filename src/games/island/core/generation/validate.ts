@@ -30,7 +30,8 @@ export type ValidationIssueCode =
   | 'trail-unreachable'
   | 'beach-cut-off'
   | 'reachable-area-too-small'
-  | 'village-missing';
+  | 'village-missing'
+  | 'studio-missing';
 
 export interface ValidationIssue {
   readonly code: ValidationIssueCode;
@@ -168,6 +169,12 @@ const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rule
 const checkVillage: Check = ({ village }) =>
   village ? null : issue('village-missing', 'No room for the village near the cabin');
 
+/** Every island has the Developer's Studio: it holds the portfolio. */
+const checkStudio: Check = ({ objects }) =>
+  objects.some((object) => object.kind === 'studio')
+    ? null
+    : issue('studio-missing', 'No room for the studio near the cabin');
+
 const CHECKS: readonly Check[] = [
   checkBorders,
   checkLandShare,
@@ -177,6 +184,7 @@ const CHECKS: readonly Check[] = [
   checkCabin,
   checkReachability,
   checkVillage,
+  checkStudio,
 ];
 
 /** Returns every invariant the map breaks; empty means valid. */

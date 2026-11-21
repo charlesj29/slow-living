@@ -13,6 +13,8 @@ import { paintPlayerSprites } from './paintPlayer';
 import { paintPropSprites } from './paintProps';
 import { paintShadowSprites } from './paintShadows';
 import { paintStructureSprites } from './paintStructures';
+import { paintStudioSprites } from './paintStudio';
+import { paintStudioFurnitureSprites } from './paintStudioFurniture';
 import { paintTileSprites } from './paintTiles';
 import { paintTransitionSprites } from './paintTransitions';
 import { paintUiSprites } from './paintUi';
@@ -36,8 +38,10 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintPropSprites(),
     ...paintVillagePropSprites(),
     ...paintFurnitureSprites(),
+    ...paintStudioFurnitureSprites(),
     ...paintCabinSprites(),
     ...paintHouseSprites(),
+    ...paintStudioSprites(),
     ...paintPlayerSprites(),
     ...paintShadowSprites(),
     ...paintUiSprites(),

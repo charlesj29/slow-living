@@ -103,4 +103,10 @@ export const PALETTE = {
   fire: { deep: c('#c84a1c'), mid: c('#f08a2c'), bright: c('#ffd65a') },
   /** A lamp shade: cream by day, glowing at night. */
   lampShade: c('#f2e2b4'),
+  // The Developer's Studio: a teal shingle roof, gold trophies, cork, paper, screens.
+  teal: ramp('#163c40', '#24595e', '#337a7c', '#4c9a96', '#7cc4b8'),
+  gold: ramp('#5a3e10', '#a87a1c', '#d8a82c', '#f0cc50', '#fff0a0'),
+  cork: { dark: c('#8a5a32'), base: c('#b88250'), light: c('#d4a26a') },
+  paper: { base: c('#f4ecd4'), line: c('#c8b890'), seal: c('#c84444') },
+  screen: { body: c('#2a2e38'), dark: c('#1c2230'), base: c('#2c3a54'), glow: c('#5ac8e8') },
 } as const;

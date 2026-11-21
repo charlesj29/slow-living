@@ -50,10 +50,11 @@ src/
       data/island.map.json  # THE world: baked, committed map file (chunked, readable)
       core/
         config.ts           # IslandConfig: every tunable number
+        content/            # studio.ts: what the studio's portfolio pieces say (pages)
         world/              # tiles, objects (registries), world (type), collision,
                             #   mapFile (format + writer), parseMapFile, bakedIsland (loader)
         generation/         # authoring tool: context, steps/*, validate, pipeline,
-                            #   generateWorld, bakeIslandMap
+                            #   generateWorld, bakeIslandMap, siteSearch (rect sums, route to trail)
         entities/           # player.ts (plain mutable player, feet hitbox)
         systems/            # controls (bindings, intent), movement (collision), animation
         game/               # gameState.ts: createGameState, stepGame, advanceGame;
@@ -68,7 +69,8 @@ src/
                             #   paintPlayer, islandSprites, chillTune (the music, as data)
       # render also: CharacterSprite (player + villagers), VillagerSprites, InteractPrompt,
       #   DayNightLighting; assets also: paintHouses, paintLights, paintUi,
-      #   paintInterior (floor, walls, doormat), paintFurniture; core/world/interiors.ts (rooms)
+      #   paintInterior (floor, walls, doormat), paintFurniture, paintStudio,
+      #   paintStudioFurniture; core/world/interiors.ts (rooms: cottage, studio)
       ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, top-right),
                             #   DayNightToggle, MusicToggle,
                             #   DialogBox (messages), ScreenFade (door transitions),
@@ -133,7 +135,7 @@ flowchart LR
 ## Generation pipeline (authoring tool)
 
 `shapeIsland → assignTerrain → carveLake → placeCabin → placeDock → layPaths → decorateCabin →
-scatterRocks → scatterTrees → placeLedges → placeVillage → scatterDeadwood → scatterFlowers →
+scatterRocks → scatterTrees → placeLedges → placeVillage → placeStudio → scatterDeadwood → scatterFlowers →
 chooseSpawn →
 validate`
 
@@ -150,6 +152,7 @@ validate`
 | `scatterTrees`    | Dense canopy (big trees on a staggered 2-tile grid) where forest cores meet a "dense" character noise; loose big/small mix elsewhere in forests; rare meadow trees and bushes; crowns never overhang reserved tiles                                                                                                                                                                                                    |
 | `placeLedges`     | Rocky ledges (`Cliff` terrain) in noise-picked runs on south-facing sea coasts: grass above, sea-connected beach below, grass/sand beside, away from trails; runs that would cut a beach off from the door are dropped                                                                                                                                                                                                 |
 | `placeVillage`    | A random, irregular fenced village (`generation/villagePlan.ts`: random size, notched corners, 3 houses spread out with a 2–3 tile gap to the fence) at the best clear spot near the cottage (fewest objects cleared); gate on the straight fence stretch nearest a trail; door paths by A* to the gate and on to the trail; rule-based decorations that never block a door; records `village` (interior spans + gate) |
+| `placeStudio`     | The Developer's Studio (7×4) at the spot nearest `studio.preferredDistanceTiles` from the cottage door: building on free grass, margin and two rows in front free grass or trail, fewest objects cleared; a path from its door to the nearest trail (`generation/siteSearch.ts`, shared with the village; trails keep off tiles next to a ledge)                                                                       |
 | `scatterDeadwood` | Sparse stumps (block) and fallen branches (flat) on free grass with enough trees nearby, outside reserved areas                                                                                                                                                                                                                                                                                                        |
 | `scatterFlowers`  | Patch noise → flower patches (colour from a colour noise), scattered flowers, grass tufts                                                                                                                                                                                                                                                                                                                              |
 | `chooseSpawn`     | Tile in front of the cabin door if walkable                                                                                                                                                                                                                                                                                                                                                                            |
@@ -208,12 +211,14 @@ flowchart LR
   Villagers and the player block each other (`bumpsInto`, feet hitboxes). Talking (Space) makes
   the villager stop and face the player until the message closes; the greeting is
   `villagers.greeting` ("Hi!").
-- **Interaction:** an object kind with `interaction: { message }` in the registry can be
+- **Interaction:** an object kind with `interaction: { pages }` in the registry can be
   checked with Space. Each step, `findInteractTarget` looks one reach (`interaction.reachPx`) past
   the feet hitbox in the facing direction; `render/InteractPrompt` bobs a small down-arrow over that
   target. A fresh Space press (`consumePress`, one-shot presses in `shared/engine/input`) opens
-  `GameState.dialog`; while it is open the player stands still and Space closes it. `ui/DialogBox`
-  shows the message (no reply choices). The F3 overlay reads
+  `GameState.dialog` (`{ pages, page }`); while it is open the player stands still and Space
+  turns the page, closing after the last. `ui/DialogBox` shows the current page (no reply
+  choices). Wall-mounted pieces (`wallMounted`) hang on an interior's back wall and answer when
+  faced from the floor below. The F3 overlay reads
   `game.framesPerSecond` (smoothed in `advanceGame`) and `playerTile` on a 250 ms timer while
   visible, so React never re-renders per frame.
 - **Maps and doors (D57):** `GameState.maps` holds the island and every room from

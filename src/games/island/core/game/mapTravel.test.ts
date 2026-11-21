@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { floodFill, toIndex } from '@/shared/engine/grid';
 import { pressKey, releaseKey } from '@/shared/engine/input';
+import { STUDIO_PAGES } from '../content/studio';
 import { ISLAND_CONFIG } from '../config';
 import { ISLAND_KEY_BINDINGS } from '../systems/controls';
 import { findInteractTarget } from '../systems/interaction';
@@ -78,15 +79,42 @@ describe('interiors', () => {
       expect(mats.length).toBeGreaterThan(0);
       for (const mat of mats) expect(reached[mat]).toBe(1);
       for (const item of room.furniture) {
-        const { footprint } = OBJECT_REGISTRY[item.kind];
+        const { footprint, wallMounted } = OBJECT_REGISTRY[item.kind];
+        // Wall pieces hang on the back wall; everything else stands on the floor.
+        const expected = wallMounted ? TileId.Wall : TileId.Floor;
         for (let dy = 0; dy < footprint.height; dy++) {
           for (let dx = 0; dx < footprint.width; dx++) {
-            expect(world.terrain[toIndex(world, item.x + dx, item.y + dy)]).toBe(TileId.Floor);
+            expect(world.terrain[toIndex(world, item.x + dx, item.y + dy)]).toBe(expected);
           }
         }
       }
     },
   );
+
+  it.each(Object.values(INTERIORS))(
+    '$id: every piece with a message can be faced from a reachable floor tile below it',
+    (room) => {
+      const world = buildInteriorWorld(room);
+      const entry = toIndex(world, room.entry.x, room.entry.y);
+      const reached = floodFill(world, [entry], (i) => world.blocked[i] === 0);
+      for (const item of room.furniture) {
+        const { footprint, interaction } = OBJECT_REGISTRY[item.kind];
+        if (!interaction) continue;
+        const below = Array.from({ length: footprint.width }, (_, dx) =>
+          toIndex(world, item.x + dx, item.y + footprint.height),
+        );
+        expect(
+          below.some((i) => reached[i] === 1),
+          item.kind,
+        ).toBe(true);
+      }
+    },
+  );
+
+  it('the studio has every portfolio piece', () => {
+    const kinds = INTERIORS.studio?.furniture.map((item) => item.kind) ?? [];
+    expect(kinds).toEqual(expect.arrayContaining(Object.keys(STUDIO_PAGES)));
+  });
 });
 
 describe('village house doors', () => {
@@ -101,7 +129,7 @@ describe('village house doors', () => {
     // The stone house's door is at (3, 8); stand below it facing up.
     Object.assign(state.player, { x: 3.5 * TEST_TILE, y: 9.4 * TEST_TILE, facing: 'up' });
     const target = findInteractTarget(big, state.player, [], settings, TEST_TILE);
-    expect(target?.message).toMatch(/locked/i);
+    expect(target?.pages[0]).toMatch(/locked/i);
   });
 
   it('stay silent when you face a wall', () => {

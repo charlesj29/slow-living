@@ -14,6 +14,7 @@ import { spansOf } from '../../world/village';
 import { getDoorFrontTile, NO_OBJECT, type WorldObject } from '../../world/world';
 import { createStepRng, type GenerationContext, type GenerationStep } from '../context';
 import { addObject, objectLayerWithout, type ObjectLayer } from '../objectLayer';
+import { prefixSums, rectSum, routeToTrail } from '../siteSearch';
 import { planVillage, shuffled, type VillagePlan } from '../villagePlan';
 
 /** Path tiles already laid are cheaper, so door paths merge into one network. */
@@ -24,39 +25,6 @@ const LAMP_SPACING = 4;
 interface Site {
   readonly x: number;
   readonly y: number;
-}
-
-/** Summed-area table: any rectangle's total in O(1). */
-function prefixSums(size: GridSize, value: (index: number) => number): Int32Array {
-  const w = size.width + 1;
-  const sums = new Int32Array(w * (size.height + 1));
-  for (let y = 0; y < size.height; y++) {
-    for (let x = 0; x < size.width; x++) {
-      sums[(y + 1) * w + x + 1] =
-        value(y * size.width + x) +
-        (sums[y * w + x + 1] ?? 0) +
-        (sums[(y + 1) * w + x] ?? 0) -
-        (sums[y * w + x] ?? 0);
-    }
-  }
-  return sums;
-}
-
-function rectSum(
-  sums: Int32Array,
-  size: GridSize,
-  left: number,
-  top: number,
-  right: number,
-  bottom: number,
-): number {
-  const w = size.width + 1;
-  return (
-    (sums[(bottom + 1) * w + right + 1] ?? 0) -
-    (sums[top * w + right + 1] ?? 0) -
-    (sums[(bottom + 1) * w + left] ?? 0) +
-    (sums[top * w + left] ?? 0)
-  );
 }
 
 /**
@@ -121,31 +89,6 @@ function trailDistances(
     });
   }
   return distance;
-}
-
-/** Breadth-first from `start` to the nearest existing trail: the new tiles to lay (start first). */
-function routeToTrail(context: GenerationContext, layer: ObjectLayer, start: number): number[] {
-  const { size, terrain } = context;
-  if (terrain[start] === TileId.Path) return [];
-  const cameFrom = new Map<number, number>([[start, -1]]);
-  const queue = [start];
-  for (const current of queue) {
-    if (terrain[current] === TileId.Path) {
-      const route: number[] = [];
-      for (let step = cameFrom.get(current) ?? -1; step !== -1; step = cameFrom.get(step) ?? -1) {
-        route.push(step);
-      }
-      return route.reverse();
-    }
-    forEachNeighbor(size, current, CARDINAL_DIRECTIONS, (next) => {
-      if (cameFrom.has(next) || layer.occupancy[next] !== NO_OBJECT) return;
-      const id = terrain[next];
-      if (id !== TileId.Grass && id !== TileId.Path) return;
-      cameFrom.set(next, current);
-      queue.push(next);
-    });
-  }
-  return [];
 }
 
 interface Gate {

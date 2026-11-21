@@ -685,3 +685,22 @@ alternatives → consequences.
 - **Consequences:** history works (Back returns to the previous island) and islands can be
   shared as links. Generating takes ~40 ms, fine on demand. M7 (the studio) changes the pipeline,
   so the default seed will be re-checked then.
+
+## D59 — The Developer's Studio, paged messages and a content file
+
+- **Context:** the portfolio needs a main building whose objects each show a part of it (M7).
+  Charles's CV hasn't arrived; the user chose short placeholder texts, a cosy workshop look and
+  no guide villager.
+- **Decision:** `studio` is an ordinary building kind with `interior: 'studio'`, so M6's doors
+  work unchanged. `placeStudio` runs after the village: it scores spots by how close they are to
+  a preferred distance from the cottage door plus objects cleared, keeps two rows clear in front
+  of the door and routes a path to the nearest trail. The rectangle sums and the trail route
+  moved to `generation/siteSearch.ts` (shared with the village); routes now avoid tiles next to
+  a ledge, so no path runs along a drop. Validation requires the studio (`studio-missing`);
+  reachability already covers every building's door. Inside, each portfolio piece is its own
+  object kind whose `interaction.pages` come from `core/content/studio.ts`, the one file M5 will
+  fill. Messages became pages (`Dialog { pages, page }`); one-page messages are unchanged for
+  the player. Pieces hung on the back wall are `wallMounted` (their footprint is wall; a test
+  checks every piece can be faced from a reachable floor tile).
+- **Consequences:** re-baking changed seed 46's layout slightly (the studio and its path);
+  seed 46 stays the default. Placeholder texts must be replaced before launch (M5).

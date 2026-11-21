@@ -53,6 +53,11 @@ describe('validateGeneration', () => {
     expect(codes({ ...base, village: null })).toContain('village-missing');
   });
 
+  it('rejects an island without the studio', () => {
+    const objects = base.objects.filter((object) => object.kind !== 'studio');
+    expect(codes({ ...base, objects })).toContain('studio-missing');
+  });
+
   it('rejects a missing cabin', () => {
     expect(codes({ ...base, cabin: null })).toContain('cabin-missing');
   });

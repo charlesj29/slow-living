@@ -1,6 +1,7 @@
 // Object registry. Adding an object type = add a kind + a definition here (and
 // a sprite in the atlas); placement steps refer to kinds and categories.
 import type { TilePoint } from '@/shared/engine/grid';
+import { STUDIO_PAGES, type StudioPiece } from '../content/studio';
 
 export const OBJECT_KINDS = [
   'tree_oak',
@@ -36,7 +37,15 @@ export const OBJECT_KINDS = [
   'rug',
   'plant',
   'floor_lamp',
+  'desk_laptop',
+  'phone_wall',
+  'tech_shelf',
+  'timeline_board',
+  'trophy_shelf',
+  'certificates',
+  'post_desk',
   'cabin',
+  'studio',
   'house_stone',
   'house_log',
   'house_thatch',
@@ -65,10 +74,12 @@ export interface ObjectDefinition {
   /** Door tile, relative to the top-left of the footprint (buildings only). */
   readonly door?: TilePoint;
   /**
-   * What pressing Space while facing it shows (no reply choices). For
-   * buildings (things with a door) only the door answers.
+   * What pressing Space while facing it shows: one message box, page by page
+   * (no reply choices). For buildings (things with a door) only the door answers.
    */
-  readonly interaction?: { readonly message: string };
+  readonly interaction?: { readonly pages: readonly string[] };
+  /** Hangs on an interior's back wall (its footprint is wall); you face it from the floor below. */
+  readonly wallMounted?: boolean;
   /** Walking into the door leads into this interior (see core/world/interiors.ts). */
   readonly interior?: string;
   /** Glows at night: lit window panes / lantern glass get a warm overlay. */
@@ -76,6 +87,24 @@ export interface ObjectDefinition {
 }
 
 const SINGLE_TILE = { width: 1, height: 1 } as const;
+
+/** A message of one or more pages. */
+const says = (...pages: string[]): { readonly pages: readonly string[] } => ({ pages });
+
+/** A portfolio piece in the studio: solid furniture that shows its pages from content/studio. */
+function studioPiece(
+  kind: StudioPiece,
+  name: string,
+  mapColor: string,
+  width: number,
+  wallMounted = false,
+): ObjectDefinition {
+  return {
+    ...solid(kind, name, 'structure', mapColor, { width, height: 1 }),
+    interaction: { pages: STUDIO_PAGES[kind] },
+    ...(wallMounted ? { wallMounted } : {}),
+  };
+}
 /** Village houses: 5×3 tiles, door in the middle of the bottom row. */
 const HOUSE_FOOTPRINT = { width: 5, height: 3 } as const;
 const HOUSE_DOOR = { x: 2, y: 2 } as const;
@@ -91,7 +120,7 @@ function house(kind: ObjectKind, name: string, mapColor: string): ObjectDefiniti
     mapColor,
     door: HOUSE_DOOR,
     litAtNight: true,
-    interaction: { message: "It's locked. Someone lives here." },
+    interaction: says("It's locked. Someone lives here."),
   };
 }
 
@@ -143,7 +172,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   fence: solid('fence', 'Wooden fence', 'structure', '#d8bc8c'),
   mailbox: {
     ...solid('mailbox', 'Mailbox', 'structure', '#d04040'),
-    interaction: { message: "It's empty." },
+    interaction: says("It's empty."),
   },
   barrel: solid('barrel', 'Barrel', 'structure', '#9a6436'),
   flower_pot: solid('flower_pot', 'Flower pot', 'structure', '#cc6c3c'),
@@ -159,22 +188,30 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   // Furniture (interiors). Wall pieces stand on the row in front of the back wall.
   bed: {
     ...solid('bed', 'Bed', 'structure', '#c84848', { width: 2, height: 2 }),
-    interaction: { message: 'Looks comfy. Maybe a nap later.' },
+    interaction: says('Looks comfy. Maybe a nap later.'),
   },
   table: solid('table', 'Table', 'structure', '#9a6436', { width: 2, height: 1 }),
   chair: solid('chair', 'Chair', 'structure', '#9a6436'),
   bookshelf: {
     ...solid('bookshelf', 'Bookshelf', 'structure', '#7a4a28', { width: 2, height: 1 }),
-    interaction: { message: 'Rows of well-thumbed books.' },
+    interaction: says('Rows of well-thumbed books.'),
   },
   fireplace: {
     ...solid('fireplace', 'Fireplace', 'structure', '#8c8c94', { width: 2, height: 1 }),
-    interaction: { message: 'The fire crackles softly.' },
+    interaction: says('The fire crackles softly.'),
     litAtNight: true,
   },
   rug: { ...decoration('rug', 'Rug', 'ground', '#b04a3a'), footprint: { width: 3, height: 2 } },
   plant: solid('plant', 'Potted plant', 'structure', '#4c8f3e'),
   floor_lamp: { ...solid('floor_lamp', 'Floor lamp', 'structure', '#e0c070'), litAtNight: true },
+  // The Developer's Studio: each portfolio piece opens a part of the portfolio.
+  desk_laptop: studioPiece('desk_laptop', 'Desk with laptop', '#9a6436', 2),
+  phone_wall: studioPiece('phone_wall', 'Wall of framed phones', '#3a3a48', 5, true),
+  tech_shelf: studioPiece('tech_shelf', 'Tech bookshelf', '#7a4a28', 2),
+  timeline_board: studioPiece('timeline_board', 'Timeline board', '#c89a5c', 3, true),
+  trophy_shelf: studioPiece('trophy_shelf', 'Trophy shelf', '#d8b040', 2),
+  certificates: studioPiece('certificates', 'Framed certificates', '#e8dcc0', 2, true),
+  post_desk: studioPiece('post_desk', 'Post desk', '#a8484a', 2),
   cabin: {
     kind: 'cabin',
     name: 'Cottage',
@@ -185,6 +222,19 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     mapColor: '#8b5a2b',
     door: { x: 2, y: 3 },
     interior: 'cottage',
+    litAtNight: true,
+  },
+  // A big workshop near the cottage, where Charles shows his work (interior: studio).
+  studio: {
+    kind: 'studio',
+    name: "Developer's Studio",
+    category: 'building',
+    footprint: { width: 7, height: 4 },
+    blocksMovement: true,
+    spriteKey: 'studio',
+    mapColor: '#3c6a78',
+    door: { x: 3, y: 3 },
+    interior: 'studio',
     litAtNight: true,
   },
   house_stone: house('house_stone', 'Stone house', '#7c8496'),
