@@ -38,7 +38,7 @@ function speedOf(animal: Animal, settings: AnimalSettings): number {
     : settings.chickenSpeedTilesPerSecond;
 }
 
-/** Chickens by the houses, a cat by the plaza: spawned on open village tiles. */
+/** Chickens and a cat on open village tiles (none when animals are switched off in the config). */
 export function createAnimals(
   world: World,
   home: readonly number[],
@@ -47,7 +47,7 @@ export function createAnimals(
   tileSizePx: number,
 ): Animal[] {
   const open = home.filter((i) => world.blocked[i] === 0);
-  if (open.length === 0) return [];
+  if (!settings.enabled || open.length === 0) return [];
   const kinds: AnimalKind[] = [
     ...Array.from({ length: settings.chickens }, (): AnimalKind => 'chicken'),
     ...Array.from({ length: settings.cats }, (): AnimalKind => 'cat'),

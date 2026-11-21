@@ -128,6 +128,8 @@ export interface IslandConfig {
   };
   /** The village's chickens and cat. */
   readonly animals: {
+    /** false = no animals in the village (the code and art stay, ready to switch back on). */
+    readonly enabled: boolean;
     readonly chickens: number;
     readonly cats: number;
     readonly chickenSpeedTilesPerSecond: number;
@@ -251,6 +253,11 @@ export interface IslandConfig {
      */
     readonly touchTargetTilesAcross: number;
     readonly touchDefaultZoomSteps: number;
+    /**
+     * Lets visitors zoom (+ / − keys, the zoom buttons on phones). false = the camera stays at
+     * the default framing above and the zoom controls are hidden.
+     */
+    readonly zoomEnabled: boolean;
     readonly minPixelScale: number;
     readonly maxPixelScale: number;
     readonly waterFrameSeconds: number;
@@ -346,6 +353,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     clearedObjectCost: 3,
   },
   animals: {
+    enabled: false,
     chickens: 3,
     cats: 1,
     chickenSpeedTilesPerSecond: 1.6,
@@ -402,6 +410,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     defaultZoomSteps: -3,
     touchTargetTilesAcross: 18,
     touchDefaultZoomSteps: 0,
+    zoomEnabled: true,
     minPixelScale: 1,
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,

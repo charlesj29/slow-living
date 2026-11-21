@@ -1,11 +1,12 @@
 import type { JSX, MouseEvent } from 'react';
+import { ISLAND_CONFIG } from '../core/config';
 import { isTouchFirst } from '../device';
 import { useIslandUiStore } from '../state';
 import './islandUi.css';
 
-/** + / − on phones and tablets (no keyboard there); the camera clamps the zoom. */
+/** + / − on phones and tablets (no keyboard there); hidden when zoom is switched off (config). */
 export function ZoomButtons(): JSX.Element | null {
-  if (!isTouchFirst()) return null;
+  if (!isTouchFirst() || !ISLAND_CONFIG.render.zoomEnabled) return null;
   const zoom =
     (steps: number) =>
     (event: MouseEvent<HTMLButtonElement>): void => {

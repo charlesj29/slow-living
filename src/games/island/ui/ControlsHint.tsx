@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import { ISLAND_CONFIG } from '../core/config';
 import { isTouchFirst } from '../device';
 import { useIslandUiStore } from '../state';
 import './islandUi.css';
@@ -28,7 +29,11 @@ const TOUCH_CONTROLS: readonly Control[] = [
  */
 export function ControlsHint(): JSX.Element {
   const hasStartedWalking = useIslandUiStore((state) => state.hasStartedWalking);
-  const controls = isTouchFirst() ? TOUCH_CONTROLS : KEYBOARD_CONTROLS;
+  const all = isTouchFirst() ? TOUCH_CONTROLS : KEYBOARD_CONTROLS;
+  // No zoom line when zoom is switched off.
+  const controls = ISLAND_CONFIG.render.zoomEnabled
+    ? all
+    : all.filter((control) => control.action !== 'zoom');
   return (
     <ul
       className={`island-hud-panel island-controls-hint${hasStartedWalking ? ' is-dimmed' : ''}`}

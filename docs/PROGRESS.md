@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-22 — Zoom switch, animals off (user request)
+
+- `render.zoomEnabled` in `core/config.ts`: false keeps the camera at the default framing and
+  hides the zoom controls (keys ignored, no phone buttons, no zoom line in the hint). On (true)
+  for now; the user tweaks it.
+- `animals.enabled: false`: no chickens or cat in the village; the code, art and tests stay
+  (the tests switch them on).
+
 ### 2026-11-22 — Neutral portfolio wording (user request)
 
 - The studio's texts use neutral, product-style sentences (no "I", no "Charles"), Title Case

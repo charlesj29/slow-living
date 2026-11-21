@@ -57,7 +57,7 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         title: 'Charles Jonathan',
         subtitle: 'Software Engineer · Flutter',
         body:
-          'Software engineer building Flutter apps for e-commerce, logistics and fintech for four years. ' +
+          'Software engineer building Flutter apps for e-commerce, logistics and fintech with 4+ years of experience. ' +
           'Currently responsible for the Tokoplas apps and Poly, their AI assistant. ' +
           'Background in mathematics (ITB), with a published paper on numerical modelling.',
       },

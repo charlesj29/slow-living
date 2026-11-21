@@ -7,13 +7,21 @@ import { generateValidWorld } from '../generation/testUtils';
 const STEP = 1 / 60;
 const TILE = ISLAND_CONFIG.map.tileSizePx;
 
+/** Animals are switched off on the site; the tests switch them on to keep them working. */
+const WITH_ANIMALS = { ...ISLAND_CONFIG, animals: { ...ISLAND_CONFIG.animals, enabled: true } };
+
 function simulate(seconds: number): ReturnType<typeof createGameState> {
-  const state = createGameState(generateValidWorld(46), ISLAND_CONFIG);
-  for (let i = 0; i < seconds / STEP; i++) stepGame(state, STEP, ISLAND_CONFIG);
+  const state = createGameState(generateValidWorld(46), WITH_ANIMALS);
+  for (let i = 0; i < seconds / STEP; i++) stepGame(state, STEP, WITH_ANIMALS);
   return state;
 }
 
 describe('village animals', () => {
+  it('are switched off on the site', () => {
+    const state = createGameState(generateValidWorld(46), ISLAND_CONFIG);
+    expect(state.animals).toEqual([]);
+  });
+
   const state = simulate(40);
 
   it('are three chickens and a cat', () => {
@@ -36,7 +44,7 @@ describe('village animals', () => {
   it('wander about (not frozen) and do the same for the same island', () => {
     const again = simulate(40);
     expect(again.animals.map((a) => [a.x, a.y])).toEqual(state.animals.map((a) => [a.x, a.y]));
-    const start = createGameState(generateValidWorld(46), ISLAND_CONFIG);
+    const start = createGameState(generateValidWorld(46), WITH_ANIMALS);
     const moved = state.animals.some((a, i) => {
       const before = start.animals[i];
       return before !== undefined && (a.x !== before.x || a.y !== before.y);

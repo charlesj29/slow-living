@@ -71,7 +71,10 @@ export function FollowCamera({
   // limit doesn't pile up presses that the opposite key must undo first.
   const lowest = settings.minPixelScale - autoScale;
   const highest = settings.maxPixelScale - autoScale;
-  const zoomOffset = storedOffset ?? defaultZoomSteps();
+  // With zoom switched off (config), the camera always keeps the default framing.
+  const zoomOffset = settings.zoomEnabled
+    ? (storedOffset ?? defaultZoomSteps())
+    : defaultZoomSteps();
   const pixelScale = Math.min(
     settings.maxPixelScale,
     Math.max(settings.minPixelScale, autoScale + zoomOffset, fitScale),
@@ -92,6 +95,7 @@ export function FollowCamera({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
+      if (!ISLAND_CONFIG.render.zoomEnabled) return;
       if (ZOOM_IN_KEYS.has(event.code)) useIslandUiStore.getState().zoomBy(1);
       else if (ZOOM_OUT_KEYS.has(event.code)) useIslandUiStore.getState().zoomBy(-1);
     };
