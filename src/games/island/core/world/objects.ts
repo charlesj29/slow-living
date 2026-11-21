@@ -1,7 +1,8 @@
 // Object registry. Adding an object type = add a kind + a definition here (and
 // a sprite in the atlas); placement steps refer to kinds and categories.
 import type { TilePoint } from '@/shared/engine/grid';
-import { STUDIO_PAGES, type StudioPiece } from '../content/studio';
+import type { PanelId } from '../content/portfolio';
+import { STUDIO_PANELS, type StudioPiece } from '../content/studio';
 
 export const OBJECT_KINDS = [
   'tree_oak',
@@ -77,7 +78,7 @@ export interface ObjectDefinition {
    * What pressing Space while facing it shows: one message box, page by page
    * (no reply choices). For buildings (things with a door) only the door answers.
    */
-  readonly interaction?: { readonly pages: readonly string[] };
+  readonly interaction?: Interaction;
   /** Hangs on an interior's back wall (its footprint is wall); you face it from the floor below. */
   readonly wallMounted?: boolean;
   /** A signpost: its message points to the island's landmarks (worked out per island). */
@@ -88,22 +89,32 @@ export interface ObjectDefinition {
   readonly litAtNight?: boolean;
 }
 
+/**
+ * What Space shows: a message of one or more pages, or a part of the portfolio
+ * in the panel. `pagePerTile`: each tile of the object opens its own page (the
+ * wall of phones: one project per frame).
+ */
+export type Interaction =
+  | { readonly pages: readonly string[] }
+  | { readonly panel: PanelId; readonly pagePerTile?: boolean };
+
 const SINGLE_TILE = { width: 1, height: 1 } as const;
 
 /** A message of one or more pages. */
 const says = (...pages: string[]): { readonly pages: readonly string[] } => ({ pages });
 
-/** A portfolio piece in the studio: solid furniture that shows its pages from content/studio. */
+/** A portfolio piece in the studio: solid furniture that opens its part of the portfolio. */
 function studioPiece(
   kind: StudioPiece,
   name: string,
   mapColor: string,
   width: number,
   wallMounted = false,
+  pagePerTile = false,
 ): ObjectDefinition {
   return {
     ...solid(kind, name, 'structure', mapColor, { width, height: 1 }),
-    interaction: { pages: STUDIO_PAGES[kind] },
+    interaction: { panel: STUDIO_PANELS[kind], ...(pagePerTile ? { pagePerTile } : {}) },
     ...(wallMounted ? { wallMounted } : {}),
   };
 }
@@ -208,7 +219,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   floor_lamp: { ...solid('floor_lamp', 'Floor lamp', 'structure', '#e0c070'), litAtNight: true },
   // The Developer's Studio: each portfolio piece opens a part of the portfolio.
   desk_laptop: studioPiece('desk_laptop', 'Desk with laptop', '#9a6436', 2),
-  phone_wall: studioPiece('phone_wall', 'Wall of framed phones', '#3a3a48', 5, true),
+  phone_wall: studioPiece('phone_wall', 'Wall of framed phones', '#3a3a48', 5, true, true),
   tech_shelf: studioPiece('tech_shelf', 'Tech bookshelf', '#7a4a28', 2),
   timeline_board: studioPiece('timeline_board', 'Timeline board', '#c89a5c', 3, true),
   trophy_shelf: studioPiece('trophy_shelf', 'Trophy shelf', '#d8b040', 2),

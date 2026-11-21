@@ -5,12 +5,24 @@
 import { isInBounds, toIndex } from '@/shared/engine/grid';
 import { hitboxAt, type HitboxSize, type Player } from '../entities/player';
 import type { Villager } from '../entities/villager';
+import type { PanelId } from '../content/portfolio';
 import { OBJECT_REGISTRY } from '../world/objects';
 import { NO_OBJECT, type World, type WorldObject } from '../world/world';
 
-/** Something the player can interact with right now. */
+/** A part of the portfolio to show in the panel, opened at a page. */
+export interface PanelOpen {
+  readonly id: PanelId;
+  readonly page: number;
+}
+
+/** Something the player can interact with right now: a message (pages) or a panel. */
 export type InteractTarget =
-  | { readonly kind: 'object'; readonly object: WorldObject; readonly pages: readonly string[] }
+  | {
+      readonly kind: 'object';
+      readonly object: WorldObject;
+      readonly pages: readonly string[];
+      readonly panel?: PanelOpen;
+    }
   | { readonly kind: 'villager'; readonly villager: Villager; readonly pages: readonly string[] };
 
 /** An open message box: its pages and the one showing. */
@@ -90,5 +102,10 @@ export function findInteractTarget(
   if (signpost) return { kind: 'object', object, pages: settings.signPages(object) };
   // A building answers only at its door, not when you face one of its walls.
   const atDoor = !door || (tileX === object.x + door.x && tileY === object.y + door.y);
-  return interaction && atDoor ? { kind: 'object', object, pages: interaction.pages } : null;
+  if (!interaction || !atDoor) return null;
+  if ('panel' in interaction) {
+    const page = interaction.pagePerTile ? tileX - object.x : 0;
+    return { kind: 'object', object, pages: [], panel: { id: interaction.panel, page } };
+  }
+  return { kind: 'object', object, pages: interaction.pages };
 }

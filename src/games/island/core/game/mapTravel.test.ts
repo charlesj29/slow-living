@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { floodFill, toIndex } from '@/shared/engine/grid';
 import { pressKey, releaseKey } from '@/shared/engine/input';
-import { STUDIO_PAGES } from '../content/studio';
+import { STUDIO_PANELS } from '../content/studio';
 import { ISLAND_CONFIG } from '../config';
 import { ISLAND_KEY_BINDINGS } from '../systems/controls';
 import { findInteractTarget } from '../systems/interaction';
@@ -113,7 +113,7 @@ describe('interiors', () => {
 
   it('the studio has every portfolio piece', () => {
     const kinds = INTERIORS.studio?.furniture.map((item) => item.kind) ?? [];
-    expect(kinds).toEqual(expect.arrayContaining(Object.keys(STUDIO_PAGES)));
+    expect(kinds).toEqual(expect.arrayContaining(Object.keys(STUDIO_PANELS)));
   });
 });
 

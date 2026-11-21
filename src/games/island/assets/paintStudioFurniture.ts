@@ -55,14 +55,15 @@ function framedPhone(c: PixelCanvas, x: number, y: number, color: Rgba): void {
   setPixel(c, x + 5, y + 16, PALETTE.screen.base); // home button
 }
 
-/** 80×32 over 5×1 (wall): five framed phones, one per app. */
+/** 80×32 over 5×1 (wall): five framed phones, one per app (each opens that project). */
 function phoneWall(): PixelCanvas {
   const c = createPixelCanvas(80, 32);
+  // In the order of the projects panel: Tokoplas, Poly, Seller, Driver, klikUMKM.
   const apps = [
-    PALETTE.flowers.blue.petal,
+    PALETTE.terracotta.light,
+    PALETTE.slate.dark,
     PALETTE.teal.light,
-    PALETTE.flowers.red.petal,
-    PALETTE.gold.light,
+    PALETTE.fire.mid,
     PALETTE.moss.light,
   ];
   apps.forEach((color, i) => framedPhone(c, 2 + i * 16, 4, color));

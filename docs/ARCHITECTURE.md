@@ -50,7 +50,8 @@ src/
       data/island.map.json  # THE world: baked, committed map file (chunked, readable)
       core/
         config.ts           # IslandConfig: every tunable number
-        content/            # studio.ts (portfolio pieces' pages), guidance.ts (villager talks, sign labels)
+        content/            # portfolio.ts (the portfolio: panels of pages), studio.ts (piece → panel),
+                            #   guidance.ts (villager talks, sign labels)
         world/              # tiles, objects (registries), world (type), collision,
                             #   mapFile (format + writer), parseMapFile, bakedIsland (loader)
         generation/         # authoring tool: context, steps/*, validate, pipeline,
@@ -76,7 +77,8 @@ src/
                             #   DialogBox (messages), ScreenFade (door transitions),
                             #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel,
                             #   IslandSwitcher (dice / R / Home, fades then asks the page),
-                            #   StudioVisitMemory (remembers the first studio visit)
+                            #   StudioVisitMemory (remembers the first studio visit),
+                            #   PortfolioPanel + PortfolioPageView (the portfolio card)
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
   bake-island-map.mjs       # npm run bake:island [-- seed]: generator -> data/island.map.json
@@ -228,7 +230,12 @@ flowchart LR
   `GameState.dialog` (`{ pages, page }`); while it is open the player stands still and Space
   turns the page, closing after the last. `ui/DialogBox` shows the current page (no reply
   choices). Wall-mounted pieces (`wallMounted`) hang on an interior's back wall and answer when
-  faced from the floor below. The F3 overlay reads
+  faced from the floor below.
+- **Portfolio panel (D61):** an interaction can be `{ panel, pagePerTile? }` instead of pages.
+  Opening sets `GameState.panel` (the player stands still); `GameLoop` mirrors it to the store's
+  `panel`; `ui/PortfolioPanel` shows `PORTFOLIO[id]` page by page and closes it in the store;
+  `GameLoop` then calls `closePortfolioPanel` (clears pending presses). Images and the CV are in
+  `public/portfolio/`. The F3 overlay reads
   `game.framesPerSecond` (smoothed in `advanceGame`) and `playerTile` on a 250 ms timer while
   visible, so React never re-renders per frame.
 - **Maps and doors (D57):** `GameState.maps` holds the island and every room from

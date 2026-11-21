@@ -13,6 +13,7 @@ import { DialogBox } from './ui/DialogBox';
 import { IslandSwitcher } from './ui/IslandSwitcher';
 import { KeyboardNotice } from './ui/KeyboardNotice';
 import { MusicToggle } from './ui/MusicToggle';
+import { PortfolioPanel } from './ui/PortfolioPanel';
 import { ScreenFade } from './ui/ScreenFade';
 import { StudioVisitMemory } from './ui/StudioVisitMemory';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
@@ -42,6 +43,7 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
     const ui = useIslandUiStore.getState();
     ui.setMap(game?.mapId ?? 'island');
     ui.setDialogMessage(null);
+    ui.closePanel();
     ui.setScreenDark(false);
   }, [game]);
 
@@ -72,6 +74,7 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
       <ScreenFade />
       <StudioVisitMemory />
       <DialogBox />
+      <PortfolioPanel />
       <KeyboardNotice />
       <DayNightToggle />
       <MusicToggle song={CHILL_TUNE} />

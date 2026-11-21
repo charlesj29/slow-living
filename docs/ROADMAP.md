@@ -26,7 +26,7 @@ Agreed with the user (2026-11-21):
 Each milestone follows the working agreement: short plan → OK → build → check → docs → commit →
 report.
 
-### M5 — Portfolio content
+### M5 — Portfolio content ✅ (2026-11-21)
 
 - One easy-to-edit content file with the CV data: profile, projects (role, description, tech,
   screenshots, store and repo links), skills, experience, achievements, education, contact.

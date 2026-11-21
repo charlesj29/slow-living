@@ -25,6 +25,7 @@ import {
   type Dialog,
   type InteractionSettings,
   type InteractTarget,
+  type PanelOpen,
 } from '../systems/interaction';
 import { movePlayer } from '../systems/movement';
 import { startTalking, updateVillager } from '../systems/wander';
@@ -59,6 +60,8 @@ export interface GameState {
   interactTarget: InteractTarget | null;
   /** The open message, if any; the player stands still while Space turns its pages, then closes it. */
   dialog: Dialog | null;
+  /** The portfolio panel, if open; the UI closes it (the player stands still meanwhile). */
+  panel: PanelOpen | null;
   /** Fraction of a day (0 = midnight, 0.5 = noon); keeps running in every day/night mode. */
   timeOfDay: number;
   /** The village's people (none if the world has no village). */
@@ -99,6 +102,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     framesPerSecond: 0,
     interactTarget: null,
     dialog: null,
+    panel: null,
     timeOfDay: config.dayNight.startTime,
     villagers: createVillagers(world, config.map.tileSizePx),
     wanderRng: createRng(world.generationSeed ^ WANDER_SEED_SALT),
@@ -128,6 +132,9 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     state.interactTarget = null;
   } else if (state.dialog) {
     if (consumePress(input, 'interact')) turnPage(state, state.dialog);
+    player.moving = false;
+  } else if (state.panel) {
+    // The panel's own keys and buttons page through it and close it (UI).
     player.moving = false;
   } else {
     const intent = readMovementIntent(input);
@@ -198,6 +205,11 @@ function interactionSettings(state: GameState, config: IslandConfig): Interactio
 function openDialog(state: GameState): void {
   const target = state.interactTarget;
   if (!target) return;
+  state.player.moving = false;
+  if (target.kind === 'object' && target.panel) {
+    state.panel = target.panel;
+    return;
+  }
   state.dialog = { pages: target.pages, page: 0 };
   state.player.moving = false;
   if (target.kind === 'villager') {
@@ -215,6 +227,12 @@ function turnPage(state: GameState, dialog: Dialog): void {
 function closeDialog(state: GameState): void {
   state.dialog = null;
   for (const villager of state.villagers) villager.talking = false;
+}
+
+/** The UI closed the portfolio panel: play goes on, and the key that closed it must not reopen it. */
+export function closePortfolioPanel(state: GameState): void {
+  state.panel = null;
+  clearPresses(state.input);
 }
 
 /** Runs the fixed steps owed for this frame and records the interpolation factor. */

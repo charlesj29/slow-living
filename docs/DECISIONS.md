@@ -721,3 +721,23 @@ alternatives → consequences.
 - **Consequences:** `villagers.greeting` is gone from the config. Signs on any seed point the
   right way without authoring. The visit is remembered per browser (clearing site data shows the
   star again).
+
+## D61 — Portfolio content in a panel; screenshots as blurred WebP in public/
+
+- **Context:** M5 turns the studio's placeholders into Charles's real portfolio, from his CV and
+  four screenshot sets; the screenshots showed other people's details (a contact's name and
+  phone number, addresses, a colleague's email).
+- **Decision:** the content is plain data in `core/content/portfolio.ts` (panels of pages:
+  title, subtitle, period, body, bullets, tags, one image, links); facts only from the CV.
+  Registry interactions are either message `pages` or a `panel` (`pagePerTile` on the phone
+  wall: each frame opens its project). The game opens the panel (`GameState.panel`, player held
+  still); `GameLoop` mirrors it to the store; the UI pages and closes it, and
+  `closePortfolioPanel` clears pending presses so the closing key can't reopen it. The panel
+  is DOM, not canvas: readable text, real links, selectable, accessible. Screenshots were
+  blurred and scaled with System.Drawing (lossless intermediates outside the repo) and encoded
+  to WebP by headless Chrome (no new dependencies); they and the CV live in `public/portfolio/`
+  and are referenced relative to `import.meta.env.BASE_URL`. The phone number stays off the
+  site's text (the downloadable CV, chosen by the user, contains it).
+- **Consequences:** updating the portfolio means editing one file (and adding images to
+  `public/portfolio/`); a test checks every referenced file exists and that no phone number
+  appears in the content.

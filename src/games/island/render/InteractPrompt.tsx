@@ -76,7 +76,7 @@ export function InteractPrompt({ state, atlas }: InteractPromptProps): JSX.Eleme
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    const target = state.dialog ? null : state.interactTarget;
+    const target = state.dialog || state.panel ? null : state.interactTarget;
     mesh.visible = target !== null;
     if (!target) return;
     const anchor = promptAnchor(target, state, atlas);

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { DAY_NIGHT_MODES, type DayNightMode } from './core/systems/dayNight';
+import type { PanelOpen } from './core/systems/interaction';
 
 /**
  * UI-facing state only (things the HUD/overlays show or control). The world and
@@ -15,6 +16,8 @@ export interface IslandUiState {
   readonly isMusicMuted: boolean;
   /** The open interaction message (mirrored from the game state by the loop), or null. */
   readonly dialogMessage: string | null;
+  /** The open portfolio panel and its page (opened by the game, paged and closed by the UI). */
+  readonly panel: PanelOpen | null;
   /** Which map is shown (mirrored from the game state); the canvas rebuilds when it changes. */
   readonly mapId: string;
   /** Darkened for a door transition (the overlay fades by CSS). */
@@ -28,6 +31,9 @@ export interface IslandUiState {
   setMusicMuted: (muted: boolean) => void;
   toggleMusicMuted: () => void;
   setDialogMessage: (message: string | null) => void;
+  openPanel: (panel: PanelOpen) => void;
+  setPanelPage: (page: number) => void;
+  closePanel: () => void;
   setMap: (mapId: string) => void;
   setScreenDark: (dark: boolean) => void;
   setVisitedStudio: (visited: boolean) => void;
@@ -41,6 +47,7 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   hasStartedWalking: false,
   isMusicMuted: false,
   dialogMessage: null,
+  panel: null,
   mapId: 'island',
   isScreenDark: false,
   hasVisitedStudio: false,
@@ -59,6 +66,15 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   setDialogMessage: (message) => {
     set({ dialogMessage: message });
+  },
+  openPanel: (panel) => {
+    set({ panel });
+  },
+  setPanelPage: (page) => {
+    set((state) => (state.panel ? { panel: { ...state.panel, page } } : {}));
+  },
+  closePanel: () => {
+    set({ panel: null });
   },
   setMap: (mapId) => {
     set({ mapId });

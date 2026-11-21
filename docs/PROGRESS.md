@@ -20,8 +20,9 @@
 - **Portfolio roadmap (2026-11-21):** M6 Interiors ✅ (walk into the cottage; village house
   doors are locked). M8 Compact island ✅ (96×96, default seed 46, R / dice / Home and
   shareable `?seed=` links for everyone). M7 Developer's Studio ✅ (placeholder texts until
-  the CV arrives). M9 Guidance ✅ (villager hints, signposts, studio marker). **Next:** pick
-  with the user: M10 phones + quick view, or M5 once the CV arrives (then M11 launch).
+  the CV arrives). M9 Guidance ✅ (villager hints, signposts, studio marker). M5 Portfolio content ✅
+  (Charles's CV in the studio's panels). **Next:** M10 phones + quick view, then M11 launch;
+  agree with the user first.
 - **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
   the project is pushed to GitHub `origin/master` (the only branch; `main` no longer exists). Push only
   when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
@@ -86,6 +87,22 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — M5 Portfolio content (portfolio roadmap)
+
+- **Input:** Charles's CV (PDF) and four screenshot sets (Tokoplas, Poly, Seller, Driver apps).
+  User choices: blur other people's details in the screenshots; show email + LinkedIn (no
+  phone number on the site); offer this CV PDF for download; store links for the Tokoplas app.
+  Only the studio changes.
+- **Done (D61):** `core/content/portfolio.ts` holds the portfolio (about, five projects, skills,
+  experience, highlights, education + publication, contact), all from the CV. Studio pieces
+  now open a panel (`ui/PortfolioPanel`: title, details, bullets, tags, screenshot, links;
+  ←/→, Space/Enter, Esc, buttons). Each framed phone opens its own project (frames recoloured
+  per app). Screenshots blurred (names, phone number, email, addresses), scaled and encoded as
+  WebP in `public/portfolio/` with the CV PDF.
+- **Verified:** typecheck, lint, tests, build pass; in the browser: phone frame 3 → Tokoplas
+  Seller with its screenshot, paging with the arrows, Space through to close, Esc, the contact
+  panel with email, LinkedIn and the CV download (served as application/pdf); console clean.
 
 ### 2026-11-21 — M9 Guidance (portfolio roadmap)
 
