@@ -74,13 +74,19 @@
   glow at night, a vegetable patch, flower pots, crates, barrels, stumps; 3 villagers who wander
   only inside the fence, avoid each other and say "Hi!" (no reply choices).
 - Day/night: a full day is 12 minutes; a top-left button (above music) cycles Auto / Always
-  day / Always night; the F3 readout is bottom-left and also shows the time.
+  day / Always night; the F3 readout (top-right) also shows the time.
 - Interaction with Space (first E, changed by the user); a small down-arrow marks what you can
   interact with; messages have no reply choices and show a blinking ▼. Mailbox: "It's empty.".
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Small update (user request)
+
+- F3 readout moved back to the top-right; the village no longer has a vegetable patch (the crops
+  kind and art remain, unused). Map re-baked: only village decorations moved.
+- **Verified:** typecheck, lint, 321 tests, build pass; F3 sits top-right in the browser.
 
 ### 2026-11-21 — Random village outline and new villagers (user request)
 

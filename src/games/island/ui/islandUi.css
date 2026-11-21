@@ -126,8 +126,8 @@
 }
 
 .island-debug-overlay {
-  bottom: 0.75rem;
-  left: 0.75rem;
+  top: 0.75rem;
+  right: 0.75rem;
   font-family: ui-monospace, Consolas, monospace;
   line-height: 1.4;
 }

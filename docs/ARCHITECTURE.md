@@ -67,7 +67,7 @@ src/
                             #   paintPlayer, islandSprites, chillTune (the music, as data)
       # render also: CharacterSprite (player + villagers), VillagerSprites, InteractPrompt,
       #   DayNightLighting; assets also: paintHouses, paintLights, paintUi
-      ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, bottom-left),
+      ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, top-right),
                             #   DayNightToggle, MusicToggle,
                             #   DialogBox (messages),
                             #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel

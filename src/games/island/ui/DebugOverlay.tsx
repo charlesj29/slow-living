@@ -29,7 +29,7 @@ function readStats(game: GameState): Readout {
 }
 
 /**
- * F3 toggles a small readout (bottom-left) of FPS, the player's tile and the time of day. While visible it
+ * F3 toggles a small readout (top-right) of FPS, the player's tile and the time of day. While visible it
  * samples the game state a few times per second (never every frame), so React
  * stays out of the render loop.
  */

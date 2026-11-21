@@ -318,7 +318,7 @@ interface DecorContext {
 
 /**
  * Decorations, by rule: a well near the middle, pots by the doors, a barrel
- * or crate beside each house, lamps along the paths, a vegetable patch,
+ * or crate beside each house, lamps along the paths,
  * haystacks near the fence and a few stumps. Never on a path or right by the
  * fence, and each is only kept if every door can still be reached.
  */
@@ -394,15 +394,6 @@ function decorate(rng: Rng, d: DecorContext): void {
       continue;
     }
     if (place('lamp_post', p.x, p.y)) lamps.push(p);
-  }
-
-  // A 3×2 vegetable patch somewhere free.
-  for (const i of shuffled(rng, freeTiles())) {
-    const p = point(i);
-    const tiles = [0, 1, 2].flatMap((dx) => [0, 1].map((dy) => toIndex(size, p.x + dx, p.y + dy)));
-    if (!tiles.every(free) || !stillReachable(tiles)) continue;
-    for (const t of tiles) addObject(layer, 'crops', t % size.width, Math.floor(t / size.width));
-    break;
   }
 
   // Haystacks near the fence, then a few stumps anywhere free.
