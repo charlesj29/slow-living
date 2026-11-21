@@ -89,6 +89,15 @@
 
 ## Session log
 
+### 2026-11-21 — Cottage-style houses and studio (user request)
+
+- `assets/cottageStyle.ts`: the cottage look as a spec-driven painter (tiled or thatched back
+  roof, timber-framed front gable over the door, shuttered windows with flower boxes, stone base
+  and steps, chimney, lantern). The three village houses (80×80, stone/slate, log/moss,
+  plaster/thatch) and the studio (112×96, teal roof, skylight, "</>" sign over the door) use it;
+  footprints unchanged. Chimney tops are exported for smoke.
+- **Verified:** typecheck, lint, sprite tests, build; browser screenshot of the village and studio.
+
 ### 2026-11-21 — Fireplace flames (user request)
 
 - The cottage fireplace flickers: a 4-frame flame strip (`FIRE_FRAME_COUNT`) on its own clock
