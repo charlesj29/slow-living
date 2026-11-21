@@ -89,6 +89,12 @@
 
 ## Session log
 
+### 2026-11-22 — Neutral portfolio wording (user request)
+
+- The studio's texts use neutral, product-style sentences (no "I", no "Charles"), Title Case
+  subtitles and short feature bullets, following the user's own Tokoplas text. A test enforces
+  it; CLAUDE.md records the preference.
+
 ### 2026-11-22 — An open, livelier village (user request)
 
 - **User choices:** an open village (no ring fence) around a plaza, with little garden fences per

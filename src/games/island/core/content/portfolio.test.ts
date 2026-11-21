@@ -58,9 +58,11 @@ describe('portfolio content', () => {
     expect(JSON.stringify(PORTFOLIO)).not.toMatch(/linkedin/i);
   });
 
-  it('writes about Charles without "I" (third person)', () => {
-    const text = allPages.flatMap((page) => [page.body ?? '', ...(page.bullets ?? [])]).join(' ');
-    expect(text).not.toMatch(/\bI\b|\bmy\b/);
+  it('uses neutral descriptions: no "I", no "my" and no "Charles" in the sentences', () => {
+    const text = allPages
+      .flatMap((page) => [page.subtitle ?? '', page.body ?? '', ...(page.bullets ?? [])])
+      .join(' ');
+    expect(text).not.toMatch(/\bI\b|\bmy\b|Charles/);
   });
 });
 

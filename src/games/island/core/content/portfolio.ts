@@ -57,9 +57,9 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         title: 'Charles Jonathan',
         subtitle: 'Software Engineer · Flutter',
         body:
-          'Charles builds Flutter apps for e-commerce, logistics and fintech, four years and counting. ' +
-          'These days he looks after the Tokoplas apps and Poly, their AI assistant. ' +
-          'Before code, there was maths: a degree from ITB and a published paper on numerical modelling.',
+          'Software engineer building Flutter apps for e-commerce, logistics and fintech for four years. ' +
+          'Currently responsible for the Tokoplas apps and Poly, their AI assistant. ' +
+          'Background in mathematics (ITB), with a published paper on numerical modelling.',
       },
     ],
   },
@@ -69,10 +69,13 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
     pages: [
       {
         title: 'Tokoplas',
-        subtitle: 'Resin marketplace app · Android & iOS',
-        body: 'The main Tokoplas shopping app, built and maintained by Charles.',
-        bullets: ['Payments and order history', 'Loyalty levels, coins and rewards'],
-        tags: ['Flutter', 'Dart', 'Android', 'iOS'],
+        subtitle: 'Petrochemical E-Commerce Platform',
+        body: 'A comprehensive e-commerce platform designed for purchasing petrochemical products.',
+        bullets: [
+          'End-to-end e-commerce functionality',
+          'AI-powered digital assistance through Poly',
+        ],
+        tags: ['Flutter', 'Dart'],
         image: {
           src: 'portfolio/tokoplas-app.webp',
           alt: 'Three screens of the Tokoplas app: the home page, the cart and the loyalty rewards',
@@ -90,12 +93,12 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       },
       {
         title: 'Poly',
-        subtitle: 'AI assistant inside the Tokoplas app',
-        body: "Charles mainly built Poly's brain: the LLM side that understands questions and answers them.",
+        subtitle: 'AI Customer Assistant',
+        body: 'An LLM-powered assistant inside the Tokoplas app, with development focused mainly on its brain: the logic that understands customer questions and answers them.',
         bullets: [
-          'FAQs, rewards and order tracking',
+          'FAQs, reward enquiries and order tracking',
           'Product recommendations',
-          'Market summaries and quotations',
+          'Market summaries and quotation requests',
         ],
         tags: ['LLM integration', 'Flutter'],
         image: {
@@ -105,8 +108,9 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       },
       {
         title: 'Tokoplas Seller',
-        subtitle: 'Internal app for sellers',
-        body: 'Stock, prices, orders and quotations in one place.',
+        subtitle: 'Internal Seller App',
+        body: 'An internal app for sellers to manage inventory and review customer purchase history.',
+        bullets: ['Products, price history and stock reports', 'Orders and quotations'],
         tags: ['Flutter', 'Dart'],
         image: {
           src: 'portfolio/seller-app.webp',
@@ -115,8 +119,9 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       },
       {
         title: 'Tokoplas Driver',
-        subtitle: 'Internal app for delivery drivers',
-        body: 'Daily delivery tasks, delivery details and tracking updates.',
+        subtitle: 'Internal Delivery App',
+        body: 'An internal app that guides drivers through delivery assignments and keeps every order tracked.',
+        bullets: ['Daily delivery schedule and history', 'Pickup and drop-off details'],
         tags: ['Flutter', 'Dart'],
         image: {
           src: 'portfolio/driver-app.webp',
@@ -125,14 +130,14 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       },
       {
         title: 'klikUMKM',
-        subtitle: 'Peer-to-peer lending app',
-        body: 'Mobile access to financing for small and medium businesses.',
+        subtitle: 'Peer-to-Peer Lending App',
+        body: 'A lending app giving small and medium enterprises mobile access to financing.',
         tags: ['Flutter', 'Fintech'],
       },
       {
         title: 'This island',
-        subtitle: 'AI-generated · vibe coded',
-        body: 'The portfolio you are walking around in. Charles shaped the ideas and design; AI wrote the code.',
+        subtitle: 'AI-Generated · Vibe Coded',
+        body: 'An explorable pixel-art portfolio. Concept and design were human-directed; the code was AI-generated.',
         tags: ['React', 'TypeScript', 'Three.js', 'AI-generated'],
         image: {
           src: 'portfolio/island.webp',

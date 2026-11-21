@@ -67,7 +67,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 ## Content
 
 - The portfolio lives in `src/games/island/core/content/portfolio.ts` (facts from Charles's CV
-  only; third person; contact = Email copy button + WhatsApp; no LinkedIn). Screenshots and the CV PDF are in
+  only; neutral product-style sentences: no "I" and no "Charles"; Title Case subtitles;
+  contact = Email copy button + WhatsApp; no LinkedIn). Screenshots and the CV PDF are in
   `public/portfolio/` (WebP, other people's details blurred). `guidance.ts`: villager
   conversations and sign labels.
 
