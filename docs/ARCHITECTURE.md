@@ -56,7 +56,8 @@ src/
                             #   generateWorld, bakeIslandMap
         entities/           # player.ts (plain mutable player, feet hitbox)
         systems/            # controls (bindings, intent), movement (collision), animation
-        game/               # gameState.ts: createGameState, stepGame, advanceGame
+        game/               # gameState.ts: createGameState, stepGame, advanceGame;
+                            #   mapTravel.ts: doors between maps
       render/               # GameCanvas, Tilemap (+ tileLayers, tilemapGeometry), spriteMaterial,
                             #   WorldObjects (+ objectSprites, objectSpriteKeys), worldSpace,
                             #   spriteCatalog, spriteGeometry, GameLoop, PlayerSprite,
@@ -66,10 +67,11 @@ src/
                             #   Deadwood, playerPixels (parts) + sideLegs + playerFrames (strips),
                             #   paintPlayer, islandSprites, chillTune (the music, as data)
       # render also: CharacterSprite (player + villagers), VillagerSprites, InteractPrompt,
-      #   DayNightLighting; assets also: paintHouses, paintLights, paintUi
+      #   DayNightLighting; assets also: paintHouses, paintLights, paintUi,
+      #   paintInterior (floor, walls, doormat), paintFurniture; core/world/interiors.ts (rooms)
       ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, top-right),
                             #   DayNightToggle, MusicToggle,
-                            #   DialogBox (messages),
+                            #   DialogBox (messages), ScreenFade (door transitions),
                             #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
@@ -212,6 +214,14 @@ flowchart LR
   shows the message (no reply choices). The F3 overlay reads
   `game.framesPerSecond` (smoothed in `advanceGame`) and `playerTile` on a 250 ms timer while
   visible, so React never re-renders per frame.
+- **Maps and doors (D57):** `GameState.maps` holds the island and every room from
+  `core/world/interiors.ts`; `state.world`/`state.mapId` is the current one. `checkDoors`
+  (`core/game/mapTravel.ts`) starts a `transition` when the player walks up into the door of a
+  kind with `interior`, or stands on a doormat indoors; `stepTransition` fades out, swaps the
+  map and places the player (`core/systems/doors.ts`), then fades in. `GameLoop` mirrors
+  `mapId` and the dark phase to zustand; `GameCanvas` rebuilds the map-keyed layers and
+  `ui/ScreenFade` fades the screen. Indoors, lighting turns warm at night and the camera
+  zooms to fit the room.
 - `GameState` is created by `IslandGame` (one per world) and passed to both `GameCanvas`
   (which drives it) and the UI overlays (which read it).
 - Dev only: `window.__islandRenderer` exposes the WebGL renderer for performance and cleanup

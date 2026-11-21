@@ -80,6 +80,20 @@
   opacity: 0;
 }
 
+.island-fade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition-property: opacity;
+  transition-timing-function: ease-in-out;
+}
+
+.island-fade.is-dark {
+  opacity: 1;
+}
+
 .island-dialog {
   position: absolute;
   bottom: 1.25rem;

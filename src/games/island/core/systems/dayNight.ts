@@ -73,10 +73,23 @@ export function lightingAt(time: number): Lighting {
 }
 
 /** What the scene should look like: the clock in Auto, otherwise a fixed noon or midnight. */
-export function targetLighting(mode: DayNightMode, time: number): Lighting {
-  if (mode === 'day') return lightingAt(NOON);
-  if (mode === 'night') return lightingAt(MIDNIGHT);
-  return lightingAt(time);
+const INDOOR_DAY: Lighting = { tint: [1, 0.98, 0.95], lights: 0 };
+const INDOOR_NIGHT: Lighting = { tint: [0.84, 0.74, 0.62], lights: 1 };
+
+/**
+ * Indoors the night isn't blue: as it gets dark outside the lamps come on,
+ * so the room turns a warm, slightly dimmer lamplight.
+ */
+function indoorLighting(outdoor: Lighting): Lighting {
+  const k = outdoor.lights;
+  const mix = (i: 0 | 1 | 2): number => lerp(INDOOR_DAY.tint[i], INDOOR_NIGHT.tint[i], k);
+  return { tint: [mix(0), mix(1), mix(2)], lights: k };
+}
+
+export function targetLighting(mode: DayNightMode, time: number, indoor = false): Lighting {
+  const outdoor =
+    mode === 'day' ? lightingAt(NOON) : mode === 'night' ? lightingAt(MIDNIGHT) : lightingAt(time);
+  return indoor ? indoorLighting(outdoor) : outdoor;
 }
 
 /** "HH:MM" for a time of day (the debug overlay shows it). */

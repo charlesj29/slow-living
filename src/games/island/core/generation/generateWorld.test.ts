@@ -65,15 +65,17 @@ function assertInvariants(world: World): void {
   });
 
   const { footprint } = OBJECT_REGISTRY.cabin;
+  const cabin = world.cabin;
+  if (!cabin) throw new Error('the island must have a cabin');
   for (let dy = 0; dy < footprint.height; dy++) {
     for (let dx = 0; dx < footprint.width; dx++) {
-      const id = world.terrain[toIndex(size, world.cabin.x + dx, world.cabin.y + dy)] ?? 0;
+      const id = world.terrain[toIndex(size, cabin.x + dx, cabin.y + dy)] ?? 0;
       expect(isLandTile(id)).toBe(true);
     }
   }
 
   expect(isTileBlocked(world, world.spawn.x, world.spawn.y)).toBe(false);
-  const door = getDoorFrontTile(world.cabin);
+  const door = getDoorFrontTile(cabin);
   const reached = floodFill(size, [toIndex(size, world.spawn.x, world.spawn.y)], (i) => {
     return world.blocked[i] === 0;
   });
@@ -87,7 +89,8 @@ describe('generateWorld invariants', () => {
 
   it('places the spawn directly in front of the cabin door', () => {
     const world = generateValidWorld(5);
-    expect(world.spawn).toEqual(getDoorFrontTile(world.cabin));
+    expect(world.cabin).not.toBeNull();
+    if (world.cabin) expect(world.spawn).toEqual(getDoorFrontTile(world.cabin));
   });
 
   it('keeps the seed the user asked for even after retries', () => {

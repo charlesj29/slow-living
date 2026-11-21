@@ -5,6 +5,8 @@ import { createIslandAtlas } from '../assets/islandSprites';
 import { WATER_FRAME_COUNT } from '../assets/paintTiles';
 import { ISLAND_CONFIG } from '../core/config';
 import { interpolatedPlayerPosition, type GameState } from '../core/game/gameState';
+import { ISLAND_MAP } from '../core/game/mapTravel';
+import { useIslandUiStore } from '../state';
 import { FollowCamera } from './FollowCamera';
 import { DayNightLighting } from './DayNightLighting';
 import { GameLoop } from './GameLoop';
@@ -18,6 +20,8 @@ import { WorldObjects } from './WorldObjects';
 import { worldYFromMapPx } from './worldSpace';
 
 const BACKGROUND_COLOR = '#1f4e79';
+/** Round a small room: dark, like the space beyond the walls. */
+const INDOOR_BACKGROUND = '#140e0a';
 
 declare global {
   interface Window {
@@ -44,7 +48,10 @@ interface GameCanvasProps {
  * because it blurs pixel art.
  */
 export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
-  const { world } = game;
+  // Re-render (and rebuild the scene) when the player goes through a door.
+  const mapId = useIslandUiStore((state) => state.mapId);
+  const world = game.maps.get(mapId) ?? game.world;
+  const background = world.indoor ? INDOOR_BACKGROUND : BACKGROUND_COLOR;
   const { tileSizePx, chunkSizeTiles } = ISLAND_CONFIG.map;
   const atlas = useMemo(() => createIslandAtlas(), []);
   useEffect(() => () => atlas.dispose(), [atlas]);
@@ -59,6 +66,10 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
     () => ({ minX: 0, maxX: mapWidthPx, minY: worldYFromMapPx(mapHeightPx), maxY: 0 }),
     [mapWidthPx, mapHeightPx],
   );
+  const roomArea = useMemo(
+    () => ({ widthPx: mapWidthPx, heightPx: mapHeightPx }),
+    [mapWidthPx, mapHeightPx],
+  );
   const followTarget = useCallback(() => {
     const { x, y } = interpolatedPlayerPosition(game);
     return { x, y: worldYFromMapPx(y - CAMERA_LOOK_ABOVE_FEET_PX) };
@@ -66,11 +77,22 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
 
   return (
     <Canvas flat linear gl={{ antialias: false }} onCreated={exposeRendererInDev}>
-      <color attach="background" args={[BACKGROUND_COLOR]} />
+      <color attach="background" args={[background]} />
       <GameLoop state={game} />
-      <DayNightLighting state={game} lighting={lighting} background={BACKGROUND_COLOR} />
-      <FollowCamera getTarget={followTarget} bounds={bounds} tileSizePx={tileSizePx} />
+      <DayNightLighting
+        key={`light:${mapId}`}
+        state={game}
+        lighting={lighting}
+        background={background}
+      />
+      <FollowCamera
+        getTarget={followTarget}
+        bounds={bounds}
+        tileSizePx={tileSizePx}
+        fitArea={world.indoor ? roomArea : undefined}
+      />
       <Tilemap
+        key={`tiles:${mapId}`}
         world={world}
         atlas={atlas}
         tileSizePx={tileSizePx}
@@ -80,6 +102,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         lighting={lighting}
       />
       <WorldObjects
+        key={`objects:${mapId}`}
         world={world}
         atlas={atlas}
         tileSizePx={tileSizePx}
@@ -87,7 +110,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         lighting={lighting}
       />
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
-      <VillagerSprites state={game} atlas={atlas} lighting={lighting} />
+      {mapId === ISLAND_MAP && <VillagerSprites state={game} atlas={atlas} lighting={lighting} />}
       <InteractPrompt state={game} atlas={atlas} />
     </Canvas>
   );

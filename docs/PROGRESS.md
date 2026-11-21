@@ -17,6 +17,9 @@
   natural paths, leaf-cluster trees + a giant forest tree, a 6×4 reference-style cottage,
   refined explorer with idle breathing, props by the house, stumps and branches, rocky coastal
   ledges, warm palette. The user approved it.
+- **Portfolio roadmap (2026-11-21):** M6 Interiors ✅ done (walk into the cottage; village
+  house doors are locked). **Next: M8** (compact ~96×96 island, default seed, R + dice + Home
+  for everyone), agreed with the user; plan it and wait for OK.
 - **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
   the project is pushed to GitHub `origin/master` (the only branch; `main` no longer exists). Push only
   when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
@@ -82,6 +85,21 @@
 
 ## Session log
 
+### 2026-11-21 — M6 Interiors (portfolio roadmap)
+
+- **Done (D57):** the game holds a set of maps (`GameState.maps`: the island plus every room in
+  `core/world/interiors.ts`). Walking up into a door whose building has `interior` fades out,
+  swaps the map and fades in just inside (`core/systems/doors.ts`, `core/game/mapTravel.ts`);
+  stepping on the doormat goes back out in front of the door. First room: the cottage (14×10:
+  bookshelf, fireplace, bed, floor lamp, rug, table and chairs, plants). New tiles floor, wall,
+  doormat; walls pick upper/lower/top art from their neighbours. Indoors the night is warm
+  lamplight, not blue; the fire and lamp glow. The camera zooms in until the room fills the
+  screen and snaps on door jumps. Village house doors say "It's locked. Someone lives here."
+  (buildings answer only at their door). Villagers only exist on the island map.
+- **Verified:** typecheck, lint, tests, build pass; in the browser: into the cottage, night
+  inside, back out; console clean.
+- **Next:** M8, after the user's OK.
+
 ### 2026-11-21 — New direction: the island becomes Charles's portfolio (discussion)
 
 - **Goal:** the site is an interactive portfolio for Charles, a mobile engineer. Agreed: a
@@ -91,7 +109,7 @@
   studio). Open: whether R is for visitors too. Charles will provide his CV.
 - **Roadmap rewritten** (docs/ROADMAP.md): M5 content, M6 interiors, M7 studio, M8 compact
   island + default seed, M9 guidance, M10 phones + quick view, M11 launch.
-- **Next:** confirm the R question; then plan M5 once the CV arrives.
+- **Decided later:** R (a new island) is for visitors too; M6 first, then M8.
 
 ### 2026-11-21 — Small update (user request)
 

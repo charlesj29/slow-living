@@ -13,12 +13,13 @@ import {
 import { PALETTE } from './palette';
 
 const GLOW = hexToRgba('#ffc861');
+const FIRE = [PALETTE.fire.deep, PALETTE.fire.mid, PALETTE.fire.bright];
 const GLOW_BRIGHT = hexToRgba('#fff0c2');
 
 const sameColor = (a: Rgba, b: Rgba): boolean =>
   a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
 
-/** Glass becomes warm light; the glint pixels become its brightest spot. */
+/** Glass becomes warm light (glints and lamp shades brightest); flames keep their colours. */
 function lightsFor(building: PixelCanvas): PixelCanvas {
   const lights = createPixelCanvas(building.width, building.height);
   for (let y = 0; y < building.height; y++) {
@@ -26,6 +27,9 @@ function lightsFor(building: PixelCanvas): PixelCanvas {
       const pixel = getPixel(building, x, y);
       if (sameColor(pixel, PALETTE.cabin.glass)) setPixel(lights, x, y, GLOW);
       else if (sameColor(pixel, PALETTE.cabin.shine)) setPixel(lights, x, y, GLOW_BRIGHT);
+      else if (sameColor(pixel, PALETTE.lampShade)) setPixel(lights, x, y, GLOW_BRIGHT);
+      // Flames are their own light: shown untinted at night, as painted.
+      else if (FIRE.some((color) => sameColor(pixel, color))) setPixel(lights, x, y, pixel);
     }
   }
   return lights;

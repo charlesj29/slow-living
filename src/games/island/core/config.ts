@@ -182,6 +182,10 @@ export interface IslandConfig {
     /** How quickly the light follows a change of mode (higher = faster). */
     readonly transitionSharpness: number;
   };
+  readonly doors: {
+    /** Each half of a door transition: fading to black, then back in. */
+    readonly fadeSeconds: number;
+  };
   readonly interaction: {
     /** How far past the feet hitbox, in the facing direction, the player can reach. */
     readonly reachPx: number;
@@ -335,6 +339,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     blinkSeconds: 0.14,
   },
   dayNight: { dayLengthSeconds: 720, startTime: 0.33, transitionSharpness: 2.5 },
+  doors: { fadeSeconds: 0.3 },
   interaction: { reachPx: 8 },
   villagers: {
     walkSpeedTilesPerSecond: 1.5,

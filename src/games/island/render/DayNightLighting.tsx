@@ -41,7 +41,7 @@ export function DayNightLighting({ state, lighting, background }: DayNightLighti
 
   useFrame(({ scene }, deltaSeconds) => {
     const mode = useIslandUiStore.getState().dayNightMode;
-    const target = targetLighting(mode, state.timeOfDay);
+    const target = targetLighting(mode, state.timeOfDay, state.world.indoor === true);
     const goal = [...target.tint, target.lights];
     // Start at the right light; afterwards ease towards it.
     const now = (current.current ??= goal);

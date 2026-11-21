@@ -24,7 +24,7 @@ describe('map file round trip', () => {
     expect(loaded.terrain).toEqual(world.terrain);
     expect(loaded.blocked).toEqual(world.blocked);
     expect(loaded.spawn).toEqual(world.spawn);
-    expect(loaded.cabin.kind).toBe('cabin');
+    expect(loaded.cabin?.kind).toBe('cabin');
     const key = (o: { kind: string; x: number; y: number }): string =>
       `${o.kind}@${String(o.x)},${String(o.y)}`;
     expect(loaded.objects.map(key).sort()).toEqual(world.objects.map(key).sort());

@@ -29,7 +29,8 @@ const inHome = (villager: Villager, index: number): boolean => villager.home.has
 
 /** Who else is about: the player (who may block) and the other villagers (who are avoided). */
 export interface Crowd {
-  readonly player: Player;
+  /** Null while the player is indoors. */
+  readonly player: Player | null;
   readonly villagers: readonly Villager[];
 }
 
@@ -199,7 +200,7 @@ export function updateVillager(
     detour(villager, world, crowd, rng, settings, tileSizePx);
     return;
   }
-  if (bumpsInto(villager, [crowd.player], movement)) {
+  if (crowd.player && bumpsInto(villager, [crowd.player], movement)) {
     // The player is in the way: step back and wait; give up if it lasts.
     villager.x = villager.previousX;
     villager.y = villager.previousY;

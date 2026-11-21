@@ -15,6 +15,8 @@ interface GameLoopProps {
 export function GameLoop({ state }: GameLoopProps): null {
   const reportedWalking = useRef(false);
   const shownMessage = useRef<string | null>(null);
+  const shownMap = useRef(state.mapId);
+  const shownDark = useRef(false);
   useFrame((_, deltaSeconds) => {
     advanceGame(state, deltaSeconds, ISLAND_CONFIG);
     // Tell the UI once (not every frame) that the player has started walking.
@@ -27,6 +29,16 @@ export function GameLoop({ state }: GameLoopProps): null {
     if (message !== shownMessage.current) {
       shownMessage.current = message;
       useIslandUiStore.getState().setDialogMessage(message);
+    }
+    // Door transitions: darken while fading out; swap the map (React rebuilds the scene).
+    const dark = state.transition?.phase === 'out';
+    if (dark !== shownDark.current) {
+      shownDark.current = dark;
+      useIslandUiStore.getState().setScreenDark(dark);
+    }
+    if (state.mapId !== shownMap.current) {
+      shownMap.current = state.mapId;
+      useIslandUiStore.getState().setMap(state.mapId);
     }
   }, LOOP_PRIORITY);
   return null;

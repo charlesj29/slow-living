@@ -3,6 +3,7 @@
 // Pure: no Three.js, so the rules are unit-tested.
 import { isInBounds, toIndex, type GridSize } from '@/shared/engine/grid';
 import { cliffPieceKey, type CliffSide } from '../assets/paintCliff';
+import { WALL_PIECES } from '../assets/paintInterior';
 import { getTileDefinition, isLandTile, TileId, type TileDefinition } from '../core/world/tiles';
 
 export interface TerrainView extends GridSize {
@@ -54,6 +55,20 @@ function cliffSideAt(view: TerrainView, x: number, y: number): CliffSide {
   return id === TileId.Cliff ? 'ledge' : id === TileId.Sand ? 'sand' : 'grass';
 }
 
+/**
+ * Walls show their face only where you can see it: just above the floor is
+ * the lower wall (panelling), above that the upper wall (wallpaper, windows);
+ * everywhere else the dark top of the wall.
+ */
+function wallSpriteKey(view: TerrainView, x: number, y: number): string {
+  const below = tileIdAt(view, x, y + 1);
+  const twoBelow = tileIdAt(view, x, y + 2);
+  const isFloor = (id: number | undefined): boolean => id !== undefined && id !== TileId.Wall;
+  if (isFloor(below)) return WALL_PIECES.lower;
+  if (below === TileId.Wall && isFloor(twoBelow)) return WALL_PIECES.upper;
+  return WALL_PIECES.top;
+}
+
 /** A ledge run's ends round off against the grass or beach beside them. */
 function cliffSpriteKey(view: TerrainView, x: number, y: number): string {
   return cliffPieceKey(cliffSideAt(view, x - 1, y), cliffSideAt(view, x + 1, y));
@@ -67,7 +82,12 @@ export function tileLayersAt(
 ): string[] {
   const ownId = tileIdAt(view, x, y) ?? TileId.DeepSea;
   const own = surfaceOf(ownId);
-  const baseKey = ownId === TileId.Cliff ? cliffSpriteKey(view, x, y) : own.spriteKey;
+  const baseKey =
+    ownId === TileId.Cliff
+      ? cliffSpriteKey(view, x, y)
+      : ownId === TileId.Wall
+        ? wallSpriteKey(view, x, y)
+        : own.spriteKey;
   const layers = [sprites.variantAt(baseKey, x, y)];
 
   const higherAt = (dx: number, dy: number): TileDefinition | null => {

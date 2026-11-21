@@ -33,10 +33,13 @@ export interface World {
   readonly occupancy: Int32Array;
   /** 1 where movement is blocked (water, trees, cabin). */
   readonly blocked: Uint8Array;
-  readonly cabin: WorldObject;
+  /** The player's cottage (null in interiors). */
+  readonly cabin: WorldObject | null;
   readonly spawn: TilePoint;
   /** The fenced village, if the world has one. */
   readonly village: Village | null;
+  /** True for rooms: lit by lamps at night instead of turning blue. */
+  readonly indoor?: boolean;
 }
 
 /** The walkable tile directly in front of (below) a building's door. */

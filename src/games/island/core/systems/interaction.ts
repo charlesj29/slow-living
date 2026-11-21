@@ -79,6 +79,9 @@ export function findInteractTarget(
   if (!isInBounds(world, tileX, tileY)) return null;
   const id = world.occupancy[toIndex(world, tileX, tileY)] ?? NO_OBJECT;
   const object = id === NO_OBJECT ? undefined : world.objects[id];
-  const interaction = object ? OBJECT_REGISTRY[object.kind].interaction : undefined;
-  return object && interaction ? { kind: 'object', object, message: interaction.message } : null;
+  if (!object) return null;
+  const { interaction, door } = OBJECT_REGISTRY[object.kind];
+  // A building answers only at its door, not when you face one of its walls.
+  const atDoor = !door || (tileX === object.x + door.x && tileY === object.y + door.y);
+  return interaction && atDoor ? { kind: 'object', object, message: interaction.message } : null;
 }

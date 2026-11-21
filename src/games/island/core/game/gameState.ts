@@ -22,9 +22,26 @@ import { advanceTimeOfDay } from '../systems/dayNight';
 import { findInteractTarget, type Dialog, type InteractTarget } from '../systems/interaction';
 import { movePlayer } from '../systems/movement';
 import { startTalking, updateVillager } from '../systems/wander';
+import type { Transition } from '../systems/doors';
+import { buildInteriorWorld, INTERIORS } from '../world/interiors';
+import { checkDoors, ISLAND_MAP, stepTransition } from './mapTravel';
+
+/** True while the player is outdoors (where the villagers are). */
+export function onIsland(state: GameState): boolean {
+  return state.mapId === ISLAND_MAP;
+}
 
 export interface GameState {
-  readonly world: World;
+  /** The map the player is on now (the island or an interior). */
+  world: World;
+  /** Which map that is: `ISLAND_MAP` or an interior id. */
+  mapId: string;
+  /** The island and every interior, by id. */
+  readonly maps: ReadonlyMap<string, World>;
+  /** A door transition in progress (the player stands still meanwhile). */
+  transition: Transition | null;
+  /** The island tile in front of the door last walked through: where you come back out. */
+  returnPoint: TilePoint | null;
   readonly player: Player;
   readonly input: InputState<IslandAction>;
   readonly clock: FixedStepClock;
@@ -57,8 +74,16 @@ function createVillagers(world: World, tileSizePx: number): Villager[] {
 }
 
 export function createGameState(world: World, config: IslandConfig): GameState {
+  const maps = new Map<string, World>([[ISLAND_MAP, world]]);
+  for (const definition of Object.values(INTERIORS)) {
+    maps.set(definition.id, buildInteriorWorld(definition));
+  }
   return {
     world,
+    mapId: ISLAND_MAP,
+    maps,
+    transition: null,
+    returnPoint: null,
     player: createPlayer(world.spawn, config.map.tileSizePx),
     input: createInputState<IslandAction>(),
     clock: createFixedStepClock(config.loop.stepsPerSecond, config.loop.maxStepsPerFrame),
@@ -88,14 +113,19 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     config.dayNight.dayLengthSeconds,
   );
   stepVillagers(state, stepSeconds, config);
-  if (state.dialog) {
+  if (state.transition) {
+    stepTransition(state, stepSeconds, config);
+    player.moving = false;
+    state.interactTarget = null;
+  } else if (state.dialog) {
     if (consumePress(input, 'interact')) closeDialog(state);
     player.moving = false;
   } else {
     const intent = readMovementIntent(input);
     if (intent.facing) player.facing = intent.facing;
     movePlayer(player, intent, state.world, stepSeconds, config.player, tileSizePx);
-    if (bumpsInto(player, state.villagers, config.player)) {
+    const villagersHere = onIsland(state) ? state.villagers : [];
+    if (bumpsInto(player, villagersHere, config.player)) {
       // Villagers are solid: step back.
       player.x = player.previousX;
       player.y = player.previousY;
@@ -104,11 +134,16 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     state.interactTarget = findInteractTarget(
       state.world,
       player,
-      state.villagers,
+      villagersHere,
       { ...config.player, ...config.interaction, greeting: config.villagers.greeting },
       tileSizePx,
     );
-    if (consumePress(input, 'interact') && state.interactTarget) openDialog(state);
+    if (checkDoors(state, intent, config)) {
+      player.moving = false;
+      state.interactTarget = null;
+    } else if (consumePress(input, 'interact') && state.interactTarget) {
+      openDialog(state);
+    }
   }
   updatePlayerAnimation(player, stepSeconds, config.player, tileSizePx);
   clearPresses(input);
@@ -116,11 +151,13 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
 
 function stepVillagers(state: GameState, stepSeconds: number, config: IslandConfig): void {
   const tileSizePx = config.map.tileSizePx;
-  const crowd = { player: state.player, villagers: state.villagers };
+  // Villagers live on the island; the player only gets in their way when out there too.
+  const crowd = { player: onIsland(state) ? state.player : null, villagers: state.villagers };
+  const island = state.maps.get(ISLAND_MAP) ?? state.world;
   for (const villager of state.villagers) {
     updateVillager(
       villager,
-      state.world,
+      island,
       crowd,
       state.wanderRng,
       stepSeconds,

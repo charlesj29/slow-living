@@ -28,6 +28,14 @@ export const OBJECT_KINDS = [
   'crate',
   'lamp_post',
   'crops',
+  'bed',
+  'table',
+  'chair',
+  'bookshelf',
+  'fireplace',
+  'rug',
+  'plant',
+  'floor_lamp',
   'cabin',
   'house_stone',
   'house_log',
@@ -56,8 +64,13 @@ export interface ObjectDefinition {
   readonly mapColor: string;
   /** Door tile, relative to the top-left of the footprint (buildings only). */
   readonly door?: TilePoint;
-  /** What pressing Space while facing it shows (no reply choices). */
+  /**
+   * What pressing Space while facing it shows (no reply choices). For
+   * buildings (things with a door) only the door answers.
+   */
   readonly interaction?: { readonly message: string };
+  /** Walking into the door leads into this interior (see core/world/interiors.ts). */
+  readonly interior?: string;
   /** Glows at night: lit window panes / lantern glass get a warm overlay. */
   readonly litAtNight?: boolean;
 }
@@ -78,6 +91,7 @@ function house(kind: ObjectKind, name: string, mapColor: string): ObjectDefiniti
     mapColor,
     door: HOUSE_DOOR,
     litAtNight: true,
+    interaction: { message: "It's locked. Someone lives here." },
   };
 }
 
@@ -142,6 +156,25 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   crate: solid('crate', 'Crate', 'structure', '#a87a44'),
   lamp_post: { ...solid('lamp_post', 'Lamp post', 'structure', '#5a4630'), litAtNight: true },
   crops: solid('crops', 'Vegetable patch', 'structure', '#6a8a3a'),
+  // Furniture (interiors). Wall pieces stand on the row in front of the back wall.
+  bed: {
+    ...solid('bed', 'Bed', 'structure', '#c84848', { width: 2, height: 2 }),
+    interaction: { message: 'Looks comfy. Maybe a nap later.' },
+  },
+  table: solid('table', 'Table', 'structure', '#9a6436', { width: 2, height: 1 }),
+  chair: solid('chair', 'Chair', 'structure', '#9a6436'),
+  bookshelf: {
+    ...solid('bookshelf', 'Bookshelf', 'structure', '#7a4a28', { width: 2, height: 1 }),
+    interaction: { message: 'Rows of well-thumbed books.' },
+  },
+  fireplace: {
+    ...solid('fireplace', 'Fireplace', 'structure', '#8c8c94', { width: 2, height: 1 }),
+    interaction: { message: 'The fire crackles softly.' },
+    litAtNight: true,
+  },
+  rug: { ...decoration('rug', 'Rug', 'ground', '#b04a3a'), footprint: { width: 3, height: 2 } },
+  plant: solid('plant', 'Potted plant', 'structure', '#4c8f3e'),
+  floor_lamp: { ...solid('floor_lamp', 'Floor lamp', 'structure', '#e0c070'), litAtNight: true },
   cabin: {
     kind: 'cabin',
     name: 'Cottage',
@@ -151,6 +184,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     spriteKey: 'cabin',
     mapColor: '#8b5a2b',
     door: { x: 2, y: 3 },
+    interior: 'cottage',
     litAtNight: true,
   },
   house_stone: house('house_stone', 'Stone house', '#7c8496'),

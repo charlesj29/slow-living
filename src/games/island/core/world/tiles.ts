@@ -11,6 +11,9 @@ export const TileId = {
   Path: 6,
   Dock: 7,
   Cliff: 8,
+  Floor: 9,
+  Wall: 10,
+  Doormat: 11,
 } as const;
 
 export type TileId = (typeof TileId)[keyof typeof TileId];
@@ -71,6 +74,11 @@ export const TILE_DEFINITIONS: readonly TileDefinition[] = [
   // A rock face where the grass drops to the beach. It paints its own grass lip and
   // beach foot, so it ranks with grass and has no edge art: nothing spills over it.
   tile(TileId.Cliff, 'cliff', 'Rocky ledge', solidGround('#8c7c6c', '^'), 3),
+  // Interiors: wooden floor, walls (drawn by what is next to them), and the
+  // doormat you step onto to go back outside.
+  tile(TileId.Floor, 'floor', 'Wooden floor', ground('#b07a48', 'f'), 0),
+  tile(TileId.Wall, 'wall', 'Wall', solidGround('#6a4a34', 'w'), 0),
+  tile(TileId.Doormat, 'doormat', 'Doormat', ground('#8a3a2a', 'd'), 0),
 ];
 
 export function getTileDefinition(id: number): TileDefinition {

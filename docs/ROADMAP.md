@@ -19,7 +19,7 @@ Agreed with the user (2026-11-21):
 - **Seeds stay**: the island is still generated from a seed. We pick the best-looking seed as
   the default (baked), and **R** generates another island to look at. Every generated island
   always has the village and the studio, so the portfolio is there whatever the seed.
-  _Assumption to confirm: R works for visitors too (today it is dev-only)._
+  R works for visitors too (decided 2026-11-21).
 
 ## Milestones
 
@@ -34,7 +34,7 @@ report.
 - A rich in-game panel for it (title, text, images, links, paging), opened by interactions;
   keyboard and touch friendly. The plain message box stays for short lines.
 
-### M6 — Interiors
+### M6 — Interiors ✅ (2026-11-21, the cottage)
 
 - Walk through a door into a room and back out (fade transition, spawn by the door, camera
   bounds per room). The world becomes "a set of maps" (island + interiors).

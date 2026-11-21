@@ -37,6 +37,11 @@ export const SHADOW_SPECS: Partial<Readonly<Record<ObjectKind, ShadowSpec>>> = {
   haystack: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   crate: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
   lamp_post: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
+  bed: { key: SHADOW_KEYS.large, offsetX: 3, offsetY: -2 },
+  table: { key: SHADOW_KEYS.large, offsetX: 2, offsetY: -1 },
+  chair: { key: SHADOW_KEYS.small, offsetX: 1, offsetY: -1 },
+  plant: { key: SHADOW_KEYS.small, offsetX: 1, offsetY: -1 },
+  floor_lamp: { key: SHADOW_KEYS.small, offsetX: 1, offsetY: -1 },
 };
 
 /** The player's shadow, relative to the bottom of the feet. */

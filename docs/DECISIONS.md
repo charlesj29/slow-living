@@ -647,3 +647,22 @@ alternatives → consequences.
 - **Consequences:** the map-file format gains an optional `village` section (older files load
   without one). Seed 1: the village sits north-west of the cottage, gate on the west (the trail
   runs there); other seeds put it elsewhere with other gates (tested).
+
+## D57 — Interiors: the game is a set of maps
+
+- **Context:** the portfolio needs buildings you can enter (the studio in M7). M6 starts with the
+  cottage; the user chose a locked message for the village houses.
+- **Decision:** an interior is a plain `World` (`indoor: true`, `cabin: null`) built from a small
+  definition in `core/world/interiors.ts` (tile rows, furniture placed as objects, an entry tile).
+  `GameState` keeps all maps (`maps`, `mapId`, a mutable `world`) and a `transition`
+  (fade out → swap map and place the player → fade in, `doors.fadeSeconds`); the player stands
+  still meanwhile. An object kind with `interior` is entered by walking up into its door tile;
+  the island tile in front of the door is remembered and the doormat returns you there, facing
+  down. Rendering keys the tilemap, objects and lighting by map id (rebuilt and disposed on each
+  swap); `GameLoop` mirrors the map id and the dark phase to zustand, and `ui/ScreenFade` fades a
+  black veil by CSS. Indoor lighting blends from neutral day light to warm lamplight by the
+  outdoor lights value. Indoors the camera uses the largest whole pixel scale that still fits
+  the room plus one tile of margin.
+- **Consequences:** rooms are code, not part of the baked map file (they don't depend on the
+  seed). New furniture is ordinary registry objects with painted sprites. Villagers are
+  simulated only against the island map and drawn only there.

@@ -21,7 +21,8 @@ describe('baked island', () => {
   });
 
   it('spawns the player in front of the cabin door', () => {
-    expect(world.spawn).toEqual(getDoorFrontTile(world.cabin));
+    expect(world.cabin).not.toBeNull();
+    if (world.cabin) expect(world.spawn).toEqual(getDoorFrontTile(world.cabin));
   });
 
   it('is the same world on every load', () => {

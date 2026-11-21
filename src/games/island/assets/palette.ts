@@ -91,4 +91,16 @@ export const PALETTE = {
   },
   fence: ramp('#5a4024', '#a88458', '#dcc094', '#ecd6b0', '#f8ecd4'),
   mailbox: { body: c('#d84040'), dark: c('#962828'), light: c('#f07070'), flag: c('#f8d038') },
+  // Interiors.
+  floorWood: ramp('#4e3420', '#7c5432', '#a07042', '#bc8a56', '#d4a46c'),
+  wallpaper: { base: c('#efe0c0'), stripe: c('#e0cca4') },
+  wainscot: { base: c('#8c5e38'), light: c('#ac7a4a'), dark: c('#5e3c22') },
+  wallTop: { base: c('#2e2018'), light: c('#3c2c22') },
+  doormat: { dark: c('#5a2418'), base: c('#9a3a28'), light: c('#c25a3c') },
+  quilt: { dark: c('#8a2a2a'), base: c('#c84444'), light: c('#e06a5a') },
+  rug: { dark: c('#5c2a3a'), base: c('#a8484a'), light: c('#d88a5a') },
+  /** Flames keep their colour at night (they are their own light). */
+  fire: { deep: c('#c84a1c'), mid: c('#f08a2c'), bright: c('#ffd65a') },
+  /** A lamp shade: cream by day, glowing at night. */
+  lampShade: c('#f2e2b4'),
 } as const;

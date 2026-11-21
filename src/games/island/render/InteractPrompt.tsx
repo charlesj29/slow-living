@@ -17,6 +17,8 @@ import { worldYFromMapPx } from './worldSpace';
 /** Above every sprite in the world (they top out near z = 32 on a 192-tile map). */
 const PROMPT_Z = 60;
 const GAP_PX = 2;
+/** Roughly how tall a door is on the building sprites. */
+const DOOR_HEIGHT_PX = 22;
 /** The key bobs one pixel up and down. */
 const BOB_SECONDS = 0.5;
 
@@ -39,7 +41,14 @@ function promptAnchor(
     };
   }
   const { object } = target;
-  const { footprint } = OBJECT_REGISTRY[object.kind];
+  const { footprint, door } = OBJECT_REGISTRY[object.kind];
+  if (door) {
+    // Buildings answer at their door, so the arrow points at the door.
+    return {
+      x: (object.x + door.x + 0.5) * tile,
+      topY: (object.y + door.y + 1) * tile - DOOR_HEIGHT_PX,
+    };
+  }
   const spriteHeight = atlas.frame(objectSpriteKey(state.world, object, atlas)).height;
   return {
     x: (object.x + footprint.width / 2) * tile,

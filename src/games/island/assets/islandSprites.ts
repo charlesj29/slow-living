@@ -4,6 +4,8 @@ import { OBJECT_KINDS, OBJECT_REGISTRY } from '../core/world/objects';
 import { paintCabinSprites } from './paintCabin';
 import { paintCliffSprites } from './paintCliff';
 import { paintDeadwoodSprites } from './paintDeadwood';
+import { paintFurnitureSprites } from './paintFurniture';
+import { paintInteriorSprites } from './paintInterior';
 import { paintHouseSprites } from './paintHouses';
 import { paintWindowLights } from './paintLights';
 import { paintObjectSprites } from './paintObjects';
@@ -26,12 +28,14 @@ export function paintIslandSprites(): SpriteSource[] {
   const sprites = [
     ...paintTileSprites(),
     ...paintCliffSprites(),
+    ...paintInteriorSprites(),
     ...paintTransitionSprites(),
     ...paintObjectSprites(),
     ...paintDeadwoodSprites(),
     ...paintStructureSprites(),
     ...paintPropSprites(),
     ...paintVillagePropSprites(),
+    ...paintFurnitureSprites(),
     ...paintCabinSprites(),
     ...paintHouseSprites(),
     ...paintPlayerSprites(),

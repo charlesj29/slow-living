@@ -15,6 +15,10 @@ export interface IslandUiState {
   readonly isMusicMuted: boolean;
   /** The open interaction message (mirrored from the game state by the loop), or null. */
   readonly dialogMessage: string | null;
+  /** Which map is shown (mirrored from the game state); the canvas rebuilds when it changes. */
+  readonly mapId: string;
+  /** Darkened for a door transition (the overlay fades by CSS). */
+  readonly isScreenDark: boolean;
   /** Day/night: follow the clock, or hold day or night (the top-left button). */
   readonly dayNightMode: DayNightMode;
   toggleDebugOverlay: () => void;
@@ -22,6 +26,8 @@ export interface IslandUiState {
   setMusicMuted: (muted: boolean) => void;
   toggleMusicMuted: () => void;
   setDialogMessage: (message: string | null) => void;
+  setMap: (mapId: string) => void;
+  setScreenDark: (dark: boolean) => void;
   setDayNightMode: (mode: DayNightMode) => void;
   /** Auto → Always day → Always night → Auto. */
   cycleDayNightMode: () => void;
@@ -32,6 +38,8 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   hasStartedWalking: false,
   isMusicMuted: false,
   dialogMessage: null,
+  mapId: 'island',
+  isScreenDark: false,
   dayNightMode: 'auto',
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
@@ -47,6 +55,12 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   setDialogMessage: (message) => {
     set({ dialogMessage: message });
+  },
+  setMap: (mapId) => {
+    set({ mapId });
+  },
+  setScreenDark: (dark) => {
+    set({ isScreenDark: dark });
   },
   setDayNightMode: (mode) => {
     set({ dayNightMode: mode });
