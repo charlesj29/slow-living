@@ -14,7 +14,7 @@ import { createRng, type Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import { createPlayer, type Player } from '../entities/player';
 import { bumpsInto, createVillager, type Villager } from '../entities/villager';
-import { villagerSpawns, villageWanderArea } from '../world/village';
+import { villagerSpawns, villageTiles } from '../world/village';
 import type { World } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
@@ -49,8 +49,8 @@ const VILLAGER_LOOKS = 3;
 const WANDER_SEED_SALT = 0x5a11;
 
 function createVillagers(world: World, tileSizePx: number): Villager[] {
-  const home = villageWanderArea(world);
-  if (!home) return [];
+  if (!world.village) return [];
+  const home = villageTiles(world.village, world);
   return villagerSpawns(world).map((spawn, id) =>
     createVillager(id, id % VILLAGER_LOOKS, spawn, home, tileSizePx),
   );

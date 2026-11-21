@@ -66,6 +66,9 @@
   the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
   the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
 - Background music composed in code (no files, no licences); mute button top-left plus M.
+- The village is generated per seed: an irregular fenced outline, 2–3 tiles of space before
+  the fence, the gate on the side facing the nearest trail; villagers are three new characters
+  (farmer, girl, baker).
 - A small fenced village north-west of the cottage (gate onto the trail): 3 houses 5 tiles wide
   around a green (stone/slate, log/moss, plaster/thatch), a well, haystacks, lamp posts that
   glow at night, a vegetable patch, flower pots, crates, barrels, stumps; 3 villagers who wander
@@ -78,6 +81,18 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Random village outline and new villagers (user request)
+
+- **Done (D56):** `generation/villagePlan.ts` (random size, notched corners, fence, spread-out
+  houses with a 2–3 tile gap); `placeVillage` rewritten (best site, gate towards the nearest
+  trail, A* door paths, rule-based decorations with a reachability check); `World.village`
+  (interior spans + gate) in the map file; villagers walk the recorded interior; three new
+  villager characters in `assets/villagerParts.ts` via a generalised `buildCharacterMaps`.
+- **Verified:** typecheck, lint, 321 tests (new: fence encloses the inside with one gate on a
+  path, houses keep 2+ tiles from the fence, no decoration on a path, outline and gate side vary
+  across seeds, deterministic per seed), build pass; browser: seed 1 plus dev previews of seeds
+  7 and 13 (different outlines and gate sides); villager sprite sheets checked; console clean.
 
 ### 2026-11-21 — Village improvements (user request)
 

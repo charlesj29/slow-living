@@ -38,6 +38,7 @@ function toWorld(context: GenerationContext, requestedSeed: number): World {
     blocked: computeBlockedMask(size, context.terrain, context.objects),
     cabin,
     spawn,
+    village: context.village,
   };
 }
 

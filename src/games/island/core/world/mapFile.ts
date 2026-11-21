@@ -31,6 +31,11 @@ export interface MapFile {
   readonly widthChunks: number;
   readonly heightChunks: number;
   readonly spawn: readonly [x: number, y: number];
+  /** Optional: the village's inside (row spans [y, left, right]) and gate [x, y]. */
+  readonly village?: {
+    readonly interior: readonly (readonly [number, number, number])[];
+    readonly gate: readonly [x: number, y: number];
+  };
   readonly chunks: readonly MapFileChunk[];
 }
 
@@ -67,6 +72,14 @@ export function worldToMapFile(world: World, name: string, chunkSize: number): M
     widthChunks,
     heightChunks,
     spawn: [world.spawn.x, world.spawn.y],
+    ...(world.village
+      ? {
+          village: {
+            interior: world.village.interior,
+            gate: [world.village.gate.x, world.village.gate.y] as const,
+          },
+        }
+      : {}),
     chunks,
   };
 }
@@ -98,6 +111,16 @@ export function formatMapFile(map: MapFile): string {
     `  "widthChunks": ${json(map.widthChunks)},`,
     `  "heightChunks": ${json(map.heightChunks)},`,
     `  "spawn": ${json(map.spawn)},`,
+    ...(map.village
+      ? [
+          `  "village": {`,
+          `    "gate": ${json(map.village.gate)},`,
+          `    "interior": [`,
+          map.village.interior.map((span) => `      ${json(span)}`).join(',\n'),
+          `    ]`,
+          `  },`,
+        ]
+      : []),
     `  "chunks": [\n${chunkText.join(',\n')}\n  ]`,
     `}`,
     ``,

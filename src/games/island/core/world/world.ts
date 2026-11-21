@@ -1,5 +1,6 @@
 import type { TilePoint } from '@/shared/engine/grid';
 import { OBJECT_REGISTRY, type ObjectKind } from './objects';
+import type { Village } from './village';
 
 /** Marks a tile with no object in `World.occupancy`. */
 export const NO_OBJECT = -1;
@@ -34,6 +35,8 @@ export interface World {
   readonly blocked: Uint8Array;
   readonly cabin: WorldObject;
   readonly spawn: TilePoint;
+  /** The fenced village, if the world has one. */
+  readonly village: Village | null;
 }
 
 /** The walkable tile directly in front of (below) a building's door. */

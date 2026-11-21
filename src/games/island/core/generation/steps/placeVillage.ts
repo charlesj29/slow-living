@@ -6,176 +6,417 @@ import {
   type GridSize,
   type TilePoint,
 } from '@/shared/engine/grid';
-import { OBJECT_REGISTRY } from '../../world/objects';
+import { findPath } from '@/shared/engine/pathfinding';
+import type { Rng } from '@/shared/engine/random';
+import { OBJECT_REGISTRY, type ObjectKind } from '../../world/objects';
 import { TileId } from '../../world/tiles';
-import { VILLAGE_LAYOUT, type TileArea } from '../../world/village';
+import { spansOf } from '../../world/village';
 import { getDoorFrontTile, NO_OBJECT, type WorldObject } from '../../world/world';
-import type { GenerationContext, GenerationStep } from '../context';
-import { addObject, objectLayerWithout } from '../objectLayer';
+import { createStepRng, type GenerationContext, type GenerationStep } from '../context';
+import { addObject, objectLayerWithout, type ObjectLayer } from '../objectLayer';
+import { planVillage, shuffled, type VillagePlan } from '../villagePlan';
 
-/** Keep a tile of clear ground all round the village. */
-const MARGIN = 1;
+/** Path tiles already laid are cheaper, so door paths merge into one network. */
+const SHARED_PATH_COST = 0.3;
+/** Lamps stand at least this far apart (and from the gate). */
+const LAMP_SPACING = 4;
 
-function areaAt(origin: TilePoint, margin: number): TileArea {
-  return {
-    left: origin.x - margin,
-    top: origin.y - margin,
-    right: origin.x + VILLAGE_LAYOUT.width - 1 + margin,
-    bottom: origin.y + VILLAGE_LAYOUT.height - 1 + margin,
-  };
+interface Site {
+  readonly x: number;
+  readonly y: number;
 }
 
-function forEachTile(area: TileArea, visit: (x: number, y: number) => void): void {
-  for (let y = area.top; y <= area.bottom; y++) {
-    for (let x = area.left; x <= area.right; x++) visit(x, y);
-  }
-}
-
-/**
- * Inside the fence: free grass only (a trail must not be fenced off). The
- * margin round it may also be trail (trail tiles are reserved, which is fine
- * there). No water, beach, ledge or cottage yard anywhere.
- */
-function isClearSite(context: GenerationContext, origin: TilePoint): boolean {
-  const inner = areaAt(origin, 0);
-  let clear = true;
-  forEachTile(areaAt(origin, MARGIN), (x, y) => {
-    if (!clear) return;
-    if (!isInBounds(context.size, x, y)) {
-      clear = false;
-      return;
+/** Summed-area table: any rectangle's total in O(1). */
+function prefixSums(size: GridSize, value: (index: number) => number): Int32Array {
+  const w = size.width + 1;
+  const sums = new Int32Array(w * (size.height + 1));
+  for (let y = 0; y < size.height; y++) {
+    for (let x = 0; x < size.width; x++) {
+      sums[(y + 1) * w + x + 1] =
+        value(y * size.width + x) +
+        (sums[y * w + x + 1] ?? 0) +
+        (sums[(y + 1) * w + x] ?? 0) -
+        (sums[y * w + x] ?? 0);
     }
-    const index = toIndex(context.size, x, y);
-    const id = context.terrain[index];
-    const freeGrass = id === TileId.Grass && context.reserved[index] === 0;
-    const isInner = x >= inner.left && x <= inner.right && y >= inner.top && y <= inner.bottom;
-    clear = freeGrass || (!isInner && id === TileId.Path);
-  });
-  for (const house of VILLAGE_LAYOUT.houses) {
-    const { footprint } = OBJECT_REGISTRY[house.kind];
-    forEachTile(
-      {
-        left: origin.x + house.x,
-        top: origin.y + house.y,
-        right: origin.x + house.x + footprint.width - 1,
-        bottom: origin.y + house.y + footprint.height - 1,
-      },
-      (x, y) => {
-        clear &&= context.terrain[toIndex(context.size, x, y)] === TileId.Grass;
-      },
-    );
   }
-  return clear;
+  return sums;
 }
 
-function intersects(object: WorldObject, area: TileArea): boolean {
-  const { footprint } = OBJECT_REGISTRY[object.kind];
+function rectSum(
+  sums: Int32Array,
+  size: GridSize,
+  left: number,
+  top: number,
+  right: number,
+  bottom: number,
+): number {
+  const w = size.width + 1;
   return (
-    object.x <= area.right &&
-    object.x + footprint.width - 1 >= area.left &&
-    object.y <= area.bottom &&
-    object.y + footprint.height - 1 >= area.top
+    (sums[(bottom + 1) * w + right + 1] ?? 0) -
+    (sums[top * w + right + 1] ?? 0) -
+    (sums[(bottom + 1) * w + left] ?? 0) +
+    (sums[top * w + left] ?? 0)
   );
 }
 
 /**
- * Breadth-first from `start` across tiles `canCross` allows, to the nearest
- * tile `isGoal` accepts. Returns the route (start first, goal excluded), or null.
+ * The best spot near the cottage: the village's grid must be free grass and
+ * the tile round it grass or trail; closer is better, and so is clearing
+ * fewer trees and rocks (the rest of the island stays as it was).
  */
-function shortestRouteTo(
-  size: GridSize,
-  start: number,
-  isGoal: (index: number) => boolean,
-  canCross: (index: number) => boolean,
-): number[] | null {
-  if (isGoal(start)) return [];
-  if (!canCross(start)) return null;
+function findSite(context: GenerationContext, plan: VillagePlan): Site | null {
+  const { size, terrain, reserved, occupancy, config, cabin } = context;
+  if (!cabin) return null;
+  const freeGrass = (i: number): number =>
+    terrain[i] === TileId.Grass && reserved[i] === 0 ? 1 : 0;
+  const edgeOk = (i: number): number => (freeGrass(i) || terrain[i] === TileId.Path ? 1 : 0);
+  const grassSums = prefixSums(size, freeGrass);
+  const edgeSums = prefixSums(size, edgeOk);
+  const objectSums = prefixSums(size, (i) => (occupancy[i] !== NO_OBJECT ? 1 : 0));
+  const door = getDoorFrontTile(cabin);
+  const radius = config.village.searchRadiusTiles;
+  const ringArea = (plan.width + 2) * (plan.height + 2);
+  let best: Site | null = null;
+  let bestScore = Infinity;
+  for (let y = door.y - radius; y <= door.y + radius; y++) {
+    for (let x = door.x - radius; x <= door.x + radius; x++) {
+      const right = x + plan.width - 1;
+      const bottom = y + plan.height - 1;
+      if (!isInBounds(size, x - 1, y - 1) || !isInBounds(size, right + 1, bottom + 1)) continue;
+      if (rectSum(grassSums, size, x, y, right, bottom) !== plan.width * plan.height) continue;
+      if (rectSum(edgeSums, size, x - 1, y - 1, right + 1, bottom + 1) !== ringArea) continue;
+      const cleared = rectSum(objectSums, size, x - 1, y - 1, right + 1, bottom + 1);
+      const distance = Math.hypot(x + plan.width / 2 - door.x, y + plan.height / 2 - door.y);
+      const score = distance + cleared * config.village.clearedObjectCost;
+      if (score < bestScore) {
+        bestScore = score;
+        best = { x, y };
+      }
+    }
+  }
+  return best;
+}
+
+/** Steps from every existing trail tile across open grass (ignoring the village site). */
+function trailDistances(
+  context: GenerationContext,
+  layer: ObjectLayer,
+  isSite: (i: number) => boolean,
+): Int32Array {
+  const { size, terrain } = context;
+  const distance = new Int32Array(terrain.length).fill(-1);
+  const queue: number[] = [];
+  terrain.forEach((id, i) => {
+    if ((id === TileId.Path || id === TileId.Dock) && !isSite(i)) {
+      distance[i] = 0;
+      queue.push(i);
+    }
+  });
+  for (const current of queue) {
+    forEachNeighbor(size, current, CARDINAL_DIRECTIONS, (next) => {
+      if ((distance[next] ?? 0) !== -1 || isSite(next)) return;
+      if (terrain[next] !== TileId.Grass || layer.occupancy[next] !== NO_OBJECT) return;
+      distance[next] = (distance[current] ?? 0) + 1;
+      queue.push(next);
+    });
+  }
+  return distance;
+}
+
+/** Breadth-first from `start` to the nearest existing trail: the new tiles to lay (start first). */
+function routeToTrail(context: GenerationContext, layer: ObjectLayer, start: number): number[] {
+  const { size, terrain } = context;
+  if (terrain[start] === TileId.Path) return [];
   const cameFrom = new Map<number, number>([[start, -1]]);
   const queue = [start];
-  // The queue grows while it is walked, which a for-of loop over an array follows.
   for (const current of queue) {
-    let found = -1;
-    forEachNeighbor(size, current, CARDINAL_DIRECTIONS, (next) => {
-      if (found !== -1 || cameFrom.has(next)) return;
-      if (isGoal(next)) {
-        found = current;
-        return;
+    if (terrain[current] === TileId.Path) {
+      const route: number[] = [];
+      for (let step = cameFrom.get(current) ?? -1; step !== -1; step = cameFrom.get(step) ?? -1) {
+        route.push(step);
       }
-      if (!canCross(next)) return;
+      return route.reverse();
+    }
+    forEachNeighbor(size, current, CARDINAL_DIRECTIONS, (next) => {
+      if (cameFrom.has(next) || layer.occupancy[next] !== NO_OBJECT) return;
+      const id = terrain[next];
+      if (id !== TileId.Grass && id !== TileId.Path) return;
       cameFrom.set(next, current);
       queue.push(next);
     });
-    if (found !== -1) {
-      const route: number[] = [];
-      for (let step = found; step !== -1; step = cameFrom.get(step) ?? -1) route.push(step);
-      return route.reverse();
+  }
+  return [];
+}
+
+interface Gate {
+  readonly tile: number;
+  /** The tiles just inside and just outside it. */
+  readonly inside: number;
+  readonly outside: number;
+}
+
+/** A straight stretch of fence (inside on one side, open ground on the other) nearest a trail. */
+function chooseGate(
+  rng: Rng,
+  size: GridSize,
+  fenceTiles: readonly number[],
+  insideSet: ReadonlySet<number>,
+  trailDistance: Int32Array,
+): Gate | null {
+  const fence = new Set(fenceTiles);
+  let best: Gate | null = null;
+  let bestDistance = Infinity;
+  for (const tile of shuffled(rng, fenceTiles)) {
+    const x = tile % size.width;
+    const y = Math.floor(tile / size.width);
+    for (const { x: dx, y: dy } of CARDINAL_DIRECTIONS) {
+      const inside = toIndex(size, x + dx, y + dy);
+      const outside = toIndex(size, x - dx, y - dy);
+      if (!insideSet.has(inside) || insideSet.has(outside) || fence.has(outside)) continue;
+      const distance = trailDistance[outside] ?? -1;
+      if (distance >= 0 && distance < bestDistance) {
+        bestDistance = distance;
+        best = { tile, inside, outside };
+      }
     }
   }
-  return null;
+  return best;
 }
 
 /**
- * The village: a fenced square with three houses around a green and its
- * decorations, at the first clear spot among `village.offsets` near the
- * cottage. Runs after the forests, clearing only its own patch (so the rest of
- * the island is untouched), then joins the gate to the nearest existing trail
- * with a short new stretch of path.
+ * The village: an irregular fenced patch near the cottage (its size and
+ * outline vary per seed) with three houses, open grass between them and the
+ * fence, a gate on the side facing the nearest trail, paths from every door
+ * to the gate and on to the trail, and decorations. Runs after the forests,
+ * clearing only its own patch, so the rest of the island stays as it was.
  */
 export const placeVillage: GenerationStep = (context) => {
   const { cabin, config, size } = context;
   if (!cabin) return context;
-  const origin = config.village.offsets
-    .map((offset) => ({ x: cabin.x + offset.x, y: cabin.y + offset.y }))
-    .find((candidate) => isClearSite(context, candidate));
-  if (!origin) return context;
-
-  const site = areaAt(origin, MARGIN);
-  const layer = objectLayerWithout(context, (object) => intersects(object, site));
-  const houses = VILLAGE_LAYOUT.houses.map((house) =>
-    addObject(layer, house.kind, origin.x + house.x, origin.y + house.y),
-  );
-  for (const prop of VILLAGE_LAYOUT.props) {
-    addObject(layer, prop.kind, origin.x + prop.x, origin.y + prop.y);
+  const rng = createStepRng(context, 'placeVillage');
+  let plan: VillagePlan | null = null;
+  let site: Site | null = null;
+  for (let attempt = 0; attempt < config.village.shapeAttempts && !site; attempt++) {
+    plan = planVillage(rng, config.village);
+    site = plan ? findSite(context, plan) : null;
   }
-  // The fence round the edge, open at the gate.
-  const fence = areaAt(origin, 0);
-  const gate = { x: origin.x + VILLAGE_LAYOUT.gate.x, y: origin.y + VILLAGE_LAYOUT.gate.y };
-  forEachTile(fence, (x, y) => {
-    const onEdge = x === fence.left || x === fence.right || y === fence.top || y === fence.bottom;
-    if (onEdge && !(x === gate.x && y === gate.y)) addObject(layer, 'fence', x, y);
-  });
+  if (!plan || !site) return context;
+  const origin = site;
+  const local = plan;
 
+  // The plan's local grid on the island.
+  const at = (lx: number, ly: number): number => toIndex(size, origin.x + lx, origin.y + ly);
+  const insideSet = new Set<number>();
+  const fenceTiles: number[] = [];
+  const distanceToFence = new Map<number, number>();
+  for (let ly = 0; ly < local.height; ly++) {
+    for (let lx = 0; lx < local.width; lx++) {
+      const li = ly * local.width + lx;
+      if (local.inside[li]) insideSet.add(at(lx, ly));
+      if (local.fence[li]) fenceTiles.push(at(lx, ly));
+      const d = local.fenceDistance[li] ?? -1;
+      if (d > 0) distanceToFence.set(at(lx, ly), d);
+    }
+  }
+  const inGrid = (i: number, margin: number): boolean => {
+    const x = (i % size.width) - origin.x;
+    const y = Math.floor(i / size.width) - origin.y;
+    return x >= -margin && y >= -margin && x < local.width + margin && y < local.height + margin;
+  };
+  /** The grid plus a one-tile margin: everything the village clears and reserves. */
+  const isSite = (i: number): boolean => inGrid(i, 1);
+  /** Inside and fence only: the trail search may cross the margin round it. */
+  const isFenced = (i: number): boolean => inGrid(i, 0);
+
+  const layer = objectLayerWithout(context, (object) => {
+    const { footprint } = OBJECT_REGISTRY[object.kind];
+    for (let dy = 0; dy < footprint.height; dy++) {
+      for (let dx = 0; dx < footprint.width; dx++) {
+        if (isSite(toIndex(size, object.x + dx, object.y + dy))) return true;
+      }
+    }
+    return false;
+  });
+  const houses = local.houses.map((h) => addObject(layer, h.kind, origin.x + h.x, origin.y + h.y));
+
+  const gate = chooseGate(
+    rng,
+    size,
+    fenceTiles,
+    insideSet,
+    trailDistances(context, layer, isFenced),
+  );
+  if (!gate) return context;
+  for (const tile of fenceTiles) {
+    if (tile !== gate.tile)
+      addObject(layer, 'fence', tile % size.width, Math.floor(tile / size.width));
+  }
+
+  // Paths: every door to the gate (merging into one network), then out to the trail.
   const terrain = context.terrain.slice();
   const reserved = context.reserved.slice();
-  forEachTile(site, (x, y) => (reserved[toIndex(size, x, y)] = 1));
-  const laneY = origin.y + VILLAGE_LAYOUT.laneRow;
-  // From the gate to the last tile inside the right fence.
-  for (let x = gate.x; x < origin.x + VILLAGE_LAYOUT.width - 1; x++) {
-    terrain[toIndex(size, x, laneY)] = TileId.Path;
-  }
-  for (const house of houses) {
+  const pathTiles = new Set<number>([gate.tile]);
+  const doorFronts = houses.map((house) => {
     const front = getDoorFrontTile(house);
-    for (let y = front.y; y < laneY; y++) terrain[toIndex(size, front.x, y)] = TileId.Path;
+    return toIndex(size, front.x, front.y);
+  });
+  const stepCost = (i: number): number => {
+    if (!insideSet.has(i) || layer.occupancy[i] !== NO_OBJECT) return Infinity;
+    return pathTiles.has(i) ? SHARED_PATH_COST : 1;
+  };
+  for (const front of doorFronts) {
+    const route = findPath(size, front, gate.inside, stepCost, SHARED_PATH_COST) ?? [];
+    for (const i of route) pathTiles.add(i);
   }
-
-  // Join the gate to the nearest existing trail (they all lead to the cottage door).
-  // Trail from before the village (the new lane isn't in `context.terrain` yet).
-  const isTrail = (index: number): boolean => context.terrain[index] === TileId.Path;
-  const canCross = (index: number): boolean =>
-    layer.occupancy[index] === NO_OBJECT && terrain[index] === TileId.Grass;
-  const route = shortestRouteTo(size, toIndex(size, gate.x - 1, gate.y), isTrail, canCross);
-  for (const index of route ?? []) {
-    if (terrain[index] === TileId.Grass) terrain[index] = TileId.Path;
-    reserved[index] = 1;
+  for (const i of routeToTrail(context, layer, gate.outside)) {
+    pathTiles.add(i);
+    reserved[i] = 1;
   }
+  for (const i of pathTiles) terrain[i] = TileId.Path;
 
-  const newCabin = layer.objects.find((object) => object.kind === 'cabin') ?? cabin;
+  decorate(rng, {
+    size,
+    layer,
+    insideSet,
+    distanceToFence,
+    pathTiles,
+    doorFronts,
+    gateInside: gate.inside,
+    houses,
+    lampPosts: config.village.lampPosts,
+  });
+
+  for (let ly = -1; ly <= local.height; ly++) {
+    for (let lx = -1; lx <= local.width; lx++) reserved[at(lx, ly)] = 1;
+  }
+  const tiles = [...insideSet].map((i) => ({ x: i % size.width, y: Math.floor(i / size.width) }));
   return {
     ...context,
     terrain,
     reserved,
     objects: layer.objects,
     occupancy: layer.occupancy,
-    cabin: newCabin,
+    cabin: layer.objects.find((object) => object.kind === 'cabin') ?? cabin,
+    village: {
+      interior: spansOf(tiles),
+      gate: { x: gate.tile % size.width, y: Math.floor(gate.tile / size.width) },
+    },
   };
 };
+
+interface DecorContext {
+  readonly size: GridSize;
+  readonly layer: ObjectLayer;
+  readonly insideSet: ReadonlySet<number>;
+  readonly distanceToFence: ReadonlyMap<number, number>;
+  readonly pathTiles: ReadonlySet<number>;
+  readonly doorFronts: readonly number[];
+  readonly gateInside: number;
+  readonly houses: readonly WorldObject[];
+  readonly lampPosts: number;
+}
+
+/**
+ * Decorations, by rule: a well near the middle, pots by the doors, a barrel
+ * or crate beside each house, lamps along the paths, a vegetable patch,
+ * haystacks near the fence and a few stumps. Never on a path or right by the
+ * fence, and each is only kept if every door can still be reached.
+ */
+function decorate(rng: Rng, d: DecorContext): void {
+  const { size, layer } = d;
+  const point = (i: number): TilePoint => ({ x: i % size.width, y: Math.floor(i / size.width) });
+  const footprintTiles = (kind: ObjectKind, x: number, y: number): number[] => {
+    const { footprint } = OBJECT_REGISTRY[kind];
+    const tiles: number[] = [];
+    for (let dy = 0; dy < footprint.height; dy++) {
+      for (let dx = 0; dx < footprint.width; dx++) tiles.push(toIndex(size, x + dx, y + dy));
+    }
+    return tiles;
+  };
+  const free = (i: number): boolean =>
+    d.insideSet.has(i) &&
+    !d.pathTiles.has(i) &&
+    layer.occupancy[i] === NO_OBJECT &&
+    (d.distanceToFence.get(i) ?? 0) >= 2;
+  const stillReachable = (blocked: readonly number[]): boolean => {
+    const extra = new Set(blocked);
+    const seen = new Set([d.gateInside]);
+    const queue = [d.gateInside];
+    for (const current of queue) {
+      forEachNeighbor(size, current, CARDINAL_DIRECTIONS, (next) => {
+        if (seen.has(next) || !d.insideSet.has(next) || extra.has(next)) return;
+        if (layer.occupancy[next] !== NO_OBJECT) return;
+        seen.add(next);
+        queue.push(next);
+      });
+    }
+    return d.doorFronts.every((front) => seen.has(front));
+  };
+  const place = (kind: ObjectKind, x: number, y: number): boolean => {
+    const tiles = footprintTiles(kind, x, y);
+    if (!tiles.every(free)) return false;
+    if (OBJECT_REGISTRY[kind].blocksMovement && !stillReachable(tiles)) return false;
+    addObject(layer, kind, x, y);
+    return true;
+  };
+  const freeTiles = (): number[] => [...d.insideSet].filter(free);
+
+  // The well: as near the middle of the village as there's room.
+  const inside = [...d.insideSet].map(point);
+  const cx = inside.reduce((sum, p) => sum + p.x, 0) / Math.max(1, inside.length);
+  const cy = inside.reduce((sum, p) => sum + p.y, 0) / Math.max(1, inside.length);
+  const byCentre = freeTiles()
+    .map(point)
+    .sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
+  for (const p of byCentre) if (place('well', p.x, p.y)) break;
+
+  // Pots either side of each door step; a barrel or crate beside each house.
+  d.houses.forEach((house, n) => {
+    const front = getDoorFrontTile(house);
+    place('flower_pot', front.x - 1, front.y);
+    place('flower_pot', front.x + 1, front.y);
+    const { footprint } = OBJECT_REGISTRY[house.kind];
+    const side = rng.chance(0.5) ? house.x - 1 : house.x + footprint.width;
+    place(n % 2 === 0 ? 'barrel' : 'crate', side, house.y + footprint.height - 1);
+  });
+
+  // Lamps beside the paths, spread out (and not crowding the gate).
+  const lamps: TilePoint[] = [point(d.gateInside)];
+  const besidePath = shuffled(rng, freeTiles()).filter((i) => {
+    let touches = false;
+    forEachNeighbor(size, i, CARDINAL_DIRECTIONS, (n) => (touches ||= d.pathTiles.has(n)));
+    return touches;
+  });
+  for (const i of besidePath) {
+    if (lamps.length > d.lampPosts) break;
+    const p = point(i);
+    if (lamps.some((l) => Math.max(Math.abs(l.x - p.x), Math.abs(l.y - p.y)) < LAMP_SPACING)) {
+      continue;
+    }
+    if (place('lamp_post', p.x, p.y)) lamps.push(p);
+  }
+
+  // A 3×2 vegetable patch somewhere free.
+  for (const i of shuffled(rng, freeTiles())) {
+    const p = point(i);
+    const tiles = [0, 1, 2].flatMap((dx) => [0, 1].map((dy) => toIndex(size, p.x + dx, p.y + dy)));
+    if (!tiles.every(free) || !stillReachable(tiles)) continue;
+    for (const t of tiles) addObject(layer, 'crops', t % size.width, Math.floor(t / size.width));
+    break;
+  }
+
+  // Haystacks near the fence, then a few stumps anywhere free.
+  let stacks = 0;
+  for (const i of shuffled(rng, freeTiles())) {
+    if (stacks >= 2) break;
+    if (d.distanceToFence.get(i) !== 2) continue;
+    const p = point(i);
+    if (place('haystack', p.x, p.y)) stacks++;
+  }
+  let stumps = 0;
+  for (const i of shuffled(rng, freeTiles())) {
+    if (stumps >= 2) break;
+    const p = point(i);
+    if (place('stump', p.x, p.y)) stumps++;
+  }
+}

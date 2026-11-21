@@ -3,6 +3,7 @@ import { cellCount } from '@/shared/engine/grid';
 import { createRng, deriveSeed, type Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import { TileId } from '../world/tiles';
+import type { Village } from '../world/village';
 import { NO_OBJECT, type WorldObject } from '../world/world';
 
 /**
@@ -27,6 +28,7 @@ export interface GenerationContext {
   readonly dockRoot: TilePoint | null;
   readonly cabin: WorldObject | null;
   readonly spawn: TilePoint | null;
+  readonly village: Village | null;
 }
 
 export type GenerationStep = (context: GenerationContext) => GenerationContext;
@@ -47,6 +49,7 @@ export function createInitialContext(seed: number, config: IslandConfig): Genera
     dockRoot: null,
     cabin: null,
     spawn: null,
+    village: null,
   };
 }
 

@@ -626,3 +626,24 @@ alternatives → consequences.
 - **Consequences:** the fenced interior must be clear grass (trail may only touch the margin).
   Re-bake: the village sits north-west of the cottage, the gate on the trail bend; 6 rocks, 3
   bushes and 1 small tree cleared in its patch; the rest of the island is unchanged.
+
+## D56 — Random irregular village; three new villager characters
+
+- **Context:** the user found the village always square with the gate on the left (on every
+  seed), wanted 2–3 tiles of space before the fence, and new villager characters instead of
+  recoloured explorers. Choices: an irregular outline; the gate towards the nearest trail.
+- **Decision:** `generation/villagePlan.ts` plans per seed: an interior of random size with up to
+  two notched corners (sometimes an L), the fence traced round it, houses spread out at spots
+  whose footprint and roof keep a 2–3 tile gap (diagonal distance) from the fence. `placeVillage`
+  finds the best spot near the cottage with summed-area tables (all free grass, edge grass or
+  trail, fewest objects cleared), puts the gate on the straight fence stretch nearest an existing
+  trail, lays door paths with A* (merging) and decorates by rule, keeping each decoration only
+  if every door stays reachable. The world records `village` (interior row spans + gate), saved
+  as an optional map-file section, because the outline can no longer be derived. Villagers walk
+  that recorded interior. The villagers are three new characters (`assets/villagerParts.ts`): a
+  farmer (straw hat, beard, overalls), a girl (red braids, dress, apron) and a baker (chef hat,
+  moustache, apron), with their own heads and clothes on the shared body geometry, built by the
+  same `buildCharacterMaps` as the explorer (the backpack removed, outline repaired).
+- **Consequences:** the map-file format gains an optional `village` section (older files load
+  without one). Seed 1: the village sits north-west of the cottage, gate on the west (the trail
+  runs there); other seeds put it elsewhere with other gates (tested).

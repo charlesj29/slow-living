@@ -25,11 +25,7 @@ export interface WanderSettings {
 const ARRIVE_PX = 0.75;
 const TRIES_PER_PICK = 8;
 
-const inHome = (villager: Villager, x: number, y: number): boolean =>
-  x >= villager.home.left &&
-  x <= villager.home.right &&
-  y >= villager.home.top &&
-  y <= villager.home.bottom;
+const inHome = (villager: Villager, index: number): boolean => villager.home.has(index);
 
 /** Who else is about: the player (who may block) and the other villagers (who are avoided). */
 export interface Crowd {
@@ -84,20 +80,15 @@ function planRoute(
   const occupied = occupiedTiles(villager, crowd, world, tileSizePx);
   const target = goal ? toIndex(world, goal.x, goal.y) : -1;
   const stepCost = (index: number): number => {
-    const { x, y } = toPoint(world, index);
-    if (!inHome(villager, x, y) || world.blocked[index] !== 0) return Infinity;
+    if (!inHome(villager, index) || world.blocked[index] !== 0) return Infinity;
     return occupied.has(index) && index !== target ? Infinity : 1;
   };
   const taken = heldGoals(villager, crowd, world);
   const candidates = goal
     ? [target]
-    : Array.from({ length: TRIES_PER_PICK }, () =>
-        toIndex(
-          world,
-          rng.int(villager.home.left, villager.home.right),
-          rng.int(villager.home.top, villager.home.bottom),
-        ),
-      ).filter((index) => !taken.has(index) && !occupied.has(index));
+    : Array.from({ length: TRIES_PER_PICK }, () => rng.pick(villager.homeTiles)).filter(
+        (index) => !taken.has(index) && !occupied.has(index),
+      );
   for (const candidate of candidates) {
     if (candidate === start || !Number.isFinite(stepCost(candidate))) continue;
     const route = findPath(world, start, candidate, stepCost);

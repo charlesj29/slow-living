@@ -1,5 +1,6 @@
-// Assembles the player's body parts (playerPixels.ts) into animation strips,
-// laid out as `PLAYER_FRAMES` says: idle (stand, breath, blink), an 8-frame
+// Assembles a character's body parts (the explorer's in playerPixels.ts, the
+// villagers' in villagerParts.ts) into animation strips, laid out as
+// `PLAYER_FRAMES` says: idle (stand, breath, blink), an 8-frame
 // walk cycle and an 8-frame run cycle per direction.
 //
 // Smoothness comes from small, consistent moves: the upper body bobs one
@@ -24,6 +25,17 @@ import { sideLegs, type FootPose } from './sideLegs';
 
 /** Upper-body offset in pixels: +1 sinks into the legs (bent knees), -1 rises (legs stretch). */
 type Bob = -1 | 0 | 1;
+
+/** Everything that differs between characters; legs and timing are shared. */
+export interface CharacterParts {
+  readonly frontHead: Rows;
+  readonly backHead: Rows;
+  readonly sideHead: Rows;
+  readonly frontTorso: { readonly stand: Rows; readonly swing: Rows; readonly pump: Rows };
+  readonly backTorso: { readonly stand: Rows; readonly swing: Rows; readonly pump: Rows };
+  /** Facing right. */
+  readonly sideTorso: { readonly stand: Rows; readonly forward: Rows; readonly back: Rows };
+}
 
 interface Pose {
   readonly torso: Rows;
@@ -54,7 +66,11 @@ function blink(head: Rows): string[] {
 }
 
 /** Front and back are symmetric: the second step is the first, mirrored. */
-function symmetricStrip(head: Rows, torso: typeof FRONT_TORSO, eyes: boolean): string[][] {
+function symmetricStrip(
+  head: Rows,
+  torso: CharacterParts['frontTorso'],
+  eyes: boolean,
+): string[][] {
   const legs = FRONT_LEGS;
   const stand: Pose = { torso: torso.stand, legs: legs.stand, bob: 0 };
   const walkStep: Pose[] = [
@@ -122,8 +138,9 @@ const WALK_HIP_X = 6;
 const RUN_HIP_X = 5;
 
 /** Facing right; facing left is the mirror image. */
-function sideStrip(): string[][] {
-  const t = SIDE_TORSO;
+function sideStrip(parts: CharacterParts): string[][] {
+  const t = parts.sideTorso;
+  const head = parts.sideHead;
   const l = SIDE_LEGS;
   const stand: Pose = { torso: t.stand, legs: l.stand, bob: 0 };
   // Arms swing against the near leg: back while it reaches forward, forward while it trails.
@@ -138,22 +155,34 @@ function sideStrip(): string[][] {
   const walk = cycle(SIDE_WALK, WALK_HIP_X);
   const run = cycle(SIDE_RUN, RUN_HIP_X);
   return [
-    compose(SIDE_HEAD, stand),
-    compose(SIDE_HEAD, { ...stand, bob: 1 }),
-    compose(blink(SIDE_HEAD), stand),
-    ...walk.map((pose) => compose(SIDE_HEAD, pose)),
-    ...run.map((pose) => compose(SIDE_HEAD, pose)),
+    compose(head, stand),
+    compose(head, { ...stand, bob: 1 }),
+    compose(blink(head), stand),
+    ...walk.map((pose) => compose(head, pose)),
+    ...run.map((pose) => compose(head, pose)),
   ];
 }
 
-const SIDE = sideStrip();
+export type CharacterMaps = Readonly<Record<'down' | 'up' | 'left' | 'right', readonly Rows[]>>;
 
 /** Pixel maps per direction, in `PLAYER_FRAMES` order (`PLAYER_FRAME_COUNT` each). */
-export const PLAYER_PIXEL_MAPS: Readonly<
-  Record<'down' | 'up' | 'left' | 'right', readonly Rows[]>
-> = {
-  down: symmetricStrip(FRONT_HEAD, FRONT_TORSO, true),
-  up: symmetricStrip(BACK_HEAD, BACK_TORSO, false),
-  right: SIDE,
-  left: SIDE.map(mirror),
+export function buildCharacterMaps(parts: CharacterParts): CharacterMaps {
+  const side = sideStrip(parts);
+  return {
+    down: symmetricStrip(parts.frontHead, parts.frontTorso, true),
+    up: symmetricStrip(parts.backHead, parts.backTorso, false),
+    right: side,
+    left: side.map(mirror),
+  };
+}
+
+export const PLAYER_PARTS: CharacterParts = {
+  frontHead: FRONT_HEAD,
+  backHead: BACK_HEAD,
+  sideHead: SIDE_HEAD,
+  frontTorso: FRONT_TORSO,
+  backTorso: BACK_TORSO,
+  sideTorso: SIDE_TORSO,
 };
+
+export const PLAYER_PIXEL_MAPS: CharacterMaps = buildCharacterMaps(PLAYER_PARTS);

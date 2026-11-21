@@ -3,6 +3,7 @@ import { computeBlockedMask } from './collision';
 import { MAP_FILE_VERSION } from './mapFile';
 import { OBJECT_KINDS, OBJECT_REGISTRY, type ObjectKind } from './objects';
 import { tileIdForMapChar } from './tiles';
+import type { Village, VillageSpan } from './village';
 import { NO_OBJECT, type World, type WorldObject } from './world';
 
 /** Thrown when a map file is malformed; the message says what and where. */
@@ -117,6 +118,7 @@ export function parseMapFile(data: unknown): World {
     throw new MapFileError('map: "spawn" must be [x, y] inside the map');
   }
   const source = isRecord(data.source) ? data.source : {};
+  const village = readVillage(data, size);
 
   return {
     seed: typeof source.seed === 'number' ? source.seed : 0,
@@ -129,5 +131,30 @@ export function parseMapFile(data: unknown): World {
     blocked: computeBlockedMask(size, terrain, objects),
     cabin,
     spawn: { x: spawnX, y: spawnY },
+    village,
   };
+}
+
+const isTile = (size: { width: number; height: number }, x: unknown, y: unknown): boolean =>
+  typeof x === 'number' && typeof y === 'number' && isInBounds(size, x, y);
+
+/** The optional "village" section: interior spans and the gate, all inside the map. */
+function readVillage(data: UnknownRecord, size: { width: number; height: number }): Village | null {
+  if (data.village === undefined) return null;
+  if (!isRecord(data.village)) throw new MapFileError('map: "village" must be an object');
+  const gate = readArray(data.village, 'gate', 'village');
+  const [gateX, gateY] = gate;
+  if (!isTile(size, gateX, gateY))
+    throw new MapFileError('village: "gate" must be [x, y] inside the map');
+  const interior: VillageSpan[] = [];
+  for (const entry of readArray(data.village, 'interior', 'village')) {
+    const [y, left, right] = Array.isArray(entry) ? (entry as unknown[]) : [];
+    if (!isTile(size, left, y) || !isTile(size, right, y) || (left as number) > (right as number)) {
+      throw new MapFileError(
+        'village: each "interior" entry must be [y, left, right] inside the map',
+      );
+    }
+    interior.push([y as number, left as number, right as number]);
+  }
+  return { interior, gate: { x: gateX as number, y: gateY as number } };
 }

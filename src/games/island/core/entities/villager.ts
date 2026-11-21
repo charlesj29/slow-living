@@ -1,5 +1,4 @@
 import type { TilePoint } from '@/shared/engine/grid';
-import type { TileArea } from '../world/village';
 import { createPlayer, hitboxAt, type Box, type HitboxSize, type Player } from './player';
 
 /**
@@ -10,8 +9,10 @@ export interface Villager extends Player {
   readonly id: number;
   /** Which outfit (sprite strip) this villager wears. */
   readonly look: number;
-  /** The only area this villager ever walks in. */
-  readonly home: TileArea;
+  /** The only tiles this villager ever walks on (inside the village fence). */
+  readonly home: ReadonlySet<number>;
+  /** The same tiles as a list, for picking somewhere to go. */
+  readonly homeTiles: readonly number[];
   /** Tiles still to walk through (centres), nearest first. */
   route: TilePoint[];
   /** Seconds left to stand around before picking somewhere new. */
@@ -28,14 +29,15 @@ export function createVillager(
   id: number,
   look: number,
   spawn: TilePoint,
-  home: TileArea,
+  homeTiles: readonly number[],
   tileSizePx: number,
 ): Villager {
   return {
     ...createPlayer(spawn, tileSizePx),
     id,
     look,
-    home,
+    home: new Set(homeTiles),
+    homeTiles,
     route: [],
     restTime: 1 + id,
     stuckTime: 0,

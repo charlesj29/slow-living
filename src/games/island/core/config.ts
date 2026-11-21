@@ -2,6 +2,12 @@
 // rendering read from this object instead of hard-coding values.
 import type { FractalNoiseOptions } from '@/shared/engine/noise';
 
+/** An inclusive whole-number range. */
+export interface Range {
+  readonly min: number;
+  readonly max: number;
+}
+
 export interface IslandConfig {
   readonly map: {
     /** Size of a generated map (the baked map file defines the live world's size). */
@@ -101,12 +107,24 @@ export interface IslandConfig {
   };
   /** Rocky ledges where the grass drops straight down to a beach (south-facing coasts). */
   /** The small village near the cottage (layout in core/world/village.ts). */
+  /** The small fenced village near the cottage; its shape and layout vary per seed. */
   readonly village: {
-    /**
-     * Where the village's top-left may go, relative to the cottage's top-left,
-     * in order of preference; the first spot that is clear grass is used.
-     */
-    readonly offsets: readonly { readonly x: number; readonly y: number }[];
+    /** How far from the cottage (in tiles) to look for a clear spot. */
+    readonly searchRadiusTiles: number;
+    /** Size of the inside of the fence before corners are cut away. */
+    readonly interiorWidth: Range;
+    readonly interiorHeight: Range;
+    /** Up to this many corners are notched out (an irregular, sometimes L-shaped outline). */
+    readonly maxNotches: number;
+    readonly notchWidth: Range;
+    readonly notchHeight: Range;
+    /** Open grass between the fence and the houses. */
+    readonly gapTiles: Range;
+    readonly lampPosts: number;
+    /** Shapes to try before giving up on a village for this seed. */
+    readonly shapeAttempts: number;
+    /** Each tree or rock a site would clear counts like this many tiles of distance. */
+    readonly clearedObjectCost: number;
   };
   readonly ledges: {
     /** Runs of ledge follow this noise along the coast. */
@@ -281,12 +299,16 @@ export const ISLAND_CONFIG: IslandConfig = {
     speciesNoise: noise(0.022),
   },
   village: {
-    offsets: [
-      { x: -19, y: -18 },
-      { x: 9, y: -18 },
-      { x: -22, y: 6 },
-      { x: 9, y: 8 },
-    ],
+    searchRadiusTiles: 36,
+    interiorWidth: { min: 21, max: 27 },
+    interiorHeight: { min: 16, max: 20 },
+    maxNotches: 2,
+    notchWidth: { min: 4, max: 8 },
+    notchHeight: { min: 3, max: 6 },
+    gapTiles: { min: 2, max: 3 },
+    lampPosts: 4,
+    shapeAttempts: 12,
+    clearedObjectCost: 3,
   },
   ledges: { noise: noise(0.05, 2), threshold: 0.35, minRunTiles: 2 },
   deadwood: { searchRadiusTiles: 2, minNearbyTrees: 2, stumpChance: 0.015, branchChance: 0.03 },

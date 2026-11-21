@@ -6,7 +6,7 @@ import { createGameState, stepGame } from '../game/gameState';
 import { ISLAND_KEY_BINDINGS } from './controls';
 import { createVillager } from '../entities/villager';
 import { findInteractTarget } from './interaction';
-import { makeTestWorld, TEST_TILE } from './testWorld';
+import { areaTiles, makeTestWorld, TEST_TILE } from './testWorld';
 
 const STEP = 1 / 60;
 const SETTINGS = {
@@ -83,7 +83,7 @@ describe('interaction', () => {
       0,
       0,
       { x: 2, y: 3 },
-      { left: 0, top: 0, right: 5, bottom: 4 },
+      areaTiles({ left: 0, top: 0, right: 5, bottom: 4 }, 6),
       TEST_TILE,
     );
     const target = findInteractTarget(

@@ -3,7 +3,7 @@ import { createRng } from '@/shared/engine/random';
 import { ISLAND_CONFIG } from '../config';
 import { createPlayer, hitboxAt } from '../entities/player';
 import { createVillager, overlaps } from '../entities/villager';
-import { makeTestWorld, TEST_TILE } from './testWorld';
+import { areaTiles, makeTestWorld, TEST_TILE } from './testWorld';
 import { startTalking, updateVillager } from './wander';
 
 const STEP = 1 / 60;
@@ -15,7 +15,7 @@ const world = makeTestWorld(
 );
 
 function simulate(seconds: number, setup?: (v: ReturnType<typeof createVillager>) => void) {
-  const villager = createVillager(0, 0, { x: 3, y: 4 }, HOME, TEST_TILE);
+  const villager = createVillager(0, 0, { x: 3, y: 4 }, areaTiles(HOME, 10), TEST_TILE);
   setup?.(villager);
   const player = createPlayer({ x: 9, y: 7 }, TEST_TILE);
   const rng = createRng(42);
@@ -56,7 +56,7 @@ describe('villagers wandering', () => {
   });
 
   it('never walk into the player', () => {
-    const villager = createVillager(0, 0, { x: 3, y: 4 }, HOME, TEST_TILE);
+    const villager = createVillager(0, 0, { x: 3, y: 4 }, areaTiles(HOME, 10), TEST_TILE);
     const player = createPlayer({ x: 4, y: 4 }, TEST_TILE); // right next to it, on its way
     villager.route = [
       { x: 4, y: 4 },
@@ -82,7 +82,7 @@ describe('villagers wandering', () => {
   });
 
   it('stop and face the player while talking', () => {
-    const villager = createVillager(0, 0, { x: 3, y: 4 }, HOME, TEST_TILE);
+    const villager = createVillager(0, 0, { x: 3, y: 4 }, areaTiles(HOME, 10), TEST_TILE);
     villager.route = [{ x: 4, y: 4 }];
     const player = createPlayer({ x: 2, y: 4 }, TEST_TILE);
     player.facing = 'right';
@@ -106,8 +106,8 @@ describe('villagers wandering', () => {
   it('walk round each other instead of getting stuck (head-on on the same row)', () => {
     const open = makeTestWorld(Array.from({ length: 8 }, () => ',,,,,,,,,,'));
     const area = { left: 1, top: 2, right: 8, bottom: 5 };
-    const a = createVillager(0, 0, { x: 2, y: 3 }, area, TEST_TILE);
-    const b = createVillager(1, 1, { x: 7, y: 3 }, area, TEST_TILE);
+    const a = createVillager(0, 0, { x: 2, y: 3 }, areaTiles(area, 10), TEST_TILE);
+    const b = createVillager(1, 1, { x: 7, y: 3 }, areaTiles(area, 10), TEST_TILE);
     a.route = [3, 4, 5, 6].map((x) => ({ x, y: 3 }));
     b.route = [6, 5, 4, 3].map((x) => ({ x, y: 3 }));
     const player = createPlayer({ x: 9, y: 7 }, TEST_TILE);

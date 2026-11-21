@@ -48,5 +48,18 @@ export function makeTestWorld(
     blocked: computeBlockedMask(size, terrain, placed),
     cabin: placed.find((o) => o.kind === 'cabin') ?? { id: -1, kind: 'cabin', x: 0, y: 0 },
     spawn: { x: 1, y: 1 },
+    village: null,
   };
+}
+
+/** The tile indexes of a rectangle (a stand-in village interior for tests). */
+export function areaTiles(
+  area: { left: number; top: number; right: number; bottom: number },
+  width: number,
+): number[] {
+  const tiles: number[] = [];
+  for (let y = area.top; y <= area.bottom; y++) {
+    for (let x = area.left; x <= area.right; x++) tiles.push(y * width + x);
+  }
+  return tiles;
 }
