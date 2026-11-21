@@ -28,10 +28,10 @@ function playerAt(
   return player;
 }
 
-function tapE(state: ReturnType<typeof createGameState>): void {
-  pressKey(state.input, ISLAND_KEY_BINDINGS, 'KeyE');
+function tapSpace(state: ReturnType<typeof createGameState>): void {
+  pressKey(state.input, ISLAND_KEY_BINDINGS, 'Space');
   stepGame(state, STEP, ISLAND_CONFIG);
-  releaseKey(state.input, ISLAND_KEY_BINDINGS, 'KeyE');
+  releaseKey(state.input, ISLAND_KEY_BINDINGS, 'Space');
 }
 
 describe('interaction', () => {
@@ -56,13 +56,13 @@ describe('interaction', () => {
     ).toBeNull();
   });
 
-  it('opens the message with E, holds the player still, and closes it with E', () => {
+  it('opens the message with Space, holds the player still, and closes it with Space', () => {
     const state = createGameState(world, ISLAND_CONFIG);
     Object.assign(state.player, playerAt(2, 2, 'up'));
     stepGame(state, STEP, ISLAND_CONFIG);
     expect(state.interactTarget?.object.kind).toBe('mailbox');
 
-    tapE(state);
+    tapSpace(state);
     expect(state.dialog).toEqual({ message: "It's empty." });
 
     const y = state.player.y;
@@ -71,14 +71,14 @@ describe('interaction', () => {
     expect(state.player.y).toBe(y);
     releaseKey(state.input, ISLAND_KEY_BINDINGS, 'ArrowDown');
 
-    tapE(state);
+    tapSpace(state);
     expect(state.dialog).toBeNull();
   });
 
-  it('ignores E with nothing in reach', () => {
+  it('ignores Space with nothing in reach', () => {
     const state = createGameState(world, ISLAND_CONFIG);
     Object.assign(state.player, playerAt(0, 4, 'right'));
-    tapE(state);
+    tapSpace(state);
     expect(state.dialog).toBeNull();
   });
 });

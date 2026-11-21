@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX } from 'react';
+import { useEffect, useRef, type JSX, type MouseEvent } from 'react';
 import { createMusicPlayer, type MusicPlayer } from '@/shared/audio/musicPlayer';
 import type { Song } from '@/shared/audio/song';
 import { ISLAND_CONFIG } from '../core/config';
@@ -83,7 +83,9 @@ export function MusicToggle({ song }: { readonly song: Song }): JSX.Element {
     if (!isMuted && hasGestureRef.current) void player.start();
   }, [isMuted]);
 
-  const toggle = (): void => {
+  const toggle = (event: MouseEvent<HTMLButtonElement>): void => {
+    // Let go of focus, or Space (interact) would press the button again.
+    event.currentTarget.blur();
     hasGestureRef.current = true;
     useIslandUiStore.getState().toggleMusicMuted();
   };

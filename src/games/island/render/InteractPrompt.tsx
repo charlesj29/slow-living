@@ -23,7 +23,7 @@ interface InteractPromptProps {
 }
 
 /**
- * A small "E" key floating over whatever the player could interact with,
+ * A small bobbing arrow pointing down at whatever the player could interact with,
  * hidden while a message is open. Reads the game state every frame (no React).
  */
 export function InteractPrompt({ state, atlas }: InteractPromptProps): JSX.Element {

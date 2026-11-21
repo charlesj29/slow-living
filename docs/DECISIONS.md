@@ -560,7 +560,7 @@ alternatives → consequences.
   loudness (RMS 0.09–0.18 every second, the same across the seam), peak 0.61, no sample jump
   above 0.05 (no clicks). Supersedes the sound and tune parts of D49.
 
-## D52 — Interaction with E: facing reach, one-shot presses, a message box
+## D52 — Interaction with Space: facing reach, one-shot presses, a message box
 
 - **Context:** the user wants interaction on E, starting with the mailbox ("it is empty"),
   later villagers; messages have no reply choices (user decision).
@@ -570,4 +570,7 @@ alternatives → consequences.
   `clearPresses` at the end of each step) so a tap counts once on the fixed step. An open
   dialog freezes the player; E closes it. The UI mirrors the message through zustand (set only
   on change); a floating "E" keycap sprite (`assets/paintUi.ts`) marks the target.
+- **Follow-up (user feedback):** the key moved from E to Space; the floating keycap became a
+  small bobbing down-arrow, and the dialog shows a blinking ▼ instead of a key name. The mute
+  button drops focus after a click, so Space can't press it again.
 - **Consequences:** villagers can reuse the same flow by providing a target and message.

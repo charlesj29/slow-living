@@ -48,7 +48,7 @@ export interface ObjectDefinition {
   readonly mapColor: string;
   /** Door tile, relative to the top-left of the footprint (buildings only). */
   readonly door?: TilePoint;
-  /** What pressing E while facing it shows (no reply choices). */
+  /** What pressing Space while facing it shows (no reply choices). */
   readonly interaction?: { readonly message: string };
 }
 

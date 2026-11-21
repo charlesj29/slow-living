@@ -3,7 +3,7 @@ import type { Direction } from '../entities/player';
 
 export type IslandAction = Direction | 'run' | 'interact';
 
-/** Arrow keys or WASD to walk; either Shift to run; E to interact. */
+/** Arrow keys or WASD to walk; either Shift to run; Space to interact. */
 export const ISLAND_KEY_BINDINGS: KeyBindings<IslandAction> = {
   ArrowUp: 'up',
   KeyW: 'up',
@@ -15,7 +15,7 @@ export const ISLAND_KEY_BINDINGS: KeyBindings<IslandAction> = {
   KeyD: 'right',
   ShiftLeft: 'run',
   ShiftRight: 'run',
-  KeyE: 'interact',
+  Space: 'interact',
 };
 
 const DIRECTION_ACTIONS: readonly Direction[] = ['up', 'down', 'left', 'right'];

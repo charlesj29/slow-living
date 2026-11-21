@@ -27,9 +27,9 @@ export interface GameState {
   interpolation: number;
   /** Smoothed frames per second, from the frame times the render loop reports. */
   framesPerSecond: number;
-  /** What E would interact with right now (drives the prompt bubble). */
+  /** What Space would interact with right now (drives the arrow above it). */
   interactTarget: InteractTarget | null;
-  /** The open message, if any; the player stands still until E closes it. */
+  /** The open message, if any; the player stands still until Space closes it. */
   dialog: Dialog | null;
 }
 
@@ -48,8 +48,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
 
 /**
  * One fixed logic step: read input, face, move with collision, animate, then
- * see what's in reach. E opens that thing's message; while a message is open
- * the player stands still and E closes it.
+ * see what's in reach. Space opens that thing's message; while a message is
+ * open the player stands still and Space closes it.
  */
 export function stepGame(state: GameState, stepSeconds: number, config: IslandConfig): void {
   const { player, input } = state;

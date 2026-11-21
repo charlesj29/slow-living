@@ -66,7 +66,8 @@
   the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
   the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
 - Background music composed in code (no files, no licences); mute button top-left plus M.
-- Interaction with E; messages have no reply choices. Mailbox: "It's empty.".
+- Interaction with Space (first E, changed by the user); a small down-arrow marks what you can
+  interact with; messages have no reply choices and show a blinking ▼. Mailbox: "It's empty.".
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
@@ -84,6 +85,8 @@
   controls hint now lists E.
 - **Verified:** typecheck, lint, 302 tests, build pass; browser: turning to the mailbox shows
   the E bubble, E opens "It's empty.", E again closes it; console clean.
+- **Follow-up (user):** interact moved to Space; the "E" bubble became a small down-arrow; the
+  dialog shows a blinking ▼ instead of the key; the mute button drops focus after a click.
 - **Next:** part 2, the day/night cycle.
 
 ### 2026-11-21 — Side-view animation and a lo-fi music rebuild (user request)

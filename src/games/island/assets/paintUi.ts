@@ -1,40 +1,42 @@
-// In-world UI sprites: the little "E" key that floats over things you can
-// interact with. Painted like a keyboard keycap: light top, darker front edge.
+// In-world UI sprites: the small arrow that bobs above things you can
+// interact with, pointing down at them like in classic RPGs.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
   createPixelCanvas,
-  fillRect,
   hexToRgba,
+  setPixel,
   type PixelCanvas,
 } from '@/shared/render/pixelCanvas';
 
-const KEYCAP = {
-  outline: hexToRgba('#3a2416'),
-  face: hexToRgba('#fff6e0'),
-  shine: hexToRgba('#ffffff'),
-  edge: hexToRgba('#d9c39a'),
-  letter: hexToRgba('#3a2416'),
-};
+const ARROW_COLORS = {
+  o: hexToRgba('#3a2416'), // outline
+  w: hexToRgba('#fff6e0'), // lit face
+  y: hexToRgba('#f8c040'), // warm shade on the lower half
+} as const;
 
-/** 11×12: a rounded keycap with an "E" on it. */
-function promptKey(): PixelCanvas {
-  const canvas = createPixelCanvas(11, 12);
-  const { outline, face, shine, edge, letter } = KEYCAP;
-  fillRect(canvas, 1, 0, 9, 12, outline);
-  fillRect(canvas, 0, 1, 11, 10, outline);
-  fillRect(canvas, 1, 1, 9, 9, face);
-  fillRect(canvas, 1, 8, 9, 3, edge); // the key's front edge, in shade
-  fillRect(canvas, 1, 1, 9, 1, shine);
-  // The letter E, 4×5.
-  fillRect(canvas, 3, 2, 1, 5, letter);
-  fillRect(canvas, 4, 2, 3, 1, letter);
-  fillRect(canvas, 4, 4, 2, 1, letter);
-  fillRect(canvas, 4, 6, 3, 1, letter);
+// prettier-ignore
+const ARROW_ROWS = [
+  'ooooooooo',
+  'owwwwwwwo',
+  '.owwwwwo.',
+  '..oyyyo..',
+  '...oyo...',
+  '....o....',
+] as const;
+
+/** 9×6: a down-pointing arrowhead with a dark outline. */
+function arrow(): PixelCanvas {
+  const canvas = createPixelCanvas(ARROW_ROWS[0].length, ARROW_ROWS.length);
+  ARROW_ROWS.forEach((row, y) => {
+    [...row].forEach((char, x) => {
+      if (char === 'o' || char === 'w' || char === 'y') setPixel(canvas, x, y, ARROW_COLORS[char]);
+    });
+  });
   return canvas;
 }
 
 export const PROMPT_KEY = 'prompt_interact';
 
 export function paintUiSprites(): SpriteSource[] {
-  return [{ key: PROMPT_KEY, frames: [promptKey()] }];
+  return [{ key: PROMPT_KEY, frames: [arrow()] }];
 }

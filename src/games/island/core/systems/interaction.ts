@@ -1,6 +1,6 @@
 // Interacting with things: the player reaches a little way past their feet in
 // the direction they face; whatever interactive thing is there can be talked
-// to / checked with E, which opens a message (no reply choices).
+// to / checked with Space, which opens a message (no reply choices).
 import { isInBounds, toIndex } from '@/shared/engine/grid';
 import { hitboxAt, type HitboxSize, type Player } from '../entities/player';
 import { OBJECT_REGISTRY } from '../world/objects';

@@ -100,15 +100,20 @@
   line-height: 1.5;
 }
 
-.island-dialog-hint {
-  font-size: 0.85rem;
-  opacity: 0.7;
-  animation: island-dialog-blink 1s steps(2, jump-none) infinite;
+/* A small down-pointing triangle that blinks, like a classic RPG text box. */
+.island-dialog-arrow {
+  width: 0;
+  height: 0;
+  margin-bottom: 0.2rem;
+  border-top: 0.5rem solid #3a2416;
+  border-right: 0.4rem solid transparent;
+  border-left: 0.4rem solid transparent;
+  animation: island-dialog-blink 0.9s steps(2, jump-none) infinite;
 }
 
 @keyframes island-dialog-blink {
   50% {
-    opacity: 0.25;
+    opacity: 0;
   }
 }
 
