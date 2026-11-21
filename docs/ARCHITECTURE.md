@@ -65,7 +65,8 @@ src/
                             #   paintTiles/Transitions/Objects/Structures/Cabin/Cliff/Props/
                             #   Deadwood, playerPixels (parts) + sideLegs + playerFrames (strips),
                             #   paintPlayer, islandSprites, chillTune (the music, as data)
-      ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3), MusicToggle,
+      ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, bottom-left),
+                            #   DayNightToggle, MusicToggle,
                             #   DialogBox (messages),
                             #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel
 tests/                      # Cross-cutting tests (architecture rules)
@@ -180,6 +181,14 @@ flowchart LR
 - Only UI-relevant values go into zustand: `isDebugOverlayVisible` (F3),
   `hasStartedWalking` (set once by `GameLoop`; the controls hint fades), `isMusicMuted` and
   `dialogMessage` (mirrored from `GameState.dialog` by `GameLoop`, only when it changes).
+- **Day/night:** `GameState.timeOfDay` (0 = midnight, 0.5 = noon) advances every step
+  (`dayNight.dayLengthSeconds`, 12 min; starts 0.33). `core/systems/dayNight.ts` turns time and
+  mode (`auto` / `day` / `night`, a zustand UI flag set by `ui/DayNightToggle`) into a `Lighting`
+  (tint + lights). `render/DayNightLighting` eases towards it each frame and writes shared
+  uniforms (`render/lighting.ts`: `uTint`, `uLightsOn`) that every world material multiplies by,
+  and tints the background. Buildings get a `<key>_lights` overlay (warm glass pixels, made by
+  `assets/paintLights.ts`) drawn with `createLightsMaterial`: hard alpha, untinted, only while
+  lights are on. The UI-layer arrow and dialog are not tinted.
 - **Interaction:** an object kind with `interaction: { message }` in the registry can be
   checked with Space. Each step, `findInteractTarget` looks one reach (`interaction.reachPx`) past
   the feet hitbox in the facing direction; `render/InteractPrompt` bobs a small down-arrow over that

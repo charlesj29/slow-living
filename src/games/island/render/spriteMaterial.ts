@@ -1,4 +1,5 @@
-import { FrontSide, LessDepth, ShaderMaterial, type Texture } from 'three';
+import { FrontSide, LessDepth, ShaderMaterial, type Color, type Texture } from 'three';
+import { DAYLIGHT, type LightingUniforms } from './lighting';
 
 // One shader for every sprite (terrain quads and instanced objects). Animated
 // sprites are horizontal strips in the atlas; each vertex carries the u
@@ -18,15 +19,16 @@ const VERTEX_SHADER = /* glsl */ `
   }
 `;
 
-// Pixel art has hard alpha: discard transparent texels and output colours
-// unchanged (the canvas renders in linear/flat mode).
+// Pixel art has hard alpha: discard transparent texels. Colours are only
+// multiplied by the day/night tint (the canvas renders in linear/flat mode).
 const FRAGMENT_SHADER = /* glsl */ `
   uniform sampler2D map;
+  uniform vec3 uTint;
   varying vec2 vUv;
   void main() {
     vec4 color = texture2D(map, vUv);
     if (color.a < 0.5) discard;
-    gl_FragColor = color;
+    gl_FragColor = vec4(color.rgb * uTint, color.a);
   }
 `;
 
@@ -34,12 +36,30 @@ export interface SpriteMaterial extends ShaderMaterial {
   uniforms: {
     map: { value: Texture };
     uFrame: { value: number };
+    uTint: { value: Color };
+    uLightsOn: { value: number };
   };
 }
 
-export function createSpriteMaterial(atlasTexture: Texture): SpriteMaterial {
+/** Uniforms every sprite material starts with; lighting ones are shared, not copied. */
+function spriteUniforms(
+  atlasTexture: Texture,
+  lighting: LightingUniforms,
+): SpriteMaterial['uniforms'] {
+  return {
+    map: { value: atlasTexture },
+    uFrame: { value: 0 },
+    uTint: lighting.uTint,
+    uLightsOn: lighting.uLightsOn,
+  };
+}
+
+export function createSpriteMaterial(
+  atlasTexture: Texture,
+  lighting: LightingUniforms = DAYLIGHT,
+): SpriteMaterial {
   return new ShaderMaterial({
-    uniforms: { map: { value: atlasTexture }, uFrame: { value: 0 } },
+    uniforms: spriteUniforms(atlasTexture, lighting),
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,
     side: FrontSide,
@@ -64,11 +84,12 @@ export function setAnimationFrame(material: SpriteMaterial, frameIndex: number):
 // Shadows keep their painted alpha (blended), unlike every other sprite.
 const SHADOW_FRAGMENT_SHADER = /* glsl */ `
   uniform sampler2D map;
+  uniform vec3 uTint;
   varying vec2 vUv;
   void main() {
     vec4 color = texture2D(map, vUv);
     if (color.a < 0.01) discard;
-    gl_FragColor = color;
+    gl_FragColor = vec4(color.rgb * uTint, color.a);
   }
 `;
 
@@ -78,14 +99,45 @@ const SHADOW_FRAGMENT_SHADER = /* glsl */ `
  * second is rejected, so overlaps never get darker. Anything standing is
  * closer to the camera and hides the shadow underneath it.
  */
-export function createShadowMaterial(atlasTexture: Texture): SpriteMaterial {
+export function createShadowMaterial(
+  atlasTexture: Texture,
+  lighting: LightingUniforms = DAYLIGHT,
+): SpriteMaterial {
   return new ShaderMaterial({
-    uniforms: { map: { value: atlasTexture }, uFrame: { value: 0 } },
+    uniforms: spriteUniforms(atlasTexture, lighting),
     vertexShader: VERTEX_SHADER,
     fragmentShader: SHADOW_FRAGMENT_SHADER,
     side: FrontSide,
     transparent: true,
     depthWrite: true,
     depthFunc: LessDepth,
+  }) as SpriteMaterial;
+}
+
+// Window lights glow by themselves: untinted, and only drawn while lights are on.
+const LIGHTS_FRAGMENT_SHADER = /* glsl */ `
+  uniform sampler2D map;
+  uniform float uLightsOn;
+  varying vec2 vUv;
+  void main() {
+    vec4 color = texture2D(map, vUv);
+    if (color.a < 0.5 || uLightsOn < 0.5) discard;
+    gl_FragColor = color;
+  }
+`;
+
+/**
+ * Material for `*_lights` overlays (lit window panes): hard alpha like any
+ * sprite, but not darkened at night, and hidden while the lights are off.
+ */
+export function createLightsMaterial(
+  atlasTexture: Texture,
+  lighting: LightingUniforms,
+): SpriteMaterial {
+  return new ShaderMaterial({
+    uniforms: spriteUniforms(atlasTexture, lighting),
+    vertexShader: VERTEX_SHADER,
+    fragmentShader: LIGHTS_FRAGMENT_SHADER,
+    side: FrontSide,
   }) as SpriteMaterial;
 }

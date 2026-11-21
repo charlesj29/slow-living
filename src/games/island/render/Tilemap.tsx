@@ -10,6 +10,7 @@ import { buildChunkGeometryData } from './tilemapGeometry';
 import { createPatchTexture, isGrassSprite } from './grassPatches';
 import { showAnimationFrameAt } from './spriteMaterial';
 import { createTilemapMaterial } from './tilemapMaterial';
+import type { LightingUniforms } from './lighting';
 
 interface TilemapProps {
   readonly world: World;
@@ -19,6 +20,7 @@ interface TilemapProps {
   readonly waterFrameSeconds: number;
   /** Frames in every animated tile strip. */
   readonly waterFrameCount: number;
+  readonly lighting: LightingUniforms;
 }
 
 function buildChunkGeometries(props: TilemapProps): BufferGeometry[] {
@@ -74,8 +76,9 @@ export function Tilemap(props: TilemapProps): JSX.Element {
         patchTexture,
         { width: world.width * tileSizePx, height: world.height * tileSizePx },
         ISLAND_CONFIG.render.grassPatches,
+        props.lighting,
       ),
-    [atlas, patchTexture, world, tileSizePx],
+    [atlas, patchTexture, world, tileSizePx, props.lighting],
   );
 
   useEffect(() => () => geometries.forEach((geometry) => geometry.dispose()), [geometries]);

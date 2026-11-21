@@ -1,0 +1,48 @@
+// Night-time window lights: for a building sprite, a same-sized overlay that
+// has a warm glow exactly where the sprite has window glass. Drawn on top at
+// night without the night tint, so windows look lit from inside.
+import type { SpriteSource } from '@/shared/render/atlasLayout';
+import {
+  createPixelCanvas,
+  getPixel,
+  hexToRgba,
+  setPixel,
+  type PixelCanvas,
+  type Rgba,
+} from '@/shared/render/pixelCanvas';
+import { PALETTE } from './palette';
+
+const GLOW = hexToRgba('#ffc861');
+const GLOW_BRIGHT = hexToRgba('#fff0c2');
+
+const sameColor = (a: Rgba, b: Rgba): boolean =>
+  a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+
+/** Glass becomes warm light; the glint pixels become its brightest spot. */
+function lightsFor(building: PixelCanvas): PixelCanvas {
+  const lights = createPixelCanvas(building.width, building.height);
+  for (let y = 0; y < building.height; y++) {
+    for (let x = 0; x < building.width; x++) {
+      const pixel = getPixel(building, x, y);
+      if (sameColor(pixel, PALETTE.cabin.glass)) setPixel(lights, x, y, GLOW);
+      else if (sameColor(pixel, PALETTE.cabin.shine)) setPixel(lights, x, y, GLOW_BRIGHT);
+    }
+  }
+  return lights;
+}
+
+/** Atlas key of a building's window-light overlay. */
+export const lightsKey = (spriteKey: string): string => `${spriteKey}_lights`;
+
+/** A `<key>_lights` overlay for each of the given building sprites. */
+export function paintWindowLights(
+  sources: readonly SpriteSource[],
+  buildingKeys: readonly string[],
+): SpriteSource[] {
+  return sources
+    .filter((source) => buildingKeys.includes(source.key))
+    .flatMap((source) => {
+      const [frame] = source.frames;
+      return frame ? [{ key: lightsKey(source.key), frames: [lightsFor(frame)] }] : [];
+    });
+}

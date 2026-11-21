@@ -15,6 +15,7 @@ import { createPlayer, type Player } from '../entities/player';
 import type { World } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
+import { advanceTimeOfDay } from '../systems/dayNight';
 import { findInteractTarget, type Dialog, type InteractTarget } from '../systems/interaction';
 import { movePlayer } from '../systems/movement';
 
@@ -31,6 +32,8 @@ export interface GameState {
   interactTarget: InteractTarget | null;
   /** The open message, if any; the player stands still until Space closes it. */
   dialog: Dialog | null;
+  /** Fraction of a day (0 = midnight, 0.5 = noon); keeps running in every day/night mode. */
+  timeOfDay: number;
 }
 
 export function createGameState(world: World, config: IslandConfig): GameState {
@@ -43,6 +46,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     framesPerSecond: 0,
     interactTarget: null,
     dialog: null,
+    timeOfDay: config.dayNight.startTime,
   };
 }
 
@@ -56,6 +60,11 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   const tileSizePx = config.map.tileSizePx;
   player.previousX = player.x;
   player.previousY = player.y;
+  state.timeOfDay = advanceTimeOfDay(
+    state.timeOfDay,
+    stepSeconds,
+    config.dayNight.dayLengthSeconds,
+  );
   if (state.dialog) {
     if (consumePress(input, 'interact')) state.dialog = null;
     player.moving = false;

@@ -3,18 +3,24 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type JSX } from 'react';
 import { Object3D, type InstancedMesh } from 'three';
 import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
+import { lightsKey } from '../assets/paintLights';
 import { FLOWER_FRAME_COUNT } from '../assets/paintObjects';
 import type { World } from '../core/world/world';
+import type { LightingUniforms } from './lighting';
 import { placeObjectShadows } from './objectShadows';
 import { placeObjectSprites, type SpriteInstance } from './objectSprites';
 import { objectSpriteKey } from './objectSpriteKeys';
 import { createSpriteGeometry } from './spriteGeometry';
 import {
+  createLightsMaterial,
   createShadowMaterial,
   createSpriteMaterial,
   showAnimationFrameAt,
   type SpriteMaterial,
 } from './spriteMaterial';
+
+/** Window lights sit a hair in front of their building so they win the depth test. */
+const LIGHTS_Z_OFFSET = 0.001;
 
 interface SpriteBatchProps {
   readonly frame: AtlasFrame;
@@ -55,6 +61,7 @@ interface WorldObjectsProps {
   readonly atlas: SpriteAtlas;
   readonly tileSizePx: number;
   readonly flowerFrameSeconds: number;
+  readonly lighting: LightingUniforms;
 }
 
 /**
@@ -66,11 +73,20 @@ export function WorldObjects({
   atlas,
   tileSizePx,
   flowerFrameSeconds,
+  lighting,
 }: WorldObjectsProps): JSX.Element {
-  const material = useMemo(() => createSpriteMaterial(atlas.texture), [atlas]);
-  const shadowMaterial = useMemo(() => createShadowMaterial(atlas.texture), [atlas]);
+  const material = useMemo(() => createSpriteMaterial(atlas.texture, lighting), [atlas, lighting]);
+  const shadowMaterial = useMemo(
+    () => createShadowMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
+  const lightsMaterial = useMemo(
+    () => createLightsMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
+  useEffect(() => () => lightsMaterial.dispose(), [lightsMaterial]);
 
   useFrame(({ clock }) => {
     showAnimationFrameAt(material, clock.elapsedTime, flowerFrameSeconds, FLOWER_FRAME_COUNT);
@@ -86,6 +102,17 @@ export function WorldObjects({
       ),
     ],
     [world, atlas, tileSizePx],
+  );
+  // Buildings with window lights get an overlay batch just in front of them.
+  const lightsBatches = useMemo(
+    () =>
+      batches
+        .filter(([key]) => atlas.has(lightsKey(key)))
+        .map(([key, instances]) => {
+          const lit = instances.map((i) => ({ ...i, z: i.z + LIGHTS_Z_OFFSET }));
+          return [lightsKey(key), lit] as const;
+        }),
+    [batches, atlas],
   );
   const shadowBatches = useMemo(
     () => [...placeObjectShadows(world.objects, tileSizePx)],
@@ -107,6 +134,14 @@ export function WorldObjects({
           key={`${key}:${String(instances.length)}`}
           frame={atlas.frame(key)}
           material={material}
+          instances={instances}
+        />
+      ))}
+      {lightsBatches.map(([key, instances]) => (
+        <SpriteBatch
+          key={`lights:${key}:${String(instances.length)}`}
+          frame={atlas.frame(key)}
+          material={lightsMaterial}
           instances={instances}
         />
       ))}

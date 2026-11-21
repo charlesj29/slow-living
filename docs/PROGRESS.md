@@ -66,12 +66,25 @@
   the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
   the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
 - Background music composed in code (no files, no licences); mute button top-left plus M.
+- Day/night: a full day is 12 minutes; a top-left button (above music) cycles Auto / Always
+  day / Always night; the F3 readout is bottom-left and also shows the time.
 - Interaction with Space (first E, changed by the user); a small down-arrow marks what you can
   interact with; messages have no reply choices and show a blinking ▼. Mailbox: "It's empty.".
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Part 2 of 3: day/night cycle (user request)
+
+- **Done (D53):** `core/systems/dayNight.ts` (time, keyframed lighting, modes, clock label);
+  `GameState.timeOfDay`; shared lighting uniforms in every material; `render/DayNightLighting`
+  (eased, tints the background); window-light overlays for buildings (`assets/paintLights.ts`,
+  `createLightsMaterial`); `ui/DayNightToggle` (top-left, above music; remembered); F3 moved
+  bottom-left with a time line.
+- **Verified:** typecheck, lint, 308 tests, build pass; browser screenshots of always-day,
+  always-night (blue tint, lit windows) and dusk in Auto (warm tint, lights on); console clean.
+- **Next:** part 3, the village and villagers.
 
 ### 2026-11-21 — Part 1 of 3: interaction with E (user request)
 

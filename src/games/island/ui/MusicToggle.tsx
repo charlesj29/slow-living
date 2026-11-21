@@ -98,7 +98,7 @@ export function MusicToggle({ song }: { readonly song: Song }): JSX.Element {
   return (
     <button
       type="button"
-      className="island-music-toggle"
+      className="island-hud-button island-music-toggle"
       onClick={toggle}
       aria-pressed={isMuted}
       aria-label={isMuted ? 'Unmute music (M)' : 'Mute music (M)'}

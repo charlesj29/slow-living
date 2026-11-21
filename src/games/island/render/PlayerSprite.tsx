@@ -7,6 +7,7 @@ import { ISLAND_CONFIG } from '../core/config';
 import { playerFootY } from '../core/entities/player';
 import { interpolatedPlayerPosition, type GameState } from '../core/game/gameState';
 import { playerFrameIndex } from '../core/systems/animation';
+import type { LightingUniforms } from './lighting';
 import { PLAYER_SHADOW } from './objectShadows';
 import { createSpriteGeometry, setSpriteGeometryFrame } from './spriteGeometry';
 import { createShadowMaterial, createSpriteMaterial, setAnimationFrame } from './spriteMaterial';
@@ -15,6 +16,7 @@ import { SHADOW_Z, standingSpriteZ, worldYFromMapPx } from './worldSpace';
 interface PlayerSpriteProps {
   readonly state: GameState;
   readonly atlas: SpriteAtlas;
+  readonly lighting: LightingUniforms;
 }
 
 /**
@@ -23,20 +25,23 @@ interface PlayerSpriteProps {
  * direction, the walk-cycle frame, and depth from the feet so crowns, the
  * cabin roof and fences cover the player when standing behind them.
  */
-export function PlayerSprite({ state, atlas }: PlayerSpriteProps): JSX.Element {
+export function PlayerSprite({ state, atlas, lighting }: PlayerSpriteProps): JSX.Element {
   const meshRef = useRef<Mesh>(null);
   const shownKey = useRef('');
   const geometry = useMemo(
     () => createSpriteGeometry(atlas.frame(playerSpriteKey(state.player.facing))),
     [atlas, state],
   );
-  const material = useMemo(() => createSpriteMaterial(atlas.texture), [atlas]);
+  const material = useMemo(() => createSpriteMaterial(atlas.texture, lighting), [atlas, lighting]);
   const shadowRef = useRef<Mesh>(null);
   const shadowGeometry = useMemo(
     () => createSpriteGeometry(atlas.frame(PLAYER_SHADOW.key)),
     [atlas],
   );
-  const shadowMaterial = useMemo(() => createShadowMaterial(atlas.texture), [atlas]);
+  const shadowMaterial = useMemo(
+    () => createShadowMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
   useEffect(() => () => geometry.dispose(), [geometry]);
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => () => shadowGeometry.dispose(), [shadowGeometry]);

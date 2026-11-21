@@ -148,6 +148,14 @@ export interface IslandConfig {
     readonly blinkEverySeconds: number;
     readonly blinkSeconds: number;
   };
+  readonly dayNight: {
+    /** Real seconds for one full day (dawn, day, dusk, night). */
+    readonly dayLengthSeconds: number;
+    /** Time of day when the game starts (0 = midnight, 0.5 = noon). */
+    readonly startTime: number;
+    /** How quickly the light follows a change of mode (higher = faster). */
+    readonly transitionSharpness: number;
+  };
   readonly interaction: {
     /** How far past the feet hitbox, in the facing direction, the player can reach. */
     readonly reachPx: number;
@@ -277,6 +285,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     blinkEverySeconds: 3.7,
     blinkSeconds: 0.14,
   },
+  dayNight: { dayLengthSeconds: 720, startTime: 0.33, transitionSharpness: 2.5 },
   interaction: { reachPx: 8 },
   music: { volume: 0.55, fadeSeconds: 0.4, fadeInSeconds: 3 },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },

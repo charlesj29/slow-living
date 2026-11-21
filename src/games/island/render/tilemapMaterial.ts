@@ -1,5 +1,6 @@
 import { FrontSide, ShaderMaterial, Vector2, type Texture } from 'three';
 import type { GrassPatchSettings } from './grassPatches';
+import { DAYLIGHT, type LightingUniforms } from './lighting';
 import type { SpriteMaterial } from './spriteMaterial';
 
 // Like the sprite shader (animated strips via uFrame, hard alpha), plus soft
@@ -27,6 +28,7 @@ const FRAGMENT_SHADER = /* glsl */ `
   uniform float uThreshold;
   uniform float uShade;
   uniform float uSpread;
+  uniform vec3 uTint;
   varying vec2 vUv;
   varying vec2 vWorld;
   varying float vPatchable;
@@ -45,7 +47,7 @@ const FRAGMENT_SHADER = /* glsl */ `
       float dither = (BAYER[index] + 0.5) / 16.0 - 0.5;
       if (value + dither * uSpread > uThreshold) color.rgb *= uShade;
     }
-    gl_FragColor = color;
+    gl_FragColor = vec4(color.rgb * uTint, color.a);
   }
 `;
 
@@ -64,11 +66,14 @@ export function createTilemapMaterial(
   patchTexture: Texture,
   mapSizePx: { readonly width: number; readonly height: number },
   patches: GrassPatchSettings,
+  lighting: LightingUniforms = DAYLIGHT,
 ): TilemapMaterial {
   return new ShaderMaterial({
     uniforms: {
       map: { value: atlasTexture },
       uFrame: { value: 0 },
+      uTint: lighting.uTint,
+      uLightsOn: lighting.uLightsOn,
       uPatch: { value: patchTexture },
       uMapSizePx: { value: new Vector2(mapSizePx.width, mapSizePx.height) },
       uThreshold: { value: patches.threshold },

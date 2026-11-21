@@ -1,6 +1,7 @@
 import { useEffect, useState, type JSX } from 'react';
 import { ISLAND_CONFIG } from '../core/config';
 import { playerTile, type GameState } from '../core/game/gameState';
+import { clockLabel } from '../core/systems/dayNight';
 import { useIslandUiStore } from '../state';
 import './islandUi.css';
 
@@ -14,15 +15,21 @@ interface Readout {
   readonly fps: number;
   readonly tileX: number;
   readonly tileY: number;
+  readonly clock: string;
 }
 
 function readStats(game: GameState): Readout {
   const tile = playerTile(game, ISLAND_CONFIG.map.tileSizePx);
-  return { fps: Math.round(game.framesPerSecond), tileX: tile.x, tileY: tile.y };
+  return {
+    fps: Math.round(game.framesPerSecond),
+    tileX: tile.x,
+    tileY: tile.y,
+    clock: clockLabel(game.timeOfDay),
+  };
 }
 
 /**
- * F3 toggles a small readout of FPS and the player's tile. While visible it
+ * F3 toggles a small readout (bottom-left) of FPS, the player's tile and the time of day. While visible it
  * samples the game state a few times per second (never every frame), so React
  * stays out of the render loop.
  */
@@ -55,6 +62,7 @@ export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
       <div>
         Tile {readout.tileX}, {readout.tileY}
       </div>
+      <div>Time {readout.clock}</div>
     </div>
   );
 }

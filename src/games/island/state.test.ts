@@ -8,6 +8,7 @@ describe('island UI store', () => {
       hasStartedWalking: false,
       isMusicMuted: false,
       dialogMessage: null,
+      dayNightMode: 'auto',
     });
   });
 
@@ -32,6 +33,14 @@ describe('island UI store', () => {
     expect(useIslandUiStore.getState().dialogMessage).toBe("It's empty.");
     useIslandUiStore.getState().setDialogMessage(null);
     expect(useIslandUiStore.getState().dialogMessage).toBeNull();
+  });
+
+  it('cycles the day/night mode: auto, day, night, auto', () => {
+    const modes = [0, 1, 2].map(() => {
+      useIslandUiStore.getState().cycleDayNightMode();
+      return useIslandUiStore.getState().dayNightMode;
+    });
+    expect(modes).toEqual(['day', 'night', 'auto']);
   });
 
   it('remembers that the player has started walking', () => {

@@ -6,8 +6,10 @@ import { WATER_FRAME_COUNT } from '../assets/paintTiles';
 import { ISLAND_CONFIG } from '../core/config';
 import { interpolatedPlayerPosition, type GameState } from '../core/game/gameState';
 import { FollowCamera } from './FollowCamera';
+import { DayNightLighting } from './DayNightLighting';
 import { GameLoop } from './GameLoop';
 import { InteractPrompt } from './InteractPrompt';
+import { createLightingUniforms } from './lighting';
 import { PlayerSprite } from './PlayerSprite';
 import { Tilemap } from './Tilemap';
 import { useKeyboardInput } from './useKeyboardInput';
@@ -45,6 +47,8 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
   const { tileSizePx, chunkSizeTiles } = ISLAND_CONFIG.map;
   const atlas = useMemo(() => createIslandAtlas(), []);
   useEffect(() => () => atlas.dispose(), [atlas]);
+  // One set of lighting uniforms shared by every world material.
+  const lighting = useMemo(() => createLightingUniforms(), []);
 
   useKeyboardInput(game.input);
 
@@ -63,6 +67,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
     <Canvas flat linear gl={{ antialias: false }} onCreated={exposeRendererInDev}>
       <color attach="background" args={[BACKGROUND_COLOR]} />
       <GameLoop state={game} />
+      <DayNightLighting state={game} lighting={lighting} background={BACKGROUND_COLOR} />
       <FollowCamera getTarget={followTarget} bounds={bounds} tileSizePx={tileSizePx} />
       <Tilemap
         world={world}
@@ -71,14 +76,16 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         chunkSizeTiles={chunkSizeTiles}
         waterFrameSeconds={ISLAND_CONFIG.render.waterFrameSeconds}
         waterFrameCount={WATER_FRAME_COUNT}
+        lighting={lighting}
       />
       <WorldObjects
         world={world}
         atlas={atlas}
         tileSizePx={tileSizePx}
         flowerFrameSeconds={ISLAND_CONFIG.render.flowerFrameSeconds}
+        lighting={lighting}
       />
-      <PlayerSprite state={game} atlas={atlas} />
+      <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
       <InteractPrompt state={game} atlas={atlas} />
     </Canvas>
   );

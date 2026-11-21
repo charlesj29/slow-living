@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DAY_NIGHT_MODES, type DayNightMode } from './core/systems/dayNight';
 
 /**
  * UI-facing state only (things the HUD/overlays show or control). The world and
@@ -14,11 +15,16 @@ export interface IslandUiState {
   readonly isMusicMuted: boolean;
   /** The open interaction message (mirrored from the game state by the loop), or null. */
   readonly dialogMessage: string | null;
+  /** Day/night: follow the clock, or hold day or night (the top-left button). */
+  readonly dayNightMode: DayNightMode;
   toggleDebugOverlay: () => void;
   markStartedWalking: () => void;
   setMusicMuted: (muted: boolean) => void;
   toggleMusicMuted: () => void;
   setDialogMessage: (message: string | null) => void;
+  setDayNightMode: (mode: DayNightMode) => void;
+  /** Auto → Always day → Always night → Auto. */
+  cycleDayNightMode: () => void;
 }
 
 export const useIslandUiStore = create<IslandUiState>()((set) => ({
@@ -26,6 +32,7 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   hasStartedWalking: false,
   isMusicMuted: false,
   dialogMessage: null,
+  dayNightMode: 'auto',
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
   },
@@ -40,5 +47,14 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   setDialogMessage: (message) => {
     set({ dialogMessage: message });
+  },
+  setDayNightMode: (mode) => {
+    set({ dayNightMode: mode });
+  },
+  cycleDayNightMode: () => {
+    set((state) => {
+      const index = DAY_NIGHT_MODES.indexOf(state.dayNightMode);
+      return { dayNightMode: DAY_NIGHT_MODES[(index + 1) % DAY_NIGHT_MODES.length] ?? 'auto' };
+    });
   },
 }));

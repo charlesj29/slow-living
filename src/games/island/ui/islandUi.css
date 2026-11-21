@@ -10,13 +10,21 @@
 }
 
 .island-dev-badge {
-  top: 3.25rem; /* below the music button */
+  top: 6.25rem; /* below the two top-left buttons */
   left: 0.75rem;
 }
 
-.island-music-toggle {
-  position: absolute;
+/* Small square buttons stacked in the top-left: day/night, then music. */
+.island-day-night-toggle {
   top: 0.75rem;
+}
+
+.island-music-toggle {
+  top: 3.5rem;
+}
+
+.island-hud-button {
+  position: absolute;
   left: 0.75rem;
   display: grid;
   place-items: center;
@@ -32,17 +40,17 @@
   transition: opacity 0.2s ease;
 }
 
-.island-music-toggle:hover,
-.island-music-toggle:focus-visible {
+.island-hud-button:hover,
+.island-hud-button:focus-visible {
   opacity: 1;
 }
 
-.island-music-toggle:focus-visible {
+.island-hud-button:focus-visible {
   outline: 2px solid #ffd27a;
   outline-offset: 2px;
 }
 
-.island-music-toggle svg {
+.island-hud-button svg {
   width: 1.25rem;
   height: 1.25rem;
 }
@@ -118,8 +126,8 @@
 }
 
 .island-debug-overlay {
-  top: 0.75rem;
-  right: 0.75rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
   font-family: ui-monospace, Consolas, monospace;
   line-height: 1.4;
 }

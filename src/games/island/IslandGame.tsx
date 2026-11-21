@@ -5,6 +5,7 @@ import { createGameState } from './core/game/gameState';
 import { loadWorld } from './loadWorld';
 import { GameCanvas } from './render/GameCanvas';
 import { ControlsHint } from './ui/ControlsHint';
+import { DayNightToggle } from './ui/DayNightToggle';
 import { DebugOverlay } from './ui/DebugOverlay';
 import { DialogBox } from './ui/DialogBox';
 import { DevSeedBadge } from './ui/DevSeedBadge';
@@ -46,6 +47,7 @@ export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
       <DebugOverlay game={game} />
       <DialogBox />
       <KeyboardNotice />
+      <DayNightToggle />
       <MusicToggle song={CHILL_TUNE} />
       {devSeed !== undefined && <DevSeedBadge seed={devSeed} />}
     </>

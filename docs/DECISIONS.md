@@ -574,3 +574,17 @@ alternatives → consequences.
   small bobbing down-arrow, and the dialog shows a blinking ▼ instead of a key name. The mute
   button drops focus after a click, so Space can't press it again.
 - **Consequences:** villagers can reuse the same flow by providing a target and message.
+
+## D53 — Day/night as one shared tint, window lights as hard-alpha overlays
+
+- **Context:** the user asked for a day/night cycle with a button above the music button
+  (chose: cycle Auto / Always day / Always night) and the F3 readout moved (chose bottom-left).
+- **Decision:** the time of day lives in `GameState` and keeps running in every mode; lighting
+  is a pure function of time and mode (long day and night, short warm dawn and dusk, smooth
+  keyframes). Every world material multiplies by one shared `uTint` uniform, so relighting is a
+  single per-frame write; mode changes ease in. Night windows are overlay sprites derived from
+  each building's glass pixels, untinted and shown only while lights are on: they stay hard
+  alpha (no blending), unlike a fading glow. The mode is remembered in `localStorage`. A full
+  day is 12 real minutes; the game starts in the morning.
+- **Consequences:** new buildings get window lights automatically (category `building`);
+  materials take an optional `LightingUniforms` (daylight by default, e.g. in tests).
