@@ -141,6 +141,23 @@ export interface IslandConfig {
     readonly minRestSeconds: number;
     readonly maxRestSeconds: number;
   };
+  /** Wild rabbits in the meadows around the village. */
+  readonly rabbits: {
+    readonly enabled: boolean;
+    readonly white: number;
+    readonly brown: number;
+    /** Their meadow: open land this many steps from the village's edge. */
+    readonly nearVillageTiles: Range;
+    /** One hop (one tile). */
+    readonly hopSeconds: number;
+    /** How far a run of hops goes, at most (tiles). */
+    readonly hopRangeTiles: number;
+    readonly minIdleSeconds: number;
+    readonly maxIdleSeconds: number;
+    /** Closer than this (tiles) and a rabbit hops away, this many hops. */
+    readonly fleeRadiusTiles: number;
+    readonly fleeHops: number;
+  };
   /** The Developer's Studio: placed near the cottage, after the village. */
   readonly studio: {
     /** How far from the cottage door (in tiles) to look. */
@@ -364,6 +381,18 @@ export const ISLAND_CONFIG: IslandConfig = {
     wanderRadiusTiles: 3,
     minRestSeconds: 1.5,
     maxRestSeconds: 6,
+  },
+  rabbits: {
+    enabled: true,
+    white: 2,
+    brown: 2,
+    nearVillageTiles: { min: 3, max: 9 },
+    hopSeconds: 0.34,
+    hopRangeTiles: 4,
+    minIdleSeconds: 1.5,
+    maxIdleSeconds: 5,
+    fleeRadiusTiles: 2.5,
+    fleeHops: 3,
   },
   studio: {
     searchRadiusTiles: 28,

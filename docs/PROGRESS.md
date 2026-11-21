@@ -89,6 +89,21 @@
 
 ## Session log
 
+### 2026-11-22 — Wild rabbits, sitting on benches (user request)
+
+- **Rabbits:** two white and two brown (`core/systems/rabbits.ts`, `assets/paintRabbits.ts`,
+  `render/RabbitSprites`) live in a meadow 3–9 tiles outside the village (`rabbitMeadow`). They
+  idle (sit with an ear twitch, nibble, sit alert), hop a few tiles one tile at a time, and hop
+  away from the player. Hand-drawn 16×16 frames: sit, twitch, two nibble frames and a four-frame
+  hop (crouch, push off, airborne, land) with a 3 px arc while the shadow stays down. Config:
+  `rabbits` (counts, meadow distance, hop timing, flee radius; `enabled`).
+- **Benches:** Space (or a tap) on a bench sits down on it (`interaction: { sit: true }`): the
+  player moves onto the seat facing out, in a new sitting frame (`PLAYER_FRAMES.sit`: the thigh
+  rows dropped), drawn lifted onto the seat with no shadow. Any direction, Space or a tap stands
+  up where the player was.
+- **Verified:** typecheck, lint, tests (bench and rabbit tests), build; browser: sitting on the
+  cottage bench, rabbits round the village (nibbling); console clean.
+
 ### 2026-11-22 — No vegetable patch, a studio fireplace, arrows on signs (user request)
 
 - The cottage's vegetable patch is left out for now (the `crops` kind and art stay).

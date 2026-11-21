@@ -2,7 +2,7 @@ import type { Player } from '../entities/player';
 
 /**
  * Frame layout of each direction's sprite strip: three idle frames, then an
- * 8-frame walk cycle and an 8-frame run cycle (two steps each).
+ * 8-frame walk cycle and an 8-frame run cycle (two steps each), then sitting.
  */
 export const PLAYER_FRAMES = {
   stand: 0,
@@ -11,8 +11,10 @@ export const PLAYER_FRAMES = {
   walkStart: 3,
   runStart: 11,
   cycleLength: 8,
+  /** Sitting on a bench (shorter legs: the knees point at the viewer). */
+  sit: 19,
 } as const;
-export const PLAYER_FRAME_COUNT = PLAYER_FRAMES.runStart + PLAYER_FRAMES.cycleLength;
+export const PLAYER_FRAME_COUNT = PLAYER_FRAMES.sit + 1;
 
 export interface AnimationSettings {
   /** Distance covered by one full walk cycle (two steps), so feet don't slide. */
@@ -63,6 +65,7 @@ function idleFrame(idleTime: number, settings: AnimationSettings): number {
  * Standing: a slow breath with the occasional blink.
  */
 export function playerFrameIndex(player: Player, settings: AnimationSettings): number {
+  if (player.sitting) return PLAYER_FRAMES.sit;
   if (!player.moving) return idleFrame(player.idleTime, settings);
   const cyclePx = player.running ? settings.runCyclePx : settings.walkCyclePx;
   const { cycleLength } = PLAYER_FRAMES;

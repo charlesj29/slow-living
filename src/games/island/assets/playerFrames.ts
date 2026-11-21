@@ -1,7 +1,7 @@
 // Assembles a character's body parts (the explorer's in playerPixels.ts, the
 // villagers' in villagerParts.ts) into animation strips, laid out as
 // `PLAYER_FRAMES` says: idle (stand, breath, blink), an 8-frame
-// walk cycle and an 8-frame run cycle per direction.
+// walk cycle, an 8-frame run cycle and a sitting frame per direction.
 //
 // Smoothness comes from small, consistent moves: the upper body bobs one
 // pixel (down on contact, up while passing), arms swing against the legs,
@@ -60,6 +60,16 @@ function compose(head: Rows, { torso, legs, bob, airborne = false }: Pose): stri
   return airborne ? [...rows.slice(1), EMPTY_ROW] : rows;
 }
 
+/**
+ * Sitting (on a bench, seen from the front): the same upper body two rows
+ * lower, on legs with the thigh rows dropped, so the knees seem to point at
+ * the viewer and the feet stay at the bottom.
+ */
+function sitting(head: Rows, torso: Rows, legs: Rows): string[] {
+  const [hip = EMPTY_ROW] = legs;
+  return [EMPTY_ROW, EMPTY_ROW, ...head, ...torso, hip, ...legs.slice(3)];
+}
+
 /** Closes the eyes: the upper eye pixels become skin, leaving a one-pixel line. */
 function blink(head: Rows): string[] {
   return head.map((row, y) => (y === EYE_ROW ? row.replace(/(?<=s)o(?=s)/g, 's') : row));
@@ -95,6 +105,7 @@ function symmetricStrip(
     compose(eyes ? blink(head) : head, stand),
     ...cycle(walkStep),
     ...cycle(runStep),
+    sitting(head, torso.stand, legs.stand),
   ];
 }
 
@@ -160,6 +171,7 @@ function sideStrip(parts: CharacterParts): string[][] {
     compose(blink(head), stand),
     ...walk.map((pose) => compose(head, pose)),
     ...run.map((pose) => compose(head, pose)),
+    sitting(head, t.stand, l.stand),
   ];
 }
 

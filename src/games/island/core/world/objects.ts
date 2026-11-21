@@ -95,13 +95,14 @@ export interface ObjectDefinition {
 }
 
 /**
- * What Space shows: a message of one or more pages, or a part of the portfolio
- * in the panel. `pagePerTile`: each tile of the object opens its own page (the
+ * What Space does: show a message of one or more pages, open a part of the
+ * portfolio in the panel, or sit down (benches). `pagePerTile`: each tile of the object opens its own page (the
  * phones on the shelf: one project per phone).
  */
 export type Interaction =
   | { readonly pages: readonly string[] }
-  | { readonly panel: PanelId; readonly pagePerTile?: boolean };
+  | { readonly panel: PanelId; readonly pagePerTile?: boolean }
+  | { readonly sit: true };
 
 const SINGLE_TILE = { width: 1, height: 1 } as const;
 
@@ -211,7 +212,8 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   // The village plaza.
   bench: {
     ...solid('bench', 'Bench', 'structure', '#9a6436', { width: 2, height: 1 }),
-    interaction: says('A good spot to sit and watch the village go by.'),
+    // Space (or a tap) sits down on it; any key stands up again.
+    interaction: { sit: true },
   },
   market_stall: {
     ...solid('market_stall', 'Market stall', 'structure', '#c84848', { width: 3, height: 1 }),

@@ -12,6 +12,7 @@ import { paintWindowLights } from './paintLights';
 import { paintObjectSprites } from './paintObjects';
 import { paintPlayerSprites } from './paintPlayer';
 import { paintPlazaSprites } from './paintPlaza';
+import { paintRabbitSprites } from './paintRabbits';
 import { paintPropSprites } from './paintProps';
 import { paintShadowSprites } from './paintShadows';
 import { paintSmokeSprites } from './paintSmoke';
@@ -48,6 +49,7 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintStudioSprites(),
     ...paintPlayerSprites(),
     ...paintAnimalSprites(),
+    ...paintRabbitSprites(),
     ...paintShadowSprites(),
     ...paintSmokeSprites(),
     ...paintUiSprites(),

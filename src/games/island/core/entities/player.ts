@@ -22,6 +22,8 @@ export interface Player {
   strideDistance: number;
   /** Seconds spent standing still (drives the idle breathing). */
   idleTime: number;
+  /** Sitting on a bench: where to stand up again, or null. */
+  sitting: { readonly standX: number; readonly standY: number } | null;
 }
 
 export interface Box {
@@ -50,6 +52,7 @@ export function createPlayer(spawn: TilePoint, tileSizePx: number): Player {
     running: false,
     strideDistance: 0,
     idleTime: 0,
+    sitting: null,
   };
 }
 

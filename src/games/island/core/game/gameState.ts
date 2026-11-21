@@ -13,9 +13,10 @@ import { approach } from '@/shared/engine/math';
 import { createRng, type Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import { createPlayer, type Player } from '../entities/player';
+import { OBJECT_REGISTRY } from '../world/objects';
 import { bumpsInto, createVillager, type Villager } from '../entities/villager';
 import { villagerSpawns, wanderTiles } from '../world/village';
-import type { World } from '../world/world';
+import type { World, WorldObject } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
 import { advanceTimeOfDay } from '../systems/dayNight';
@@ -28,6 +29,7 @@ import {
   type PanelOpen,
 } from '../systems/interaction';
 import { createAnimals, updateAnimal, type Animal } from '../systems/animals';
+import { createRabbits, rabbitMeadow, updateRabbit, type Rabbit } from '../systems/rabbits';
 import { movePlayer } from '../systems/movement';
 import { followWalk, planTap, type AutoWalk } from '../systems/tapToWalk';
 import { startTalking, updateVillager } from '../systems/wander';
@@ -78,6 +80,9 @@ export interface GameState {
   readonly animals: readonly Animal[];
   /** The village tiles villagers and animals keep to. */
   readonly villageHome: ReadonlySet<number>;
+  /** Wild rabbits round the village (island only), and the meadow they keep to. */
+  readonly rabbits: readonly Rabbit[];
+  readonly rabbitMeadow: ReadonlySet<number>;
   /** The island's studio, village and cottage: what hints and signposts point to. */
   readonly landmarks: Landmarks;
 }
@@ -85,6 +90,8 @@ export interface GameState {
 /** Outfits in sprite order; villagers take them in turn. */
 const VILLAGER_LOOKS = 3;
 const WANDER_SEED_SALT = 0x5a11;
+/** Sitting, the feet rest just in front of the bench row (so the player draws in front of it). */
+const SEAT_IN_FRONT_PX = 1;
 
 function createVillagers(world: World, tileSizePx: number): Villager[] {
   if (!world.village) return [];
@@ -97,6 +104,7 @@ function createVillagers(world: World, tileSizePx: number): Villager[] {
 export function createGameState(world: World, config: IslandConfig): GameState {
   const wanderRng = createRng(world.generationSeed ^ WANDER_SEED_SALT);
   const home = wanderTiles(world);
+  const meadow = rabbitMeadow(world, config.rabbits);
   const maps = new Map<string, World>([[ISLAND_MAP, world]]);
   for (const definition of Object.values(INTERIORS)) {
     maps.set(definition.id, buildInteriorWorld(definition));
@@ -122,6 +130,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     wanderRng,
     animals: createAnimals(world, home, wanderRng, config.animals, config.map.tileSizePx),
     villageHome: new Set(home),
+    rabbits: createRabbits(world, meadow, wanderRng, config.rabbits, config.map.tileSizePx),
+    rabbitMeadow: meadow,
     landmarks: findLandmarks(world),
   };
 }
@@ -143,6 +153,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   );
   stepVillagers(state, stepSeconds, config);
   stepAnimals(state, stepSeconds, config);
+  stepRabbits(state, stepSeconds, config);
   if (state.transition) {
     stepTransition(state, stepSeconds, config);
     player.moving = false;
@@ -151,6 +162,12 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   } else if (state.dialog) {
     if (consumePress(input, 'interact')) turnPage(state, state.dialog);
     player.moving = false;
+  } else if (player.sitting) {
+    // Sitting on a bench: any direction, Space (or a tap) stands up again.
+    const intent = readMovementIntent(input);
+    if (intent.facing || consumePress(input, 'interact')) standUp(player);
+    player.moving = false;
+    state.interactTarget = null;
   } else if (state.panel || state.overlayOpen) {
     // The panel or page has its own keys and buttons (UI); the game waits.
     player.moving = false;
@@ -187,11 +204,29 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
       player.moving = false;
       state.interactTarget = null;
     } else if ((consumePress(input, 'interact') || interactNow) && state.interactTarget) {
-      openDialog(state);
+      openDialog(state, tileSizePx);
     }
   }
   updatePlayerAnimation(player, stepSeconds, config.player, tileSizePx);
   clearPresses(input);
+}
+
+function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig): void {
+  const island = state.maps.get(ISLAND_MAP) ?? state.world;
+  // They only notice the player out on the island.
+  const player = onIsland(state) ? state.player : null;
+  for (const rabbit of state.rabbits) {
+    updateRabbit(
+      rabbit,
+      island,
+      state.rabbitMeadow,
+      player,
+      state.wanderRng,
+      stepSeconds,
+      config.rabbits,
+      config.map.tileSizePx,
+    );
+  }
 }
 
 function stepAnimals(state: GameState, stepSeconds: number, config: IslandConfig): void {
@@ -246,11 +281,15 @@ function interactionSettings(state: GameState, config: IslandConfig): Interactio
   };
 }
 
-function openDialog(state: GameState): void {
+function openDialog(state: GameState, tileSizePx: number): void {
   const target = state.interactTarget;
   if (!target) return;
   state.player.moving = false;
   state.autoWalk = null;
+  if (target.kind === 'object' && target.sit) {
+    sitOn(state.player, target.object, tileSizePx);
+    return;
+  }
   if (target.kind === 'object' && target.panel) {
     state.panel = target.panel;
     return;
@@ -291,6 +330,10 @@ export function tapAt(
   config: IslandConfig,
 ): void {
   if (state.transition || state.panel || state.overlayOpen) return;
+  if (state.player.sitting) {
+    standUp(state.player);
+    return;
+  }
   if (state.dialog) {
     turnPage(state, state.dialog);
     return;
@@ -299,6 +342,32 @@ export function tapAt(
   const tile = { x: Math.floor(point.x / tileSizePx), y: Math.floor(point.y / tileSizePx) };
   const villagers = onIsland(state) ? state.villagers : [];
   state.autoWalk = planTap(state.world, state.player, villagers, tile, tileSizePx);
+}
+
+/**
+ * Sits down on a bench: on the bench tile nearest the player, facing out,
+ * feet just in front of it (so the player is drawn in front of the bench; the
+ * renderer lifts the sitting sprite onto the seat). Remembers where to stand up.
+ */
+function sitOn(player: Player, bench: WorldObject, tileSizePx: number): void {
+  const { footprint } = OBJECT_REGISTRY[bench.kind];
+  const nearest = Math.floor(player.x / tileSizePx);
+  const tileX = Math.min(bench.x + footprint.width - 1, Math.max(bench.x, nearest));
+  player.sitting = { standX: player.x, standY: player.y };
+  player.x = (tileX + 0.5) * tileSizePx;
+  player.y = (bench.y + footprint.height) * tileSizePx + SEAT_IN_FRONT_PX;
+  player.facing = 'down';
+  player.moving = false;
+}
+
+/** Stands up from a bench, back where the player was before sitting down. */
+function standUp(player: Player): void {
+  if (!player.sitting) return;
+  player.x = player.sitting.standX;
+  player.y = player.sitting.standY;
+  player.previousX = player.x;
+  player.previousY = player.y;
+  player.sitting = null;
 }
 
 /** A page over the game (the Résumé) opened or closed; the game waits while it is open. */

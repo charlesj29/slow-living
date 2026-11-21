@@ -12,6 +12,9 @@ import { createSpriteGeometry, setSpriteGeometryFrame } from './spriteGeometry';
 import { createShadowMaterial, createSpriteMaterial, setAnimationFrame } from './spriteMaterial';
 import { SHADOW_Z, standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
+/** How far a sitting character is lifted, so the hips sit on the bench seat. */
+const SIT_LIFT_PX = 8;
+
 interface CharacterSpriteProps {
   /** The player or a villager: anything that walks and animates like the player. */
   readonly body: Player;
@@ -71,7 +74,10 @@ export function CharacterSprite({
     const x = Math.round(body.previousX + (body.x - body.previousX) * t);
     const y = body.previousY + (body.y - body.previousY) * t;
     const footY = Math.round(playerFootY(y, ISLAND_CONFIG.player));
-    mesh.position.set(x, worldYFromMapPx(footY) + frame.height / 2, standingSpriteZ(footY));
+    // Sitting on a bench: drawn up on the seat (depth stays at the feet, in front of the bench).
+    const lift = body.sitting ? SIT_LIFT_PX : 0;
+    mesh.position.set(x, worldYFromMapPx(footY - lift) + frame.height / 2, standingSpriteZ(footY));
+    if (shadowRef.current) shadowRef.current.visible = !body.sitting;
     shadowRef.current?.position.set(
       x + PLAYER_SHADOW.offsetX,
       worldYFromMapPx(footY + PLAYER_SHADOW.offsetY),

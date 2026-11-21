@@ -22,6 +22,8 @@ export type InteractTarget =
       readonly object: WorldObject;
       readonly pages: readonly string[];
       readonly panel?: PanelOpen;
+      /** A bench: sit down on it. */
+      readonly sit?: boolean;
     }
   | { readonly kind: 'villager'; readonly villager: Villager; readonly pages: readonly string[] };
 
@@ -103,6 +105,7 @@ export function findInteractTarget(
   // A building answers only at its door, not when you face one of its walls.
   const atDoor = !door || (tileX === object.x + door.x && tileY === object.y + door.y);
   if (!interaction || !atDoor) return null;
+  if ('sit' in interaction) return { kind: 'object', object, pages: [], sit: true };
   if ('panel' in interaction) {
     const page = interaction.pagePerTile ? tileX - object.x : 0;
     return { kind: 'object', object, pages: [], panel: { id: interaction.panel, page } };
