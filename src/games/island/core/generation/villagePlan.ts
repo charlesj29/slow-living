@@ -186,13 +186,15 @@ function spreadOut(
  */
 function planHouses(
   rng: Rng,
+  houseCount: number,
   width: number,
   height: number,
   inside: Uint8Array,
   fenceDistance: Int32Array,
   gap: number,
 ): PlannedHouse[] | null {
-  const kinds = shuffled(rng, VILLAGE_HOUSE_KINDS);
+  // A different mix per island: some of the house styles, in random order.
+  const kinds = shuffled(rng, VILLAGE_HOUSE_KINDS).slice(0, houseCount);
   const lots: Rect[] = [];
   const houses: PlannedHouse[] = [];
   const isInside = (x: number, y: number): boolean =>
@@ -232,6 +234,6 @@ export function planVillage(rng: Rng, settings: Settings): VillagePlan | null {
   const fence = traceFence(width, height, inside);
   const fenceDistance = distancesFrom(width, height, fence, inside);
   const gap = pickIn(rng, settings.gapTiles);
-  const houses = planHouses(rng, width, height, inside, fenceDistance, gap);
+  const houses = planHouses(rng, settings.houses, width, height, inside, fenceDistance, gap);
   return houses ? { width, height, inside, fence, fenceDistance, houses } : null;
 }

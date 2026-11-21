@@ -792,3 +792,18 @@ alternatives → consequences.
   smoke is render-only, three hard-edged puff sizes on a loop per chimney.
 - **Consequences:** generation takes about two attempts per seed on average (seeds 1–30 pass).
   Re-baking changed seed 46's village layout.
+
+## D65 — A pool of house styles; a modern studio
+
+- **Context:** with every building in the cottage style the village looked uniform; the user
+  wanted diversity with a chill village vibe, a modern-cosy studio and a cosier cottage.
+- **Decision:** houses differ in _shape_ (roof type, porches, materials), not only colour, and
+  share one palette and a set of parts (`paintHouseParts.ts`). Footprints and door positions
+  stay 5×3 with the door in the middle, so generation, doors and villagers are unchanged. A
+  village picks `village.houses` styles from `VILLAGE_HOUSE_KINDS` (shuffled per island), so
+  generated islands show different mixes. The studio deliberately breaks with the village
+  (shed roof, cladding, glass) to read as the developer's place; its sign's letters use the lamp
+  and flame colours, so the night-light overlay makes them glow. Chimney (and flue) tops come
+  from the painters, so smoke follows the art.
+- **Consequences:** `cottageStyle.ts` was removed (D64's shared cottage look); the cottage keeps
+  its own painter. Re-baking changed seed 46's village.

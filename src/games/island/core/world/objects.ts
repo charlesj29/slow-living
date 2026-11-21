@@ -53,6 +53,7 @@ export const OBJECT_KINDS = [
   'house_stone',
   'house_log',
   'house_thatch',
+  'house_bakery',
 ] as const;
 
 export type ObjectKind = (typeof OBJECT_KINDS)[number];
@@ -121,11 +122,16 @@ function studioPiece(
     ...(wallMounted ? { wallMounted } : {}),
   };
 }
-/** Village houses: 5×3 tiles, door in the middle of the bottom row. */
+/** Village houses: 5×3 tiles, door in the middle of the bottom row (each its own style). */
 const HOUSE_FOOTPRINT = { width: 5, height: 3 } as const;
 const HOUSE_DOOR = { x: 2, y: 2 } as const;
 
-function house(kind: ObjectKind, name: string, mapColor: string): ObjectDefinition {
+function house(
+  kind: ObjectKind,
+  name: string,
+  mapColor: string,
+  message = "It's locked. Someone lives here.",
+): ObjectDefinition {
   return {
     kind,
     name,
@@ -136,7 +142,7 @@ function house(kind: ObjectKind, name: string, mapColor: string): ObjectDefiniti
     mapColor,
     door: HOUSE_DOOR,
     litAtNight: true,
-    interaction: says("It's locked. Someone lives here."),
+    interaction: says(message),
   };
 }
 
@@ -271,6 +277,12 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   house_stone: house('house_stone', 'Stone house', '#7c8496'),
   house_log: house('house_log', 'Log cabin', '#7a5230'),
   house_thatch: house('house_thatch', 'Thatched house', '#c8a050'),
+  house_bakery: house(
+    'house_bakery',
+    "Baker's shop",
+    '#e8c060',
+    'Closed for today. Fresh bread tomorrow!',
+  ),
 };
 
 export function kindsInCategory(category: ObjectCategory): readonly ObjectKind[] {

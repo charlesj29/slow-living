@@ -20,6 +20,7 @@ export const VILLAGE_HOUSE_KINDS: readonly ObjectKind[] = [
   'house_stone',
   'house_log',
   'house_thatch',
+  'house_bakery',
 ];
 
 /** Tile indexes inside the village fence. */

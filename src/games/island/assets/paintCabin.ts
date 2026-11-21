@@ -1,7 +1,8 @@
 // The cottage: 96×96 px. The bottom 64 px match its 6×4-tile footprint; the
 // roof rises two tiles above it. Cozy 16-bit style (original design): a tiled
 // back roof and side wing, a timber-framed front gable over the door, plaster
-// walls, shuttered windows with flower boxes, a stone foundation and steps.
+// walls, shuttered windows with flower boxes, a canopy over the door with a
+// hanging basket, a stone foundation and steps.
 // Light comes from the top-left: left roof planes are lit, right ones shaded.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
@@ -158,6 +159,33 @@ function door(canvas: PixelCanvas): void {
   setPixel(canvas, left + 9, top + 10, PALETTE.flowers.centerWarm);
 }
 
+/** A small tiled canopy over the door on two brackets, with a hanging basket of flowers. */
+function porchCanopy(canvas: PixelCanvas): void {
+  const left = DOOR_CENTER - 12;
+  const right = DOOR_CENTER + 12;
+  const top = 60;
+  const bottom = 64;
+  for (let y = top; y <= bottom; y++) {
+    const inset = bottom - y; // a little wider at the bottom, like a sloped hood
+    fillRect(canvas, left + inset - 1, y, right - left - 2 * inset + 3, 1, roof.outline);
+    const tone = (y - top) % 2 === 0 ? roof.light : roof.base;
+    fillRect(canvas, left + inset, y, right - left - 2 * inset + 1, 1, tone);
+  }
+  fillRect(canvas, left - 1, bottom + 1, right - left + 3, 1, roof.outline);
+  for (let i = 0; i < 3; i++) {
+    setPixel(canvas, left + 1 + i, bottom + 2 + i, C.beam);
+    setPixel(canvas, right - 1 - i, bottom + 2 + i, C.beam);
+  }
+  // The basket hangs off the left end, clear of the door and the windows.
+  const bx = left - 1;
+  setPixel(canvas, bx + 1, bottom + 2, wall.outline);
+  fillRect(canvas, bx - 1, bottom + 3, 5, 3, PALETTE.leafy.base);
+  setPixel(canvas, bx, bottom + 3, PALETTE.flowers.red.petal);
+  setPixel(canvas, bx + 2, bottom + 4, PALETTE.flowers.yellow.petal);
+  fillRect(canvas, bx - 1, bottom + 6, 5, 2, C.box);
+  fillRect(canvas, bx - 1, bottom + 7, 5, 1, C.boxDark);
+}
+
 /** Stone steps from the door down to the trail. */
 function steps(canvas: PixelCanvas): void {
   const left = DOOR_CENTER - 6;
@@ -206,6 +234,7 @@ export function paintCabinSprites(): SpriteSource[] {
   shutteredWindow(canvas, 53, 68);
   foundation(canvas);
   door(canvas);
+  porchCanopy(canvas);
   steps(canvas);
   return [{ key: 'cabin', frames: [canvas] }];
 }

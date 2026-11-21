@@ -89,6 +89,26 @@
 
 ## Session log
 
+### 2026-11-22 — Diverse village houses, a modern studio, a cosier cottage (user request)
+
+- **User choices:** four village house styles in a pool (stone farmhouse, log cabin with porch,
+  round thatched cottage, baker's shopfront), three picked at random per island; a modern-cosy
+  studio; a cosier cottage.
+- **Done (D65):** `assets/paintHouses.ts` paints each style with its own shape (hipped slate
+  roof and porch posts with ivy; side-gabled mossy roof with porch railing, rocking chair and
+  firewood; rounded thatch dome with a round window and leaning chimney; tiled roof over a yellow
+  shop with an awning, bread in the window and a hanging sign), from shared parts in
+  `assets/paintHouseParts.ts`. New kind `house_bakery` ("Closed for today. Fresh bread
+  tomorrow!"); `village.houses` (3) picks from `VILLAGE_HOUSE_KINDS`. The studio
+  (`assets/paintStudio.ts`): slanted shed roof with a solar panel, flue and antenna, board
+  cladding, a big glass window wall with a lamp and a desk inside, a glass-panelled door, a
+  "</>" sign that glows like neon at night. The cottage gets a tiled canopy over the door with a
+  hanging basket; `decorateCabin` adds a bench by the steps and a vegetable patch at the side.
+  `assets/cottageStyle.ts` (the shared cottage look) is gone. Seed 46 re-baked (village: the
+  baker's, the thatched cottage and the log cabin).
+- **Verified:** typecheck, lint, tests, build; a sprite sheet of all buildings and browser
+  screenshots of the cottage, studio and village; console clean.
+
 ### 2026-11-22 — Zoom switch, animals off (user request)
 
 - `render.zoomEnabled` in `core/config.ts`: false keeps the camera at the default framing and

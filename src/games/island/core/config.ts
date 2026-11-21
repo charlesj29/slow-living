@@ -121,6 +121,8 @@ export interface IslandConfig {
     /** Open grass between the fence and the houses. */
     readonly gapTiles: Range;
     readonly lampPosts: number;
+    /** Houses per village, picked from the house styles (VILLAGE_HOUSE_KINDS). */
+    readonly houses: number;
     /** Shapes to try before giving up on a village for this seed. */
     readonly shapeAttempts: number;
     /** Each tree or rock a site would clear counts like this many tiles of distance. */
@@ -349,6 +351,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     notchHeight: { min: 3, max: 5 },
     gapTiles: { min: 2, max: 3 },
     lampPosts: 4,
+    houses: 3,
     shapeAttempts: 12,
     clearedObjectCost: 3,
   },

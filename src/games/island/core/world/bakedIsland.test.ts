@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ISLAND_CONFIG } from '../config';
 import { validateMap } from '../generation/validate';
 import { loadBakedIsland } from './bakedIsland';
-import { villageHouses, villagerSpawns, villageTiles } from './village';
+import { VILLAGE_HOUSE_KINDS, villageHouses, villagerSpawns, villageTiles } from './village';
 import { getDoorFrontTile } from './world';
 
 describe('baked island', () => {
@@ -33,7 +33,9 @@ describe('baked island', () => {
 
   it('has the village: three different houses with villagers inside its area', () => {
     const houses = villageHouses(world);
-    expect(houses.map((h) => h.kind).sort()).toEqual(['house_log', 'house_stone', 'house_thatch']);
+    const kinds = houses.map((h) => h.kind);
+    expect(new Set(kinds).size).toBe(3);
+    for (const kind of kinds) expect(VILLAGE_HOUSE_KINDS).toContain(kind);
     expect(world.village).not.toBeNull();
     const inside = new Set(world.village ? villageTiles(world.village, world) : []);
     const spawns = villagerSpawns(world);
