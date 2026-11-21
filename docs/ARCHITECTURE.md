@@ -38,7 +38,8 @@ src/
     engine/                 # Pure TS: math, random, noise, grid, pathfinding (A*)
     render/                 # pixelCanvas, atlasLayout, spriteAtlas, pixelPerfect, PixelPerfectCamera
     audio/                  # Web Audio, no React: song (data + timing, pure), voices (synths),
-                            #   musicPlayer (graph, look-ahead scheduler, mute, tab-hidden pause)
+                            #   musicGraph (mix, lo-fi filter, echo, hiss; live or offline),
+                            #   ticker (worker timer), musicPlayer (scheduler, mute, pause)
     ui/                     # (planned) shared UI components
   games/
     island/
@@ -62,7 +63,7 @@ src/
                             #   FollowCamera, useKeyboardInput
       assets/               # palette (ramps), paint helpers, foliage (clump shading),
                             #   paintTiles/Transitions/Objects/Structures/Cabin/Cliff/Props/
-                            #   Deadwood, playerPixels (parts) + playerFrames (strips),
+                            #   Deadwood, playerPixels (parts) + sideLegs + playerFrames (strips),
                             #   paintPlayer, islandSprites, chillTune (the music, as data)
       ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3), MusicToggle,
                             #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel
@@ -227,15 +228,20 @@ flowchart LR
   another).
 - **Player frames:** 19 per direction in `PLAYER_FRAMES` order: stand, breath, blink, an
   8-frame walk and an 8-frame run cycle (`assets/playerFrames.ts` composes them from head,
-  torso and leg parts with a 1 px body bob; run frames add pumping arms, an airborne frame and a
-  side-view lean). The cycles advance with `player.strideDistance` (pixels walked; walking
+  torso and leg parts with a 1 px body bob; run frames add pumping arms and an airborne frame).
+  Side-view legs are drawn by `assets/sideLegs.ts` from foot positions (near leg light, far leg
+  dark, outlines added), so the legs really scissor and swap each step; runs reach further,
+  kick up, drive the knee and set the hips a pixel back (lean). The cycles advance with `player.strideDistance` (pixels walked; walking
   speed when pushing against an obstacle), one cycle per `walkCyclePx` / `runCyclePx`, so
   feet don't slide. Standing: a slow breath (`breathCycleSeconds`) with an occasional blink.
 - **Music:** `ui/MusicToggle` (top-left button, M key) owns a `createMusicPlayer` built
   from `assets/chillTune.ts` (passed in by `IslandGame`, since UI can't import assets). It
   starts on the first key press or click (browser autoplay rules), fades on mute, suspends
   the audio clock while muted or while the tab is hidden, and remembers mute in
-  `localStorage` (`island.musicMuted`). Notes are queued 0.25 s ahead on the audio clock.
+  `localStorage` (`island.musicMuted`). A Web Worker timer (`ticker.ts`) tops up a 0.6 s queue
+  of notes on the audio clock, so a busy main thread never makes the music stutter; the loop is
+  unrolled on that clock, so the last bar flows straight into bar 1. Every note fades to zero
+  before its source stops (no clicks).
 - **Depth:** terrain z = 0 (layers draw in index order), flat decorations z = 0.5, standing
   sprites `standingSpriteZ(footYPx) = 1 + footYPx × 0.01` — the depth buffer puts things lower
   on the map in front, so crowns and the cabin roof cover whatever stands behind them. All

@@ -1,7 +1,7 @@
 // A song as plain data: notes on a beat grid that loops forever. Pure (no Web
 // Audio), so timing rules are unit-tested; `musicPlayer.ts` plays it.
 
-export type VoiceName = 'keys' | 'bass' | 'bell' | 'kick' | 'snare' | 'hat';
+export type VoiceName = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'hat' | 'openHat';
 
 export interface SongEvent {
   /** Start, in beats from the start of the loop (before swing). */

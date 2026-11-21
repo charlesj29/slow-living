@@ -528,3 +528,32 @@ alternatives → consequences.
   dependency either way.
 - **Consequences:** zero download size and no licensing; the sound is synth-like by design.
   The tune is verified by rendering it offline in Chrome (headless checks can't listen).
+
+## D50 — Side-view legs drawn from foot positions
+
+- **Context:** the user found the side walk/run sloppy, the run especially: its two leg shapes
+  repeated in both halves of the cycle, so the legs didn't trade places and looked frozen.
+- **Decision:** `assets/sideLegs.ts` draws each side frame from a near and a far foot (column and
+  lift): 2 px trouser legs from hips a pixel apart, a shoe, automatic outlines, a seam where a
+  far shoe meets the near leg. The walk goes contact → down → passing (knee up) → reach and then
+  swaps legs; the run reaches further, kicks the back foot up, drives the knee and scissors in
+  the air, with the hips set a pixel back so the body leans in. Arms swing against the near leg.
+- **Consequences:** the hand-drawn side stride/passing/run poses are gone (standing stays
+  hand-drawn). Front and back views are unchanged.
+
+## D51 — Lo-fi rebuild of the music, without stutter
+
+- **Context:** the user heard the music as broken/stuttering and asked for full lo-fi with an
+  infinite loop that joins beautifully. Causes found: random vinyl clicks read as glitches, a
+  hard default compressor pumped on every hit, some notes stopped before their fade finished
+  (pops), and the scheduler ran on a page timer that a busy frame can delay.
+- **Decision:** a new 32-bar tune (user choice; F major, 75 BPM, swing 0.62, form A A B A′, jazzy
+  ii–V chords and a minor iv; ~1:42) with a turnaround, rising pickup and drum fill in the last
+  bar. Sound: warm electric piano with tape wobble, deep bass, mellow lead into a dotted-eighth
+  echo, boom-bap drums with ghost notes, a muffled master (lowpass 4.2 kHz) with gentle glue
+  compression and a soft tape hiss (user choice) instead of crackle. Engine: `musicGraph.ts`
+  builds the mix on any context (so tests render the real sound offline), a Web Worker ticker
+  with a 0.6 s look-ahead, envelopes that always end at zero, a 3 s fade-in on first start.
+- **Consequences:** verified by rendering the whole loop plus the seam offline in Chrome: steady
+  loudness (RMS 0.09–0.18 every second, the same across the seam), peak 0.61, no sample jump
+  above 0.05 (no clicks). Supersedes the sound and tune parts of D49.

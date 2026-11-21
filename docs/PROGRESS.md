@@ -71,6 +71,21 @@
 
 ## Session log
 
+### 2026-11-21 — Side-view animation and a lo-fi music rebuild (user request)
+
+- **Why:** walking/running sideways looked sloppy (the running legs seemed not to move), and
+  the music sounded broken/stuttering; the user asked for full lo-fi with a seamless loop.
+  Choices: a 32-bar loop; a soft tape hiss as texture.
+- **Done:**
+  - Animation (D50): `assets/sideLegs.ts` draws side legs from foot positions; new 8-frame
+    side walk and run where the legs swap each step; arms swing against the near leg.
+  - Music (D51): new tune in `assets/chillTune.ts`; `shared/audio` gains `musicGraph.ts`
+    (mix shared by the player and offline tests) and `ticker.ts` (Web Worker timer);
+    click-free envelopes, gentle compression, hiss instead of crackle, 3 s fade-in.
+- **Verified:** typecheck, lint, 296 tests, build pass; side frames checked as text and as
+  enlarged sprites; the full loop rendered offline in Chrome (steady levels, seamless seam,
+  no clicks); live in the browser: music starts on a key press, M toggles, console clean.
+
 ### 2026-11-21 — Smooth character animation and chill music (user request)
 
 - **Why:** the idle and walk/run animation felt sloppy; the user also wanted royalty-free

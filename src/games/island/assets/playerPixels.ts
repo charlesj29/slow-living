@@ -195,7 +195,7 @@ export const FRONT_LEGS = {
   ],
 };
 
-/** Side view, facing right. */
+/** Side view, facing right, standing (walk and run legs are drawn by `sideLegs.ts`). */
 export const SIDE_LEGS = {
   stand: [
     '...oppppppo.....',
@@ -203,42 +203,5 @@ export const SIDE_LEGS = {
     '....oPPPpo......',
     '....okkkkko.....',
     '....ooooooo.....',
-  ],
-  stride: [
-    '...oppppppo.....',
-    '..opppoopppo....',
-    '..oPpo..oPpo....',
-    '..okkko.okkkko..',
-    '..ooooo.oooooo..',
-  ],
-  // The same stride with the other leg in front (the near leg is the lighter one).
-  strideOther: [
-    '...oppppppo.....',
-    '..opppoopPPo....',
-    '..oppo..oPPo....',
-    '..okkko.okkkko..',
-    '..ooooo.oooooo..',
-  ],
-  passing: [
-    '...oppppppo.....',
-    '....oppppo......',
-    '....oppppo......',
-    '...okkkkko......',
-    '...ooooooo......',
-  ],
-  runStride: [
-    '...oppppppo.....',
-    '..opppo.opppo...',
-    '.oPpo....oppo...',
-    '.okko....okkkko.',
-    '.oooo....oooooo.',
-  ],
-  // Both feet off the ground: back foot tucked up behind, front leg reaching.
-  runAir: [
-    '...oppppppo.....',
-    '...opppPPppo....',
-    '..okkko.oppo....',
-    '..ooooo.okkko...',
-    '........ooooo...',
   ],
 };

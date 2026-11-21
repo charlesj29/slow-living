@@ -20,6 +20,7 @@ import {
   SIDE_TORSO,
   type Rows,
 } from './playerPixels';
+import { sideLegs, type FootPose } from './sideLegs';
 
 /** Upper-body offset in pixels: +1 sinks into the legs (bent knees), -1 rises (legs stretch). */
 type Bob = -1 | 0 | 1;
@@ -33,10 +34,6 @@ interface Pose {
 }
 
 const mirror = (rows: Rows): string[] => rows.map((row) => [...row].reverse().join(''));
-
-/** Moves leg rows left (the body then leans forward over them when facing right). */
-const shiftLeft = (rows: Rows, by: number): string[] =>
-  rows.map((row) => row.slice(by) + '.'.repeat(by));
 
 /** Head (13 rows) + torso (6) + legs (5) = 24 rows, with the upper body bobbed. */
 function compose(head: Rows, { torso, legs, bob, airborne = false }: Pose): string[] {
@@ -85,32 +82,59 @@ function symmetricStrip(head: Rows, torso: typeof FRONT_TORSO, eyes: boolean): s
   ];
 }
 
+/** One side-view frame: near foot, far foot, body bob, airborne. */
+type SideStep = readonly [FootPose, FootPose, Bob, boolean];
+const foot = (x: number, lift: FootPose['lift'] = 0): FootPose => ({ x, lift });
+
+/**
+ * Walk: contact (near leg forward), push down, the far leg swings through
+ * with its knee up, reach; then the same with the legs swapped.
+ */
+const SIDE_WALK: readonly SideStep[] = [
+  [foot(9), foot(3), 0, false],
+  [foot(8), foot(3, 1), 1, false],
+  [foot(6), foot(7, 1), 0, false],
+  [foot(4), foot(8, 1), -1, false],
+  [foot(3), foot(9), 0, false],
+  [foot(3, 1), foot(8), 1, false],
+  [foot(7, 1), foot(6), 0, false],
+  [foot(8, 1), foot(4), -1, false],
+];
+
+/**
+ * Run: a longer reach, the back foot kicks up, a high knee drives forward,
+ * then both feet leave the ground in a scissor; then legs swapped. The hips
+ * sit a pixel back, so the body leans into the run.
+ */
+const SIDE_RUN: readonly SideStep[] = [
+  [foot(9), foot(2, 1), 0, false],
+  [foot(7), foot(2, 2), 1, false],
+  [foot(4), foot(7, 2), 0, false],
+  [foot(3), foot(9, 1), -1, true],
+  [foot(2, 1), foot(9), 0, false],
+  [foot(2, 2), foot(7), 1, false],
+  [foot(7, 2), foot(4), 0, false],
+  [foot(9, 1), foot(3), -1, true],
+];
+const WALK_HIP_X = 6;
+const RUN_HIP_X = 5;
+
 /** Facing right; facing left is the mirror image. */
 function sideStrip(): string[][] {
   const t = SIDE_TORSO;
   const l = SIDE_LEGS;
   const stand: Pose = { torso: t.stand, legs: l.stand, bob: 0 };
-  const walk: Pose[] = [
-    { torso: t.forward, legs: l.stride, bob: 0 },
-    { torso: t.forward, legs: l.stride, bob: 1 },
-    { torso: t.stand, legs: l.passing, bob: 0 },
-    { torso: t.stand, legs: l.passing, bob: -1 },
-    { torso: t.back, legs: l.strideOther, bob: 0 },
-    { torso: t.back, legs: l.strideOther, bob: 1 },
-    { torso: t.stand, legs: l.passing, bob: 0 },
-    { torso: t.stand, legs: l.passing, bob: -1 },
-  ];
-  const lean = (legs: Rows): string[] => shiftLeft(legs, 1);
-  const run: Pose[] = [
-    { torso: t.forward, legs: lean(l.runStride), bob: 1 },
-    { torso: t.forward, legs: lean(l.runStride), bob: 0 },
-    { torso: t.stand, legs: lean(l.runAir), bob: -1, airborne: true },
-    { torso: t.stand, legs: lean(l.runAir), bob: 0 },
-    { torso: t.back, legs: lean(l.runStride), bob: 1 },
-    { torso: t.back, legs: lean(l.runStride), bob: 0 },
-    { torso: t.stand, legs: lean(l.runAir), bob: -1, airborne: true },
-    { torso: t.stand, legs: lean(l.runAir), bob: 0 },
-  ];
+  // Arms swing against the near leg: back while it reaches forward, forward while it trails.
+  const arms = [t.back, t.back, t.stand, t.forward, t.forward, t.forward, t.stand, t.back];
+  const cycle = (steps: readonly SideStep[], hipX: number): Pose[] =>
+    steps.map(([near, far, bob, airborne], i) => ({
+      torso: arms[i] ?? t.stand,
+      legs: sideLegs(near, far, hipX),
+      bob,
+      airborne,
+    }));
+  const walk = cycle(SIDE_WALK, WALK_HIP_X);
+  const run = cycle(SIDE_RUN, RUN_HIP_X);
   return [
     compose(SIDE_HEAD, stand),
     compose(SIDE_HEAD, { ...stand, bob: 1 }),

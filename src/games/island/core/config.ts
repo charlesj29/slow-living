@@ -152,6 +152,8 @@ export interface IslandConfig {
     /** 0..1 master volume: background music should sit under the game, not over it. */
     readonly volume: number;
     readonly fadeSeconds: number;
+    /** The first start fades in gently instead of bursting in. */
+    readonly fadeInSeconds: number;
   };
   readonly debug: {
     /** How quickly the FPS readout follows frame-time changes (higher = jumpier). */
@@ -271,7 +273,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     blinkEverySeconds: 3.7,
     blinkSeconds: 0.14,
   },
-  music: { volume: 0.5, fadeSeconds: 0.4 },
+  music: { volume: 0.55, fadeSeconds: 0.4, fadeInSeconds: 3 },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
   render: {
     targetTilesAcross: 20,
