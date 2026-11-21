@@ -88,32 +88,34 @@ const foot = (x: number, lift: FootPose['lift'] = 0): FootPose => ({ x, lift });
 
 /**
  * Walk: contact (near leg forward), push down, the far leg swings through
- * with its knee up, reach; then the same with the legs swapped.
+ * just clear of the ground, reach; then the same with the legs swapped.
+ * Feet stay low: only the swinging foot lifts, one pixel, as it passes.
  */
 const SIDE_WALK: readonly SideStep[] = [
   [foot(9), foot(3), 0, false],
-  [foot(8), foot(3, 1), 1, false],
-  [foot(6), foot(7, 1), 0, false],
-  [foot(4), foot(8, 1), -1, false],
+  [foot(8), foot(4), 1, false],
+  [foot(5), foot(7, 1), 0, false],
+  [foot(4), foot(8), -1, false],
   [foot(3), foot(9), 0, false],
-  [foot(3, 1), foot(8), 1, false],
-  [foot(7, 1), foot(6), 0, false],
-  [foot(8, 1), foot(4), -1, false],
+  [foot(4), foot(8), 1, false],
+  [foot(7, 1), foot(5), 0, false],
+  [foot(8), foot(4), -1, false],
 ];
 
 /**
- * Run: a longer reach, the back foot kicks up, a high knee drives forward,
- * then both feet leave the ground in a scissor; then legs swapped. The hips
- * sit a pixel back, so the body leans into the run.
+ * Run: a longer reach, the back foot pushes off, the knee comes through
+ * and both feet leave the ground in a scissor; then legs swapped. Feet lift
+ * at most one pixel (more looks like kicking on a sprite this small); the
+ * hips sit a pixel back, so the body leans into the run.
  */
 const SIDE_RUN: readonly SideStep[] = [
   [foot(9), foot(2, 1), 0, false],
-  [foot(7), foot(2, 2), 1, false],
-  [foot(4), foot(7, 2), 0, false],
+  [foot(7), foot(3, 1), 1, false],
+  [foot(4), foot(7, 1), 0, false],
   [foot(3), foot(9, 1), -1, true],
   [foot(2, 1), foot(9), 0, false],
-  [foot(2, 2), foot(7), 1, false],
-  [foot(7, 2), foot(4), 0, false],
+  [foot(3, 1), foot(7), 1, false],
+  [foot(7, 1), foot(4), 0, false],
   [foot(9, 1), foot(3), -1, true],
 ];
 const WALK_HIP_X = 6;

@@ -78,7 +78,8 @@
   Choices: a 32-bar loop; a soft tape hiss as texture.
 - **Done:**
   - Animation (D50): `assets/sideLegs.ts` draws side legs from foot positions; new 8-frame
-    side walk and run where the legs swap each step; arms swing against the near leg.
+    side walk and run where the legs swap each step; arms swing against the near leg. After
+    feedback that the feet kicked too high, feet lift at most one pixel.
   - Music (D51): new tune in `assets/chillTune.ts`; `shared/audio` gains `musicGraph.ts`
     (mix shared by the player and offline tests) and `ticker.ts` (Web Worker timer);
     click-free envelopes, gentle compression, hiss instead of crackle, 3 s fade-in.

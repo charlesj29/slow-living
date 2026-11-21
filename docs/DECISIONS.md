@@ -538,6 +538,8 @@ alternatives → consequences.
   far shoe meets the near leg. The walk goes contact → down → passing (knee up) → reach and then
   swaps legs; the run reaches further, kicks the back foot up, drives the knee and scissors in
   the air, with the hips set a pixel back so the body leans in. Arms swing against the near leg.
+- **Follow-up (user feedback):** feet kicked too high, so every foot lifts at most one pixel
+  (two put the shoe right under the waist); in the walk only the swinging foot lifts, as it passes.
 - **Consequences:** the hand-drawn side stride/passing/run poses are gone (standing stays
   hand-drawn). Front and back views are unchanged.
 
