@@ -741,3 +741,16 @@ alternatives → consequences.
 - **Consequences:** updating the portfolio means editing one file (and adding images to
   `public/portfolio/`); a test checks every referenced file exists and that no phone number
   appears in the content.
+
+## D62 — Portfolio tone and contact buttons
+
+- **Context:** the user asked for third-person, simple wording, no LinkedIn, an Email button
+  that copies the address, a WhatsApp button, and this site listed as an AI-generated project.
+- **Decision:** a `PortfolioLink` is either a link (`href`, optional `download`) or a copy
+  button (`copy` + `copiedNotice`); the page view copies with the Clipboard API (falling back
+  to `execCommand`) and shows a short notice. WhatsApp is a plain `wa.me` link, so the phone
+  number now appears in the site (user's choice; this replaces D61's "no phone number"). The
+  projects panel has six pages, one per phone; the phone wall is six tiles wide. Tests check
+  third-person wording, no LinkedIn, and the contact buttons.
+- **Consequences:** updating contact details means editing `EMAIL` / `WHATSAPP` in
+  `core/content/portfolio.ts`.

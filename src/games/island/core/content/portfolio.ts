@@ -1,13 +1,22 @@
 // Charles's portfolio, shown by the Developer's Studio's pieces in a panel.
-// All facts come from his CV (Nov 2026); edit here to update the site.
+// Facts come from his CV (Nov 2026); edit here to update the site.
 // Images and the CV live in public/portfolio/ (paths relative to the site root).
 
-export interface PortfolioLink {
-  readonly label: string;
-  readonly href: string;
-  /** Offer the file as a download instead of opening it. */
-  readonly download?: boolean;
-}
+/** A button on a page: opens (or downloads) a link, or copies text to the clipboard. */
+export type PortfolioLink =
+  | {
+      readonly label: string;
+      readonly href: string;
+      /** Offer the file as a download instead of opening it. */
+      readonly download?: boolean;
+    }
+  | {
+      readonly label: string;
+      /** Copied to the clipboard when pressed. */
+      readonly copy: string;
+      /** The short notice shown after copying. */
+      readonly copiedNotice: string;
+    };
 
 export interface PortfolioImage {
   readonly src: string;
@@ -37,8 +46,8 @@ export interface PortfolioPanel {
 }
 
 const EMAIL = 'chrlsjnthn@gmail.com';
-const LINKEDIN = 'https://www.linkedin.com/in/charles-jonathan-6710b0163';
-const LINKEDIN_LINK: PortfolioLink = { label: 'LinkedIn', href: LINKEDIN };
+/** WhatsApp chat link (international number, digits only). */
+const WHATSAPP = 'https://wa.me/6287897883900';
 
 export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
   about: {
@@ -48,27 +57,21 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         title: 'Charles Jonathan',
         subtitle: 'Software Engineer · Flutter',
         body:
-          'I have four years of experience developing Flutter applications for e-commerce, logistics and fintech. ' +
-          'I am currently responsible for the Tokoplas customer app, its internal Seller and Driver apps, ' +
-          'and Poly, an LLM-based customer assistant. ' +
-          'I hold a BSc in Mathematics from Institut Teknologi Bandung and have published research in numerical modelling.',
-        links: [LINKEDIN_LINK],
+          'Charles builds Flutter apps for e-commerce, logistics and fintech, four years and counting. ' +
+          'These days he looks after the Tokoplas apps and Poly, their AI assistant. ' +
+          'Before code, there was maths: a degree from ITB and a published paper on numerical modelling.',
       },
     ],
   },
-  // One page per framed phone on the wall, in the same order (left to right).
+  // One page per phone on the wall, in the same order (left to right).
   projects: {
     heading: 'Projects',
     pages: [
       {
         title: 'Tokoplas',
-        subtitle: 'E-commerce app for resin products (Android, iOS)',
-        body: 'I develop and maintain the Tokoplas customer app, including the payment flow and the customer loyalty programme.',
-        bullets: [
-          'Shopping for resin products from many sellers and brands',
-          'Payment flow and order history',
-          'Loyalty programme: member levels, coins and a reward store',
-        ],
+        subtitle: 'Resin marketplace app · Android & iOS',
+        body: 'The main Tokoplas shopping app, built and maintained by Charles.',
+        bullets: ['Payments and order history', 'Loyalty levels, coins and rewards'],
         tags: ['Flutter', 'Dart', 'Android', 'iOS'],
         image: {
           src: 'portfolio/tokoplas-app.webp',
@@ -87,16 +90,14 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       },
       {
         title: 'Poly',
-        subtitle: 'LLM-based assistant inside the Tokoplas app',
-        body: 'I designed and developed Poly, an assistant that customers can chat with inside the Tokoplas app.',
+        subtitle: 'AI assistant inside the Tokoplas app',
+        body: "Charles mainly built Poly's brain: the LLM side that understands questions and answers them.",
         bullets: [
-          'Answers FAQs and reward enquiries',
-          'Tracks orders',
-          'Recommends products',
-          'Summarises the resin market',
-          'Takes quotation requests',
+          'FAQs, rewards and order tracking',
+          'Product recommendations',
+          'Market summaries and quotations',
         ],
-        tags: ['Flutter', 'LLM integration'],
+        tags: ['LLM integration', 'Flutter'],
         image: {
           src: 'portfolio/poly.webp',
           alt: 'Poly answering a question about the polyethylene market with a summary of recent prices',
@@ -105,12 +106,7 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       {
         title: 'Tokoplas Seller',
         subtitle: 'Internal app for sellers',
-        body: 'An internal app I developed for managing inventory and seeing customer purchase history.',
-        bullets: [
-          'Products, price history, stock reports and stock movement',
-          'Orders and quotations',
-          'Opening and closing the store',
-        ],
+        body: 'Stock, prices, orders and quotations in one place.',
         tags: ['Flutter', 'Dart'],
         image: {
           src: 'portfolio/seller-app.webp',
@@ -120,12 +116,7 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       {
         title: 'Tokoplas Driver',
         subtitle: 'Internal app for delivery drivers',
-        body: 'An internal app I developed for delivery assignments, procedural guidance and order-tracking updates.',
-        bullets: [
-          'Daily delivery tasks by date',
-          'Delivery history',
-          'Pickup and drop-off details for each order',
-        ],
+        body: 'Daily delivery tasks, delivery details and tracking updates.',
         tags: ['Flutter', 'Dart'],
         image: {
           src: 'portfolio/driver-app.webp',
@@ -134,9 +125,19 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       },
       {
         title: 'klikUMKM',
-        subtitle: 'Peer-to-peer lending app (PT Pinjaman Kemakmuran Rakyat)',
-        body: 'A peer-to-peer lending app I developed, giving small and medium enterprises mobile access to financing.',
+        subtitle: 'Peer-to-peer lending app',
+        body: 'Mobile access to financing for small and medium businesses.',
         tags: ['Flutter', 'Fintech'],
+      },
+      {
+        title: 'This island',
+        subtitle: 'AI-generated · vibe coded',
+        body: 'The portfolio you are walking around in. Charles shaped the ideas and design; AI wrote the code.',
+        tags: ['React', 'TypeScript', 'Three.js', 'AI-generated'],
+        image: {
+          src: 'portfolio/island.webp',
+          alt: 'The island from above: the village, the cottage, the lake with its dock and the studio',
+        },
       },
     ],
   },
@@ -219,6 +220,12 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         title: 'Publication',
         subtitle: 'International Journal of GEOMATE, 2020',
         body: 'Numerical Model for Dam Break Over a Movable Bed Using Finite Volume Method.',
+        links: [
+          {
+            label: 'Download paper',
+            href: 'https://geomatejournal.com/geomate/article/download/869/727',
+          },
+        ],
       },
     ],
   },
@@ -227,10 +234,10 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
     pages: [
       {
         title: 'Get in touch',
-        body: 'Reach me by email or on LinkedIn, or download my CV.',
+        body: 'Questions, ideas or a role in mind? Send a message anytime.',
         links: [
-          { label: EMAIL, href: `mailto:${EMAIL}` },
-          LINKEDIN_LINK,
+          { label: 'Email', copy: EMAIL, copiedNotice: 'Email copied' },
+          { label: 'WhatsApp', href: WHATSAPP },
           { label: 'Download CV (PDF)', href: 'portfolio/charles-jonathan-cv.pdf', download: true },
         ],
       },

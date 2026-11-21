@@ -86,7 +86,9 @@ export function PortfolioPanel(): JSX.Element | null {
             ×
           </button>
         </header>
-        <div className="portfolio-scroll">{current && <PortfolioPageView page={current} />}</div>
+        <div className="portfolio-scroll">
+          {current && <PortfolioPageView key={page} page={current} />}
+        </div>
         {count > 1 && (
           <footer className="portfolio-footer">
             <button

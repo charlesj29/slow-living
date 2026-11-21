@@ -88,6 +88,18 @@
 
 ## Session log
 
+### 2026-11-21 — Portfolio wording and contact (user request)
+
+- About me in the third person, short and relaxed; simpler project texts; Poly's page says
+  Charles mainly built its brain (the LLM side). LinkedIn removed. Contact: an Email button that
+  copies the address (with an "Email copied" notice) and a WhatsApp button (wa.me link with his
+  number, his choice). The GEOMATE paper links to its download. A sixth project, "This island"
+  (AI-generated / vibe coded), with a screenshot; the wall now has six phones on a display
+  shelf, drawn as real phones with tiny app screens (the last shows the island).
+- **Verified:** typecheck, lint, tests, build pass; in the browser: the six phones, the island
+  project with its screenshot, Email copies and shows the notice, WhatsApp links to the number;
+  console clean.
+
 ### 2026-11-21 — M5 Portfolio content (portfolio roadmap)
 
 - **Input:** Charles's CV (PDF) and four screenshot sets (Tokoplas, Poly, Seller, Driver apps).

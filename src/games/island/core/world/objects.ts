@@ -92,7 +92,7 @@ export interface ObjectDefinition {
 /**
  * What Space shows: a message of one or more pages, or a part of the portfolio
  * in the panel. `pagePerTile`: each tile of the object opens its own page (the
- * wall of phones: one project per frame).
+ * phones on the shelf: one project per phone).
  */
 export type Interaction =
   | { readonly pages: readonly string[] }
@@ -219,7 +219,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   floor_lamp: { ...solid('floor_lamp', 'Floor lamp', 'structure', '#e0c070'), litAtNight: true },
   // The Developer's Studio: each portfolio piece opens a part of the portfolio.
   desk_laptop: studioPiece('desk_laptop', 'Desk with laptop', '#9a6436', 2),
-  phone_wall: studioPiece('phone_wall', 'Wall of framed phones', '#3a3a48', 5, true, true),
+  phone_wall: studioPiece('phone_wall', 'Phones on a shelf', '#3a3a48', 6, true, true),
   tech_shelf: studioPiece('tech_shelf', 'Tech bookshelf', '#7a4a28', 2),
   timeline_board: studioPiece('timeline_board', 'Timeline board', '#c89a5c', 3, true),
   trophy_shelf: studioPiece('trophy_shelf', 'Trophy shelf', '#d8b040', 2),

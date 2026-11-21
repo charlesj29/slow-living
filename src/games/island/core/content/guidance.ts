@@ -25,7 +25,7 @@ export const VILLAGER_TALKS: readonly (readonly (readonly string[])[])[] = [
       "Hi! Have you been to the Developer's Studio yet?",
       "It's the workshop with the teal roof, {studio} of here. Charles's work is all inside.",
     ],
-    ['I love the wall of phones in the studio. Every frame is for an app!'],
+    ['I love the phones on the shelf in the studio. Each one is a project of his!'],
     ['Hi! Say hello to Charles if you see him.'],
   ],
   // The baker.

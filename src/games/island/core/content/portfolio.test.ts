@@ -32,23 +32,35 @@ describe('portfolio content', () => {
     }
   });
 
-  it('has one project per framed phone on the wall', () => {
+  it('has one project per phone on the shelf', () => {
     expect(PORTFOLIO.projects.pages).toHaveLength(OBJECT_REGISTRY.phone_wall.footprint.width);
   });
 
-  it('only links to files that exist, web pages or email', () => {
+  it('only links to files that exist or to web pages', () => {
     for (const page of allPages) {
       if (page.image) expect(published(page.image.src), page.image.src).toBe(true);
       for (const link of page.links ?? []) {
-        if (/^(https:|mailto:)/.test(link.href)) continue;
+        if ('copy' in link || /^https:/.test(link.href)) continue;
         expect(published(link.href), link.href).toBe(true);
       }
       if (page.image) expect(page.image.alt.length).toBeGreaterThan(10);
     }
   });
 
-  it('keeps the phone number off the site (email and LinkedIn only)', () => {
-    expect(JSON.stringify(PORTFOLIO)).not.toMatch(/\+62|878 ?9788|tel:/);
+  it('contact: Email copies the address, WhatsApp opens a chat; no LinkedIn anywhere', () => {
+    const links = PORTFOLIO.contact.pages.flatMap((page) => page.links ?? []);
+    expect(links).toContainEqual(
+      expect.objectContaining({ label: 'Email', copy: 'chrlsjnthn@gmail.com' }),
+    );
+    expect(links).toContainEqual(
+      expect.objectContaining({ label: 'WhatsApp', href: 'https://wa.me/6287897883900' }),
+    );
+    expect(JSON.stringify(PORTFOLIO)).not.toMatch(/linkedin/i);
+  });
+
+  it('writes about Charles without "I" (third person)', () => {
+    const text = allPages.flatMap((page) => [page.body ?? '', ...(page.bullets ?? [])]).join(' ');
+    expect(text).not.toMatch(/\bI\b|\bmy\b/);
   });
 });
 
@@ -65,13 +77,13 @@ describe('opening the portfolio in the studio', () => {
     return state;
   }
 
-  it('each framed phone opens its own project', () => {
-    for (let frame = 0; frame < OBJECT_REGISTRY.phone_wall.footprint.width; frame++) {
-      const state = standBelow(wall.x + frame, wall.y + 1);
+  it('each phone opens its own project', () => {
+    for (let n = 0; n < OBJECT_REGISTRY.phone_wall.footprint.width; n++) {
+      const state = standBelow(wall.x + n, wall.y + 1);
       const target = findInteractTarget(world, state.player, [], SETTINGS, TILE);
       expect(target?.kind === 'object' ? target.panel : null).toEqual({
         id: 'projects',
-        page: frame,
+        page: n,
       });
     }
   });

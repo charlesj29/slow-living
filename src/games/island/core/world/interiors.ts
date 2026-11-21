@@ -58,7 +58,7 @@ const COTTAGE: InteriorDefinition = {
 
 /**
  * The Developer's Studio: every piece is part of the portfolio. Framed
- * certificates, a wall of phones (the apps) and a timeline hang on the back
+ * certificates, phones on a shelf (the projects) and a timeline hang on the back
  * wall; a tech bookshelf and a trophy shelf stand by the side walls; the desk
  * with the laptop and the post desk face the room around a rug.
  */
@@ -81,7 +81,7 @@ const STUDIO: InteriorDefinition = {
   ],
   furniture: [
     { kind: 'certificates', x: 2, y: 1 },
-    { kind: 'phone_wall', x: 6, y: 1 },
+    { kind: 'phone_wall', x: 5, y: 1 },
     { kind: 'timeline_board', x: 12, y: 1 },
     { kind: 'plant', x: 1, y: 2 },
     { kind: 'floor_lamp', x: 15, y: 2 },

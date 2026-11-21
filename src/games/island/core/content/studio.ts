@@ -14,7 +14,7 @@ export type StudioPiece =
 
 export const STUDIO_PANELS: Readonly<Record<StudioPiece, PanelId>> = {
   desk_laptop: 'about',
-  // Each framed phone opens its own project (the panel's pages, left to right).
+  // Each phone on the shelf opens its own project (the panel's pages, left to right).
   phone_wall: 'projects',
   tech_shelf: 'skills',
   timeline_board: 'experience',

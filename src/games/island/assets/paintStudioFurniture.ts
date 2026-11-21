@@ -45,28 +45,72 @@ function deskLaptop(): PixelCanvas {
   return c;
 }
 
-/** One framed phone (12×20) showing an app in `color`, top-left at x, y. */
-function framedPhone(c: PixelCanvas, x: number, y: number, color: Rgba): void {
-  fillRect(c, x, y, 12, 20, O);
-  fillRect(c, x + 1, y + 1, 10, 18, PALETTE.heartwood.base); // frame mat
-  fillRect(c, x + 3, y + 2, 6, 16, PALETTE.screen.body); // the phone
-  fillRect(c, x + 4, y + 4, 4, 11, color); // its screen
-  fillRect(c, x + 4, y + 4, 4, 2, PALETTE.paper.base); // app header
-  setPixel(c, x + 5, y + 16, PALETTE.screen.base); // home button
+const PHONE = { width: 11, height: 21 } as const;
+/** The screen inside a phone, relative to its top-left. */
+const SCREEN = { x: 2, y: 2, width: 7, height: 16 } as const;
+
+/** An app on a phone screen: a coloured header, two cards and a tab bar. */
+function appScreen(c: PixelCanvas, x: number, y: number, brand: Rgba): void {
+  const { width, height } = SCREEN;
+  fillRect(c, x, y, width, height, PALETTE.paper.base);
+  fillRect(c, x, y, width, 4, brand); // header
+  setPixel(c, x + 1, y + 2, PALETTE.paper.base); // a title in the header
+  setPixel(c, x + 2, y + 2, PALETTE.paper.base);
+  for (const top of [y + 6, y + 10]) {
+    fillRect(c, x + 1, top, width - 2, 3, PALETTE.paper.line); // cards
+    setPixel(c, x + 1, top + 1, brand);
+  }
+  fillRect(c, x, y + height - 2, width, 2, PALETTE.paper.line); // tab bar
+  setPixel(c, x + 3, y + height - 1, brand);
 }
 
-/** 80×32 over 5×1 (wall): five framed phones, one per app (each opens that project). */
+/** This island on a phone: sea, a sandy shore and a green island with a red roof. */
+function islandScreen(c: PixelCanvas, x: number, y: number): void {
+  const { width, height } = SCREEN;
+  fillRect(c, x, y, width, height, PALETTE.shallowSea.base);
+  fillRect(c, x + 1, y + 5, width - 2, 7, PALETTE.sand.base);
+  fillRect(c, x + 2, y + 4, width - 4, 9, PALETTE.sand.base);
+  fillRect(c, x + 2, y + 6, width - 4, 5, PALETTE.grass.base);
+  setPixel(c, x + 3, y + 7, PALETTE.roof.base);
+  setPixel(c, x + 4, y + 9, PALETTE.oak.dark);
+  setPixel(c, x + 1, y + 1, PALETTE.foam.bright);
+}
+
+/** A smartphone standing on the shelf: rounded body, camera dot, screen, home bar. */
+function phone(
+  c: PixelCanvas,
+  x: number,
+  y: number,
+  paint: (sx: number, sy: number) => void,
+): void {
+  const { width, height } = PHONE;
+  fillRect(c, x + 1, y, width - 2, height, O);
+  fillRect(c, x, y + 1, width, height - 2, O);
+  fillRect(c, x + 1, y + 1, width - 2, height - 2, PALETTE.screen.body);
+  paint(x + SCREEN.x, y + SCREEN.y);
+  setPixel(c, x + Math.floor(width / 2), y + SCREEN.y, PALETTE.screen.dark); // camera dot
+  fillRect(c, x + 4, y + height - 2, 3, 1, PALETTE.screen.base); // home bar
+  setPixel(c, x + width - 1, y + 5, PALETTE.screen.base); // side button
+}
+
+/** 96×32 over 6×1 (wall): six phones on a display shelf, one per project (each opens it). */
 function phoneWall(): PixelCanvas {
-  const c = createPixelCanvas(80, 32);
-  // In the order of the projects panel: Tokoplas, Poly, Seller, Driver, klikUMKM.
-  const apps = [
+  const c = createPixelCanvas(96, 32);
+  // In the order of the projects panel: Tokoplas, Poly, Seller, Driver, klikUMKM, this island.
+  const brands = [
     PALETTE.terracotta.light,
     PALETTE.slate.dark,
     PALETTE.teal.light,
     PALETTE.fire.mid,
     PALETTE.moss.light,
   ];
-  apps.forEach((color, i) => framedPhone(c, 2 + i * 16, 4, color));
+  brands.forEach((brand, i) => phone(c, 2 + i * 16, 4, (sx, sy) => appScreen(c, sx, sy, brand)));
+  phone(c, 2 + brands.length * 16, 4, (sx, sy) => islandScreen(c, sx, sy));
+  // The wooden shelf they stand on, with a bracket under each end.
+  fillRect(c, 0, 25, 96, 3, O);
+  fillRect(c, 1, 25, 94, 1, WOOD.light);
+  fillRect(c, 1, 26, 94, 1, WOOD.base);
+  for (const x of [6, 88]) fillRect(c, x, 28, 2, 3, O);
   return c;
 }
 
