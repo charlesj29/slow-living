@@ -80,6 +80,8 @@ export interface ObjectDefinition {
   readonly interaction?: { readonly pages: readonly string[] };
   /** Hangs on an interior's back wall (its footprint is wall); you face it from the floor below. */
   readonly wallMounted?: boolean;
+  /** A signpost: its message points to the island's landmarks (worked out per island). */
+  readonly signpost?: boolean;
   /** Walking into the door leads into this interior (see core/world/interiors.ts). */
   readonly interior?: string;
   /** Glows at night: lit window panes / lantern glass get a warm overlay. */
@@ -176,7 +178,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   },
   barrel: solid('barrel', 'Barrel', 'structure', '#9a6436'),
   flower_pot: solid('flower_pot', 'Flower pot', 'structure', '#cc6c3c'),
-  sign: solid('sign', 'Wooden sign', 'structure', '#b8844c'),
+  sign: { ...solid('sign', 'Signpost', 'structure', '#b8844c'), signpost: true },
   wood_pile: solid('wood_pile', 'Wood pile', 'structure', '#8a5a30'),
   stepping_stone: decoration('stepping_stone', 'Stepping stones', 'ground', '#a8a8b0'),
   // The village green's well: two tiles wide, its little roof rises above.

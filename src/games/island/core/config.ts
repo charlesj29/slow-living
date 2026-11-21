@@ -210,8 +210,6 @@ export interface IslandConfig {
     readonly maxRestSeconds: number;
     /** Give up on a walk after being blocked this long. */
     readonly giveUpSeconds: number;
-    /** What a villager says when you talk to them. */
-    readonly greeting: string;
   };
   readonly music: {
     /** 0..1 master volume: background music should sit under the game, not over it. */
@@ -365,7 +363,6 @@ export const ISLAND_CONFIG: IslandConfig = {
     minRestSeconds: 2,
     maxRestSeconds: 6,
     giveUpSeconds: 1.5,
-    greeting: 'Hi!',
   },
   music: { volume: 0.55, fadeSeconds: 0.4, fadeInSeconds: 3 },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },

@@ -12,7 +12,8 @@ const STEP = 1 / 60;
 const SETTINGS = {
   ...ISLAND_CONFIG.player,
   ...ISLAND_CONFIG.interaction,
-  greeting: ISLAND_CONFIG.villagers.greeting,
+  villagerPages: () => ['Hi!'],
+  signPages: () => ['A sign'],
 };
 /** A meadow with a mailbox at (2, 1) and a rock at (4, 1). */
 const world = makeTestWorld(
@@ -78,7 +79,7 @@ describe('interaction', () => {
     expect(state.dialog).toBeNull();
   });
 
-  it('talks to a villager in front of the player: "Hi!"', () => {
+  it('talks to a villager in front of the player', () => {
     const villager = createVillager(
       0,
       0,

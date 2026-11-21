@@ -62,7 +62,10 @@ function villagerAt(
 
 export interface InteractionSettings extends HitboxSize {
   readonly reachPx: number;
-  readonly greeting: string;
+  /** What a villager says right now. */
+  readonly villagerPages: (villager: Villager) => readonly string[];
+  /** What a signpost says (it points to this island's landmarks). */
+  readonly signPages: (sign: WorldObject) => readonly string[];
 }
 
 /** The villager or interactive object in front of the player, if any. */
@@ -75,7 +78,7 @@ export function findInteractTarget(
 ): InteractTarget | null {
   const point = reachPoint(player, settings, settings.reachPx);
   const villager = villagerAt(villagers, point);
-  if (villager) return { kind: 'villager', villager, pages: [settings.greeting] };
+  if (villager) return { kind: 'villager', villager, pages: settings.villagerPages(villager) };
 
   const tileX = Math.floor(point.x / tileSizePx);
   const tileY = Math.floor(point.y / tileSizePx);
@@ -83,7 +86,8 @@ export function findInteractTarget(
   const id = world.occupancy[toIndex(world, tileX, tileY)] ?? NO_OBJECT;
   const object = id === NO_OBJECT ? undefined : world.objects[id];
   if (!object) return null;
-  const { interaction, door } = OBJECT_REGISTRY[object.kind];
+  const { interaction, door, signpost } = OBJECT_REGISTRY[object.kind];
+  if (signpost) return { kind: 'object', object, pages: settings.signPages(object) };
   // A building answers only at its door, not when you face one of its walls.
   const atDoor = !door || (tileX === object.x + door.x && tileY === object.y + door.y);
   return interaction && atDoor ? { kind: 'object', object, pages: interaction.pages } : null;

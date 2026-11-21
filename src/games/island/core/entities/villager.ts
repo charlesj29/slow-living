@@ -23,6 +23,8 @@ export interface Villager extends Player {
   pauseTime: number;
   /** Talking with the player: stands still, facing them. */
   talking: boolean;
+  /** How many times the player has talked to them (their conversations take turns). */
+  timesTalked: number;
 }
 
 export function createVillager(
@@ -43,6 +45,7 @@ export function createVillager(
     stuckTime: 0,
     pauseTime: 0,
     talking: false,
+    timesTalked: 0,
   };
 }
 

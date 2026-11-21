@@ -66,7 +66,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 ## Content
 
 - Portfolio text lives in `src/games/island/core/content/` (`studio.ts`: pages per studio
-  piece). Placeholders until M5 brings Charles's CV.
+  piece; `guidance.ts`: villager conversations and sign labels). Studio placeholders until M5
+  brings Charles's CV.
 
 ## UI conventions
 

@@ -19,6 +19,8 @@ export interface IslandUiState {
   readonly mapId: string;
   /** Darkened for a door transition (the overlay fades by CSS). */
   readonly isScreenDark: boolean;
+  /** Set the first time the player enters the studio (remembered); its marker then goes away. */
+  readonly hasVisitedStudio: boolean;
   /** Day/night: follow the clock, or hold day or night (the top-left button). */
   readonly dayNightMode: DayNightMode;
   toggleDebugOverlay: () => void;
@@ -28,6 +30,7 @@ export interface IslandUiState {
   setDialogMessage: (message: string | null) => void;
   setMap: (mapId: string) => void;
   setScreenDark: (dark: boolean) => void;
+  setVisitedStudio: (visited: boolean) => void;
   setDayNightMode: (mode: DayNightMode) => void;
   /** Auto → Always day → Always night → Auto. */
   cycleDayNightMode: () => void;
@@ -40,6 +43,7 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   dialogMessage: null,
   mapId: 'island',
   isScreenDark: false,
+  hasVisitedStudio: false,
   dayNightMode: 'auto',
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
@@ -61,6 +65,9 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   setScreenDark: (dark) => {
     set({ isScreenDark: dark });
+  },
+  setVisitedStudio: (visited) => {
+    set({ hasVisitedStudio: visited });
   },
   setDayNightMode: (mode) => {
     set({ dayNightMode: mode });

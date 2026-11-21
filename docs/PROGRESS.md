@@ -20,8 +20,8 @@
 - **Portfolio roadmap (2026-11-21):** M6 Interiors ✅ (walk into the cottage; village house
   doors are locked). M8 Compact island ✅ (96×96, default seed 46, R / dice / Home and
   shareable `?seed=` links for everyone). M7 Developer's Studio ✅ (placeholder texts until
-  the CV arrives). **Next:** M9 guidance (agreed with M7: villager hints, signposts, studio
-  marker; no guide villager).
+  the CV arrives). M9 Guidance ✅ (villager hints, signposts, studio marker). **Next:** pick
+  with the user: M10 phones + quick view, or M5 once the CV arrives (then M11 launch).
 - **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
   the project is pushed to GitHub `origin/master` (the only branch; `main` no longer exists). Push only
   when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
@@ -77,7 +77,7 @@
 - A small fenced village north-west of the cottage (gate onto the trail): 3 houses 5 tiles wide
   around a green (stone/slate, log/moss, plaster/thatch), a well, haystacks, lamp posts that
   glow at night, a vegetable patch, flower pots, crates, barrels, stumps; 3 villagers who wander
-  only inside the fence, avoid each other and say "Hi!" (no reply choices).
+  only inside the fence, avoid each other and (since M9) hint at the studio (no reply choices).
 - Day/night: a full day is 12 minutes; a top-left button (above music) cycles Auto / Always
   day / Always night; the F3 readout (top-right) also shows the time.
 - Interaction with Space (first E, changed by the user); a small down-arrow marks what you can
@@ -86,6 +86,18 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — M9 Guidance (portfolio roadmap)
+
+- **Done (D60):** villagers have three conversations each that take turns, the first one
+  pointing to the studio with a compass direction worked out for the island
+  (`core/content/guidance.ts`, `core/systems/guidance.ts`). Signposts answer: the cottage's
+  sign and a new one outside the village gate (`placeSignposts`) list the landmarks and their
+  directions ("The Developer's Studio: east"). A gold star floats over the studio until the
+  first visit, remembered in the browser. No guide villager (user choice). Seed 46 re-baked.
+- **Verified:** typecheck, lint, tests, build pass; in the browser: the star over the studio,
+  the cottage sign's text, the star gone after a visit (remembered); console clean. Villager
+  hints are covered by unit tests (walking up to a wandering villager isn't scriptable).
 
 ### 2026-11-21 — M7 The Developer's Studio (portfolio roadmap)
 

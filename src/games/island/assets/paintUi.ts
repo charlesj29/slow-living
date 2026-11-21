@@ -1,5 +1,6 @@
 // In-world UI sprites: the small arrow that bobs above things you can
-// interact with, pointing down at them like in classic RPGs.
+// interact with, pointing down at them like in classic RPGs, and the star
+// over the studio until the first visit.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
   createPixelCanvas,
@@ -26,8 +27,28 @@ const ARROW_ROWS = [
 
 /** 9×6: a down-pointing arrowhead with a dark outline. */
 function arrow(): PixelCanvas {
-  const canvas = createPixelCanvas(ARROW_ROWS[0].length, ARROW_ROWS.length);
-  ARROW_ROWS.forEach((row, y) => {
+  return fromRows(ARROW_ROWS);
+}
+
+// prettier-ignore
+const STAR_ROWS = [
+  '.....o.....',
+  '....oyo....',
+  '....oyo....',
+  'oooowyyoooo',
+  'oywwwwyyyyo',
+  '.oywwyyyyo.',
+  '..oyyyyyo..',
+  '..oyyoyyo..',
+  '.oyyo.oyyo.',
+  '.oyo...oyo.',
+  '.oo.....oo.',
+] as const;
+
+/** Paints rows of 'o' (outline), 'w' (lit face) and 'y' (warm shade). */
+function fromRows(rows: readonly string[]): PixelCanvas {
+  const canvas = createPixelCanvas(rows[0]?.length ?? 0, rows.length);
+  rows.forEach((row, y) => {
     [...row].forEach((char, x) => {
       if (char === 'o' || char === 'w' || char === 'y') setPixel(canvas, x, y, ARROW_COLORS[char]);
     });
@@ -36,7 +57,12 @@ function arrow(): PixelCanvas {
 }
 
 export const PROMPT_KEY = 'prompt_interact';
+/** The gold star that floats over the studio until the first visit. */
+export const STUDIO_MARKER_KEY = 'marker_studio';
 
 export function paintUiSprites(): SpriteSource[] {
-  return [{ key: PROMPT_KEY, frames: [arrow()] }];
+  return [
+    { key: PROMPT_KEY, frames: [arrow()] },
+    { key: STUDIO_MARKER_KEY, frames: [fromRows(STAR_ROWS)] },
+  ];
 }

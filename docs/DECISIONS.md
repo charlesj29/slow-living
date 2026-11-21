@@ -704,3 +704,20 @@ alternatives → consequences.
   checks every piece can be faced from a reachable floor tile).
 - **Consequences:** re-baking changed seed 46's layout slightly (the studio and its path);
   seed 46 stays the default. Placeholder texts must be replaced before launch (M5).
+
+## D60 — Guidance: villager hints, signposts and a studio marker
+
+- **Context:** first-time visitors should find the studio without instructions (M9); the user
+  skipped the guide villager.
+- **Decision:** villager lines are content (`core/content/guidance.ts`): three conversations per
+  character, taking turns (`Villager.timesTalked`), the first always naming the studio.
+  `{studio}` becomes the compass direction from where the villager stands (8 words; no arrow
+  glyphs, since diagonal arrows render badly in system fonts). The interaction settings carry
+  `villagerPages` and `signPages` functions instead of a fixed greeting, so core stays pure.
+  The `sign` kind is a `signpost`: its text lists the landmarks (`findLandmarks`) further than
+  6 tiles away. `placeSignposts` adds a sign outside the village gate. The studio marker is a
+  render-only star (untinted, bobbing) shown until `hasVisitedStudio`, which `GameLoop` sets on
+  first entering the studio and `ui/StudioVisitMemory` keeps in localStorage.
+- **Consequences:** `villagers.greeting` is gone from the config. Signs on any seed point the
+  right way without authoring. The visit is remembered per browser (clearing site data shows the
+  star again).

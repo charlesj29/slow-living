@@ -14,6 +14,7 @@ import { IslandSwitcher } from './ui/IslandSwitcher';
 import { KeyboardNotice } from './ui/KeyboardNotice';
 import { MusicToggle } from './ui/MusicToggle';
 import { ScreenFade } from './ui/ScreenFade';
+import { StudioVisitMemory } from './ui/StudioVisitMemory';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
 
 export interface IslandGameProps {
@@ -69,6 +70,7 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
       <ControlsHint />
       <DebugOverlay game={game} />
       <ScreenFade />
+      <StudioVisitMemory />
       <DialogBox />
       <KeyboardNotice />
       <DayNightToggle />

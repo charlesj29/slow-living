@@ -118,7 +118,12 @@ describe('interiors', () => {
 });
 
 describe('village house doors', () => {
-  const settings = { ...ISLAND_CONFIG.player, ...ISLAND_CONFIG.interaction, greeting: 'Hi!' };
+  const settings = {
+    ...ISLAND_CONFIG.player,
+    ...ISLAND_CONFIG.interaction,
+    villagerPages: () => ['Hi!'],
+    signPages: () => ['A sign'],
+  };
 
   it('say they are locked when you face the door', () => {
     const big = makeTestWorld(

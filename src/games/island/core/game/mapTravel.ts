@@ -8,6 +8,8 @@ import { getDoorFrontTile } from '../world/world';
 import type { GameState } from './gameState';
 
 export const ISLAND_MAP = 'island';
+/** The Developer's Studio's interior id (its marker shows until the first visit). */
+export const STUDIO_MAP = 'studio';
 
 /**
  * Starts a transition when the player walks up into an enterable door, or

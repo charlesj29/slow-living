@@ -11,6 +11,7 @@ import { FollowCamera } from './FollowCamera';
 import { DayNightLighting } from './DayNightLighting';
 import { GameLoop } from './GameLoop';
 import { InteractPrompt } from './InteractPrompt';
+import { StudioMarker } from './StudioMarker';
 import { createLightingUniforms } from './lighting';
 import { PlayerSprite } from './PlayerSprite';
 import { Tilemap } from './Tilemap';
@@ -112,6 +113,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
       {mapId === ISLAND_MAP && <VillagerSprites state={game} atlas={atlas} lighting={lighting} />}
       <InteractPrompt state={game} atlas={atlas} />
+      {mapId === ISLAND_MAP && <StudioMarker world={world} atlas={atlas} />}
     </Canvas>
   );
 }

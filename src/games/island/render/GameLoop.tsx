@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { ISLAND_CONFIG } from '../core/config';
 import { advanceGame, type GameState } from '../core/game/gameState';
+import { STUDIO_MAP } from '../core/game/mapTravel';
 import { useIslandUiStore } from '../state';
 
 /** Runs before the camera and sprites each frame (lowest priority first). */
@@ -38,7 +39,9 @@ export function GameLoop({ state }: GameLoopProps): null {
     }
     if (state.mapId !== shownMap.current) {
       shownMap.current = state.mapId;
-      useIslandUiStore.getState().setMap(state.mapId);
+      const ui = useIslandUiStore.getState();
+      ui.setMap(state.mapId);
+      if (state.mapId === STUDIO_MAP && !ui.hasVisitedStudio) ui.setVisitedStudio(true);
     }
   }, LOOP_PRIORITY);
   return null;

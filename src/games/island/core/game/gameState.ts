@@ -19,7 +19,13 @@ import type { World } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
 import { advanceTimeOfDay } from '../systems/dayNight';
-import { findInteractTarget, type Dialog, type InteractTarget } from '../systems/interaction';
+import { findLandmarks, signpostPages, villagerTalk, type Landmarks } from '../systems/guidance';
+import {
+  findInteractTarget,
+  type Dialog,
+  type InteractionSettings,
+  type InteractTarget,
+} from '../systems/interaction';
 import { movePlayer } from '../systems/movement';
 import { startTalking, updateVillager } from '../systems/wander';
 import type { Transition } from '../systems/doors';
@@ -59,6 +65,8 @@ export interface GameState {
   readonly villagers: readonly Villager[];
   /** Randomness for wandering: seeded per world, so a session is reproducible. */
   readonly wanderRng: Rng;
+  /** The island's studio, village and cottage: what hints and signposts point to. */
+  readonly landmarks: Landmarks;
 }
 
 /** Outfits in sprite order; villagers take them in turn. */
@@ -94,6 +102,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     timeOfDay: config.dayNight.startTime,
     villagers: createVillagers(world, config.map.tileSizePx),
     wanderRng: createRng(world.generationSeed ^ WANDER_SEED_SALT),
+    landmarks: findLandmarks(world),
   };
 }
 
@@ -135,7 +144,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
       state.world,
       player,
       villagersHere,
-      { ...config.player, ...config.interaction, greeting: config.villagers.greeting },
+      interactionSettings(state, config),
       tileSizePx,
     );
     if (checkDoors(state, intent, config)) {
@@ -169,12 +178,32 @@ function stepVillagers(state: GameState, stepSeconds: number, config: IslandConf
   }
 }
 
+/** How to reach things, and what villagers and signposts say on this island. */
+function interactionSettings(state: GameState, config: IslandConfig): InteractionSettings {
+  const tile = config.map.tileSizePx;
+  return {
+    ...config.player,
+    ...config.interaction,
+    villagerPages: (villager) =>
+      villagerTalk(
+        villager.look,
+        villager.timesTalked,
+        { x: Math.floor(villager.x / tile), y: Math.floor(villager.y / tile) },
+        state.landmarks.studio,
+      ),
+    signPages: (sign) => signpostPages({ x: sign.x, y: sign.y }, state.landmarks),
+  };
+}
+
 function openDialog(state: GameState): void {
   const target = state.interactTarget;
   if (!target) return;
   state.dialog = { pages: target.pages, page: 0 };
   state.player.moving = false;
-  if (target.kind === 'villager') startTalking(target.villager, state.player);
+  if (target.kind === 'villager') {
+    startTalking(target.villager, state.player);
+    target.villager.timesTalked += 1;
+  }
 }
 
 /** Space shows the next page; after the last one it closes the message. */

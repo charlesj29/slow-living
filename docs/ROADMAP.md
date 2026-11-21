@@ -63,7 +63,7 @@ report.
 - R (and a dice button) opens a new island for every visitor; Home goes back; `?seed=` links.
 - Done except the studio, which arrives with M7 (its validation then too).
 
-### M9 — Guidance
+### M9 — Guidance ✅ (2026-11-21, no guide villager)
 
 - Villagers give hints about the studio (a few lines each, varied), instead of only "Hi!".
 - A signpost at the village gate and near the start; optionally a guide villager by the spawn.

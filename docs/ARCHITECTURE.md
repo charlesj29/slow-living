@@ -50,7 +50,7 @@ src/
       data/island.map.json  # THE world: baked, committed map file (chunked, readable)
       core/
         config.ts           # IslandConfig: every tunable number
-        content/            # studio.ts: what the studio's portfolio pieces say (pages)
+        content/            # studio.ts (portfolio pieces' pages), guidance.ts (villager talks, sign labels)
         world/              # tiles, objects (registries), world (type), collision,
                             #   mapFile (format + writer), parseMapFile, bakedIsland (loader)
         generation/         # authoring tool: context, steps/*, validate, pipeline,
@@ -68,14 +68,15 @@ src/
                             #   Deadwood, playerPixels (parts) + sideLegs + playerFrames (strips),
                             #   paintPlayer, islandSprites, chillTune (the music, as data)
       # render also: CharacterSprite (player + villagers), VillagerSprites, InteractPrompt,
-      #   DayNightLighting; assets also: paintHouses, paintLights, paintUi,
+      #   DayNightLighting, StudioMarker; assets also: paintHouses, paintLights, paintUi,
       #   paintInterior (floor, walls, doormat), paintFurniture, paintStudio,
       #   paintStudioFurniture; core/world/interiors.ts (rooms: cottage, studio)
       ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, top-right),
                             #   DayNightToggle, MusicToggle,
                             #   DialogBox (messages), ScreenFade (door transitions),
                             #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel,
-                            #   IslandSwitcher (dice / R / Home, fades then asks the page)
+                            #   IslandSwitcher (dice / R / Home, fades then asks the page),
+                            #   StudioVisitMemory (remembers the first studio visit)
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
   bake-island-map.mjs       # npm run bake:island [-- seed]: generator -> data/island.map.json
@@ -135,7 +136,7 @@ flowchart LR
 ## Generation pipeline (authoring tool)
 
 `shapeIsland → assignTerrain → carveLake → placeCabin → placeDock → layPaths → decorateCabin →
-scatterRocks → scatterTrees → placeLedges → placeVillage → placeStudio → scatterDeadwood → scatterFlowers →
+scatterRocks → scatterTrees → placeLedges → placeVillage → placeStudio → placeSignposts → scatterDeadwood → scatterFlowers →
 chooseSpawn →
 validate`
 
@@ -153,6 +154,7 @@ validate`
 | `placeLedges`     | Rocky ledges (`Cliff` terrain) in noise-picked runs on south-facing sea coasts: grass above, sea-connected beach below, grass/sand beside, away from trails; runs that would cut a beach off from the door are dropped                                                                                                                                                                                                 |
 | `placeVillage`    | A random, irregular fenced village (`generation/villagePlan.ts`: random size, notched corners, 3 houses spread out with a 2–3 tile gap to the fence) at the best clear spot near the cottage (fewest objects cleared); gate on the straight fence stretch nearest a trail; door paths by A* to the gate and on to the trail; rule-based decorations that never block a door; records `village` (interior spans + gate) |
 | `placeStudio`     | The Developer's Studio (7×4) at the spot nearest `studio.preferredDistanceTiles` from the cottage door: building on free grass, margin and two rows in front free grass or trail, fewest objects cleared; a path from its door to the nearest trail (`generation/siteSearch.ts`, shared with the village; trails keep off tiles next to a ledge)                                                                       |
+| `placeSignposts`  | A signpost beside the trail just outside the village gate (around the tile outside it, never on the trail or the fence line); its text is worked out at runtime from the landmarks                                                                                                                                                                                                                                     |
 | `scatterDeadwood` | Sparse stumps (block) and fallen branches (flat) on free grass with enough trees nearby, outside reserved areas                                                                                                                                                                                                                                                                                                        |
 | `scatterFlowers`  | Patch noise → flower patches (colour from a colour noise), scattered flowers, grass tufts                                                                                                                                                                                                                                                                                                                              |
 | `chooseSpawn`     | Tile in front of the cabin door if walkable                                                                                                                                                                                                                                                                                                                                                                            |
@@ -209,8 +211,16 @@ flowchart LR
   onto next, no two head for the same tile, and a villager that still bumps into another plans
   a detour (or pauses briefly, keeping its goal). Only the player makes them wait.
   Villagers and the player block each other (`bumpsInto`, feet hitboxes). Talking (Space) makes
-  the villager stop and face the player until the message closes; the greeting is
-  `villagers.greeting` ("Hi!").
+  the villager stop and face the player until the message closes. What they say comes from
+  `core/content/guidance.ts` (a few conversations per character, taking turns via
+  `timesTalked`), with `{studio}` filled in by `core/systems/guidance.ts` as the compass
+  direction from the villager to the studio (`core/systems/compass.ts`).
+- **Guidance (D60):** `GameState.landmarks` (studio door, village gate, cottage door) feed the
+  villager hints and signposts: a `sign` (registry `signpost`) answers with one line per
+  landmark that isn't right next to it ("The Developer's Studio: east"). Signs stand by the
+  cottage gate (`decorateCabin`) and just outside the village gate (`placeSignposts`).
+  `render/StudioMarker` floats a gold star over the studio until `hasVisitedStudio` (set by
+  `GameLoop` on first entering the studio; remembered by `ui/StudioVisitMemory`).
 - **Interaction:** an object kind with `interaction: { pages }` in the registry can be
   checked with Space. Each step, `findInteractTarget` looks one reach (`interaction.reachPx`) past
   the feet hitbox in the facing direction; `render/InteractPrompt` bobs a small down-arrow over that

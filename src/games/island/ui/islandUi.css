@@ -128,6 +128,7 @@
   flex: 1;
   margin: 0;
   line-height: 1.5;
+  white-space: pre-line; /* signposts put each direction on its own line */
 }
 
 /* A small down-pointing triangle that blinks, like a classic RPG text box. */
