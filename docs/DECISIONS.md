@@ -606,3 +606,23 @@ alternatives → consequences.
   village record in the map file (format change for data the houses already imply).
 - **Consequences:** re-bake changed 23 tiles (lane, door stubs, one joining tile) and removed 4
   rocks and 2 bushes; trees, trails, dock, spawn unchanged. Validation checks every house door.
+
+## D55 — Fenced village around a green; villagers avoid each other
+
+- **Context:** the user asked for a fence round the village with decorations, wider houses in a
+  less linear layout, and villagers that no longer get stuck on each other (bumping into the
+  player is fine). Choices: all decorations (well, haystacks, lamp posts, stumps, crates,
+  barrels, flower pots, a vegetable patch), houses around a green, one gate to the trail,
+  5-tile-wide houses.
+- **Decision:** `VILLAGE_LAYOUT` is now a 20×15 fenced square: one house top-middle, two lower
+  left and right, door paths to a lane that leaves through the gate onto the trail bend; props
+  are listed in the layout and kept off every path. Houses are 5×3 (80×64, symmetric). New
+  kinds: well (2×1), haystack, crate, lamp post (lit at night via the new `litAtNight` registry
+  flag, which also drives building window lights), crops. The fenced interior is where
+  villagers walk (worked out from the first house's position). Wandering separates _occupied_
+  tiles (others' current and next tiles: never routed through) from _held goals_ (others'
+  destinations: never picked), replans round a villager that blocks the way and only waits for
+  the player. A head-on test checks two villagers pass each other.
+- **Consequences:** the fenced interior must be clear grass (trail may only touch the margin).
+  Re-bake: the village sits north-west of the cottage, the gate on the trail bend; 6 rocks, 3
+  bushes and 1 small tree cleared in its patch; the rest of the island is unchanged.

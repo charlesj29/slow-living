@@ -66,8 +66,10 @@
   the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
   the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
 - Background music composed in code (no files, no licences); mute button top-left plus M.
-- A small village north-west of the cottage: 3 houses (stone/slate, log/moss, plaster/thatch)
-  and 3 villagers who wander only inside it and say "Hi!" (no reply choices).
+- A small fenced village north-west of the cottage (gate onto the trail): 3 houses 5 tiles wide
+  around a green (stone/slate, log/moss, plaster/thatch), a well, haystacks, lamp posts that
+  glow at night, a vegetable patch, flower pots, crates, barrels, stumps; 3 villagers who wander
+  only inside the fence, avoid each other and say "Hi!" (no reply choices).
 - Day/night: a full day is 12 minutes; a top-left button (above music) cycles Auto / Always
   day / Always night; the F3 readout is bottom-left and also shows the time.
 - Interaction with Space (first E, changed by the user); a small down-arrow marks what you can
@@ -76,6 +78,15 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Village improvements (user request)
+
+- **Done (D55):** fenced village (one gate to the trail) with houses around a green; houses
+  5×3 (80×64, symmetric); decorations: well, haystacks, lamp posts (glow at night), crops,
+  flower pots, crates, barrels, stumps (`assets/paintVillageProps.ts`); `litAtNight` registry
+  flag; villagers avoid each other's tiles and destinations and detour instead of waiting.
+- **Verified:** typecheck, lint, 314 tests (new: two villagers meeting head-on both get past),
+  build pass; browser screenshots of the new village; console clean.
 
 ### 2026-11-21 — Part 3 of 3: the village and villagers (user request)
 

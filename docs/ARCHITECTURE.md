@@ -196,8 +196,11 @@ flowchart LR
 - **Villagers:** `GameState.villagers` (one per village house, spawned on the lane below its
   door, outfit `look`) are `Player`-shaped, so they reuse `movePlayer`, the animation and
   `CharacterSprite`. `core/systems/wander.ts` rests, picks a random free tile in
-  `villageWanderArea(world)` and follows an A* route restricted to that area (so villagers never
+  `villageWanderArea(world)` (inside the village fence) and follows an A* route restricted to that area (so villagers never
   leave the village), one axis at a time; a seeded `wanderRng` keeps sessions reproducible.
+  Villagers keep out of each other's way: routes avoid tiles other villagers stand on or step
+  onto next, no two head for the same tile, and a villager that still bumps into another plans
+  a detour (or pauses briefly, keeping its goal). Only the player makes them wait.
   Villagers and the player block each other (`bumpsInto`, feet hitboxes). Talking (Space) makes
   the villager stop and face the player until the message closes; the greeting is
   `villagers.greeting` ("Hi!").

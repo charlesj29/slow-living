@@ -116,12 +116,12 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
 
 function stepVillagers(state: GameState, stepSeconds: number, config: IslandConfig): void {
   const tileSizePx = config.map.tileSizePx;
-  const everyone = [state.player, ...state.villagers];
+  const crowd = { player: state.player, villagers: state.villagers };
   for (const villager of state.villagers) {
     updateVillager(
       villager,
       state.world,
-      everyone,
+      crowd,
       state.wanderRng,
       stepSeconds,
       config.villagers,

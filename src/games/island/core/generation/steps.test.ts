@@ -9,6 +9,7 @@ import {
 import { ISLAND_CONFIG } from '../config';
 import { OBJECT_REGISTRY, TREE_KINDS } from '../world/objects';
 import { isLakeTile, TileId } from '../world/tiles';
+import { villageWanderArea } from '../world/village';
 import { getDoorFrontTile, NO_OBJECT } from '../world/world';
 import { createInitialContext } from './context';
 import { GENERATION_STEPS } from './pipeline';
@@ -233,7 +234,17 @@ describe('scatterDeadwood', () => {
     const context = validContext(13);
     const { size } = context;
     const radius = ISLAND_CONFIG.deadwood.searchRadiusTiles;
-    const deadwood = context.objects.filter((o) => o.kind === 'stump' || o.kind === 'branch');
+    // The village's own decorative stumps are placed by placeVillage, not here.
+    const village = villageWanderArea(context);
+    const inVillage = (o: { x: number; y: number }): boolean =>
+      village !== null &&
+      o.x >= village.left - 1 &&
+      o.x <= village.right + 1 &&
+      o.y >= village.top - 1 &&
+      o.y <= village.bottom + 1;
+    const deadwood = context.objects.filter(
+      (o) => (o.kind === 'stump' || o.kind === 'branch') && !inVillage(o),
+    );
     expect(deadwood.length).toBeGreaterThan(0);
     for (const piece of deadwood) {
       const index = toIndex(size, piece.x, piece.y);

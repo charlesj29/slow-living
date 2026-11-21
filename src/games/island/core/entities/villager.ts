@@ -18,6 +18,8 @@ export interface Villager extends Player {
   restTime: number;
   /** Seconds spent unable to move along the route (someone in the way). */
   stuckTime: number;
+  /** Seconds to wait before trying a blocked way again. */
+  pauseTime: number;
   /** Talking with the player: stands still, facing them. */
   talking: boolean;
 }
@@ -37,6 +39,7 @@ export function createVillager(
     route: [],
     restTime: 1 + id,
     stuckTime: 0,
+    pauseTime: 0,
     talking: false,
   };
 }

@@ -23,6 +23,11 @@ export const OBJECT_KINDS = [
   'sign',
   'wood_pile',
   'stepping_stone',
+  'well',
+  'haystack',
+  'crate',
+  'lamp_post',
+  'crops',
   'cabin',
   'house_stone',
   'house_log',
@@ -53,12 +58,14 @@ export interface ObjectDefinition {
   readonly door?: TilePoint;
   /** What pressing Space while facing it shows (no reply choices). */
   readonly interaction?: { readonly message: string };
+  /** Glows at night: lit window panes / lantern glass get a warm overlay. */
+  readonly litAtNight?: boolean;
 }
 
 const SINGLE_TILE = { width: 1, height: 1 } as const;
-/** Village houses: 4×3 tiles, door on the bottom row, second tile from the left. */
-const HOUSE_FOOTPRINT = { width: 4, height: 3 } as const;
-const HOUSE_DOOR = { x: 1, y: 2 } as const;
+/** Village houses: 5×3 tiles, door in the middle of the bottom row. */
+const HOUSE_FOOTPRINT = { width: 5, height: 3 } as const;
+const HOUSE_DOOR = { x: 2, y: 2 } as const;
 
 function house(kind: ObjectKind, name: string, mapColor: string): ObjectDefinition {
   return {
@@ -70,6 +77,7 @@ function house(kind: ObjectKind, name: string, mapColor: string): ObjectDefiniti
     spriteKey: kind,
     mapColor,
     door: HOUSE_DOOR,
+    litAtNight: true,
   };
 }
 
@@ -128,6 +136,12 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   sign: solid('sign', 'Wooden sign', 'structure', '#b8844c'),
   wood_pile: solid('wood_pile', 'Wood pile', 'structure', '#8a5a30'),
   stepping_stone: decoration('stepping_stone', 'Stepping stones', 'ground', '#a8a8b0'),
+  // The village green's well: two tiles wide, its little roof rises above.
+  well: solid('well', 'Well', 'structure', '#8c8c94', { width: 2, height: 1 }),
+  haystack: solid('haystack', 'Haystack', 'structure', '#d8b85a'),
+  crate: solid('crate', 'Crate', 'structure', '#a87a44'),
+  lamp_post: { ...solid('lamp_post', 'Lamp post', 'structure', '#5a4630'), litAtNight: true },
+  crops: solid('crops', 'Vegetable patch', 'structure', '#6a8a3a'),
   cabin: {
     kind: 'cabin',
     name: 'Cottage',
@@ -137,6 +151,7 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     spriteKey: 'cabin',
     mapColor: '#8b5a2b',
     door: { x: 2, y: 3 },
+    litAtNight: true,
   },
   house_stone: house('house_stone', 'Stone house', '#7c8496'),
   house_log: house('house_log', 'Log cabin', '#7a5230'),

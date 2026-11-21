@@ -282,10 +282,10 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   village: {
     offsets: [
-      { x: -19, y: -14 },
-      { x: 9, y: -12 },
-      { x: -20, y: 4 },
-      { x: 9, y: 6 },
+      { x: -19, y: -18 },
+      { x: 9, y: -18 },
+      { x: -22, y: 6 },
+      { x: 9, y: 8 },
     ],
   },
   ledges: { noise: noise(0.05, 2), threshold: 0.35, minRunTiles: 2 },

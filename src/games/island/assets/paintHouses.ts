@@ -1,7 +1,6 @@
-// The three village houses (64×64 over a 4×3 footprint, roof rising one tile
-// above it). One simple front-on design: a sloped roof wider than the walls,
-// a door on the second tile, a big window on the right and a small one on the
-// left. Each style changes the roof colour and the wall material:
+// The three village houses (80×64 over a 5×3 footprint, roof rising one tile
+// above it). One simple, symmetric front-on design: a sloped roof wider than
+// the walls, the door in the middle and a window on each side. Each style changes the roof colour and the wall material:
 //   stone walls + blue slate roof + chimney, log walls + mossy green roof,
 //   white plaster + timber frame + straw thatch.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
@@ -13,14 +12,15 @@ import {
 } from '@/shared/render/pixelCanvas';
 import { PALETTE, type Ramp } from './palette';
 
-const SIZE = 64;
-const ROOF = { top: 4, eave: 27, inset: 12 };
-const WALL = { left: 4, right: 59, top: 28, bottom: 57 };
+const WIDTH = 80;
+const HEIGHT = 64;
+const ROOF = { top: 4, eave: 27, inset: 14 };
+const WALL = { left: 4, right: 75, top: 28, bottom: 57 };
 const FOUNDATION = { top: 58, bottom: 63 };
-/** The door is centred on the footprint's second tile (pixel 24). */
-const DOOR = { left: 18, right: 29, top: 39 };
-const BIG_WINDOW = { left: 38, top: 35, width: 14, height: 12 };
-const SMALL_WINDOW = { left: 7, top: 36, width: 8, height: 8 };
+/** The door is centred on the footprint's middle tile (pixel 40). */
+const DOOR = { left: 34, right: 45, top: 39 };
+const LEFT_WINDOW = { left: 12, top: 35, width: 14, height: 12 };
+const RIGHT_WINDOW = { left: 54, top: 35, width: 14, height: 12 };
 
 type WallStyle = 'stone' | 'log' | 'plaster';
 
@@ -45,7 +45,7 @@ function roof(canvas: PixelCanvas, style: HouseStyle): void {
     // The roof widens from the ridge down to the eave, overhanging the walls.
     const t = (y - ROOF.top) / (ROOF.eave - ROOF.top);
     const left = Math.round(ROOF.inset * (1 - t));
-    const right = SIZE - 1 - left;
+    const right = WIDTH - 1 - left;
     fillRect(canvas, left, y, right - left + 1, 1, outline);
     if (y === ROOF.top || y === ROOF.eave) continue;
     for (let x = left + 1; x < right; x++) {
@@ -64,19 +64,19 @@ function roof(canvas: PixelCanvas, style: HouseStyle): void {
       setPixel(canvas, x, y, color);
     }
   }
-  fillRect(canvas, ROOF.inset + 1, ROOF.top + 1, SIZE - 2 * ROOF.inset - 2, 1, highlight);
+  fillRect(canvas, ROOF.inset + 1, ROOF.top + 1, WIDTH - 2 * ROOF.inset - 2, 1, highlight);
   if (style.thatched) {
     // A thick, rounded straw eave.
-    fillRect(canvas, 1, ROOF.eave - 2, SIZE - 2, 3, base);
-    fillRect(canvas, 1, ROOF.eave - 2, SIZE - 2, 1, light);
-    fillRect(canvas, 0, ROOF.eave + 1, SIZE, 1, outline);
+    fillRect(canvas, 1, ROOF.eave - 2, WIDTH - 2, 3, base);
+    fillRect(canvas, 1, ROOF.eave - 2, WIDTH - 2, 1, light);
+    fillRect(canvas, 0, ROOF.eave + 1, WIDTH, 1, outline);
   }
   if (style.chimney) {
     const stone = PALETTE.cottage;
-    fillRect(canvas, 44, 0, 8, 12, PALETTE.wall.outline);
-    fillRect(canvas, 45, 1, 6, 11, stone.stone);
-    fillRect(canvas, 45, 1, 6, 1, stone.stoneLight);
-    fillRect(canvas, 45, 5, 6, 1, stone.stoneDark);
+    fillRect(canvas, 56, 0, 8, 12, PALETTE.wall.outline);
+    fillRect(canvas, 57, 1, 6, 11, stone.stone);
+    fillRect(canvas, 57, 1, 6, 1, stone.stoneLight);
+    fillRect(canvas, 57, 5, 6, 1, stone.stoneDark);
   }
 }
 
@@ -164,10 +164,10 @@ function foundation(canvas: PixelCanvas): void {
 }
 
 function paintHouse(style: HouseStyle): PixelCanvas {
-  const canvas = createPixelCanvas(SIZE, SIZE);
+  const canvas = createPixelCanvas(WIDTH, HEIGHT);
   walls(canvas, style.walls);
-  window(canvas, BIG_WINDOW);
-  window(canvas, SMALL_WINDOW);
+  window(canvas, LEFT_WINDOW);
+  window(canvas, RIGHT_WINDOW);
   door(canvas);
   foundation(canvas);
   roof(canvas, style);

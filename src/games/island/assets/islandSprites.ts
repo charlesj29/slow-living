@@ -1,6 +1,6 @@
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { buildSpriteAtlas, type SpriteAtlas } from '@/shared/render/spriteAtlas';
-import { kindsInCategory, OBJECT_REGISTRY } from '../core/world/objects';
+import { OBJECT_KINDS, OBJECT_REGISTRY } from '../core/world/objects';
 import { paintCabinSprites } from './paintCabin';
 import { paintCliffSprites } from './paintCliff';
 import { paintDeadwoodSprites } from './paintDeadwood';
@@ -14,14 +14,16 @@ import { paintStructureSprites } from './paintStructures';
 import { paintTileSprites } from './paintTiles';
 import { paintTransitionSprites } from './paintTransitions';
 import { paintUiSprites } from './paintUi';
+import { paintVillagePropSprites } from './paintVillageProps';
 
-/** Buildings get a night-time window-light overlay. */
-const LIT_SPRITE_KEYS = kindsInCategory('building').map((kind) => OBJECT_REGISTRY[kind].spriteKey);
+/** Buildings and lamps get a night-time light overlay (registry: `litAtNight`). */
+const LIT_SPRITE_KEYS = OBJECT_KINDS.filter((kind) => OBJECT_REGISTRY[kind].litAtNight).map(
+  (kind) => OBJECT_REGISTRY[kind].spriteKey,
+);
 
 /** Every sprite the island needs, painted in code. */
 export function paintIslandSprites(): SpriteSource[] {
-  const buildings = [...paintCabinSprites(), ...paintHouseSprites()];
-  return [
+  const sprites = [
     ...paintTileSprites(),
     ...paintCliffSprites(),
     ...paintTransitionSprites(),
@@ -29,12 +31,14 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintDeadwoodSprites(),
     ...paintStructureSprites(),
     ...paintPropSprites(),
-    ...buildings,
-    ...paintWindowLights(buildings, LIT_SPRITE_KEYS),
+    ...paintVillagePropSprites(),
+    ...paintCabinSprites(),
+    ...paintHouseSprites(),
     ...paintPlayerSprites(),
     ...paintShadowSprites(),
     ...paintUiSprites(),
   ];
+  return [...sprites, ...paintWindowLights(sprites, LIT_SPRITE_KEYS)];
 }
 
 /** Builds the island's texture atlas. The caller owns it and must call `dispose()`. */
