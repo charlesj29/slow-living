@@ -19,10 +19,10 @@ imports a game. All of this is enforced by `no-restricted-imports` blocks in
 
 ## Routes
 
-| Route         | What                                                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `/`           | **The island**, full screen, no site chrome (lazy; full-screen "Cooking…" loading screen on first load). Dev only: `?seed=N` |
-| anything else | Redirects to `/`, keeping the query string                                                                                   |
+| Route         | What                                                                                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`           | **The island**, full screen, no site chrome (lazy; full-screen "Cooking…" loading screen on first load). `?seed=N`: a generated island (R / dice button; Home goes back to `/`) |
+| anything else | Redirects to `/`, keeping the query string                                                                                                                                      |
 
 The browser tab title is "chilling" (`index.html`).
 
@@ -32,7 +32,7 @@ The browser tab title is "chilling" (`index.html`).
 src/
   main.tsx                  # Entry: mounts <App/>
   app/                      # App shell: router (HydrateFallback, catch-all redirect), global.css
-  pages/                    # WorldPage (/, dev R preview key), RedirectToIslandPage,
+  pages/                    # WorldPage (/, ?seed= → IslandGame, navigation), RedirectToIslandPage,
                             #   RouteLoadingPage, RouteErrorPage
   shared/
     engine/                 # Pure TS: math, random, noise, grid, pathfinding (A*)
@@ -45,7 +45,7 @@ src/
     island/
       index.ts              # Public API: IslandGame
       IslandGame.tsx        # Loads the world, creates GameState; composes render + UI overlays
-      loadWorld.ts          # Baked island, or a generated one for a dev seed; never throws
+      loadWorld.ts          # Baked home island, or a generated one for ?seed=; never throws
       state.ts              # zustand store, UI-facing only: debug overlay, has-walked, music muted
       data/island.map.json  # THE world: baked, committed map file (chunked, readable)
       core/
@@ -72,10 +72,12 @@ src/
       ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3, top-right),
                             #   DayNightToggle, MusicToggle,
                             #   DialogBox (messages), ScreenFade (door transitions),
-                            #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel
+                            #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel,
+                            #   IslandSwitcher (dice / R / Home, fades then asks the page)
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
   bake-island-map.mjs       # npm run bake:island [-- seed]: generator -> data/island.map.json
+  island-overview.mjs       # npm run overview:island -- out.png [first] [count]: seed contact sheet
   browser-check.mjs         # Dev-only headless Chrome check (keys, screenshot, FPS, console)
 ```
 
@@ -90,7 +92,7 @@ flowchart LR
   end
   File --> Parse["core/world<br/>parseMapFile"]
   Parse -- "World (plain data)" --> Game["IslandGame"]
-  DevSeed["dev only: ?seed="] -.-> Gen2["generateWorld (live preview)"] -.-> Game
+  SeedUrl["?seed= (R, dice)"] -.-> Gen2["generateWorld (live)"] -.-> Game
   Game --> Render["render/*<br/>GameCanvas"]
   Game --> UI["ui/*<br/>controls hint, F3 overlay, notices"]
   Input["keyboard input"] --> Loop["fixed-timestep loop<br/>core/game + core/systems"]
@@ -311,7 +313,8 @@ flowchart LR
 
 ### Re-bake or redesign the island
 
-1. Preview candidates in dev: `npm run dev`, open `/?seed=N` (a "Dev preview" badge shows).
+1. Compare candidates: `npm run overview:island -- out.png 1 16` (contact sheet), then look
+   closer at `/?seed=N` in `npm run dev` (a "Dev preview" badge shows).
 2. Bake the chosen seed: `npm run bake:island -- N` (or set `generation.authoringSeed`).
 3. Review the diff of `data/island.map.json`, run `npm run check`, commit.
    Re-baking **replaces hand edits** — make generator changes first, hand edits last.

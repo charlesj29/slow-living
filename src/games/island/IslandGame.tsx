@@ -1,31 +1,34 @@
-import { useMemo, type JSX } from 'react';
+import { useLayoutEffect, useMemo, type JSX } from 'react';
 import { CHILL_TUNE } from './assets/chillTune';
 import { ISLAND_CONFIG } from './core/config';
 import { createGameState } from './core/game/gameState';
 import { loadWorld } from './loadWorld';
 import { GameCanvas } from './render/GameCanvas';
+import { useIslandUiStore } from './state';
 import { ControlsHint } from './ui/ControlsHint';
 import { DayNightToggle } from './ui/DayNightToggle';
 import { DebugOverlay } from './ui/DebugOverlay';
-import { DialogBox } from './ui/DialogBox';
-import { ScreenFade } from './ui/ScreenFade';
 import { DevSeedBadge } from './ui/DevSeedBadge';
+import { DialogBox } from './ui/DialogBox';
+import { IslandSwitcher } from './ui/IslandSwitcher';
 import { KeyboardNotice } from './ui/KeyboardNotice';
 import { MusicToggle } from './ui/MusicToggle';
+import { ScreenFade } from './ui/ScreenFade';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
 
 export interface IslandGameProps {
-  /**
-   * Dev-only authoring preview: generate this seed live instead of loading
-   * the baked island. Leave undefined in production.
-   */
-  readonly devSeed?: number;
+  /** A generated island for this seed; undefined = the baked home island. */
+  readonly seed?: number;
+  /** Asked for another island (dice button or R); the page picks a seed. */
+  readonly onNewIsland: () => void;
+  /** Asked to go back to the home island. */
+  readonly onHome: () => void;
 }
 
 /** Loads the world, creates the simulation, and composes the render layer (canvas) and UI overlays. */
-export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
-  // Loading is synchronous and fast (parse ~5 ms, dev generation ~60 ms).
-  const result = useMemo(() => loadWorld(devSeed), [devSeed]);
+export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.Element {
+  // Loading is synchronous and fast (parse a few ms, generating a seed ~40 ms).
+  const result = useMemo(() => loadWorld(seed), [seed]);
   // The simulation lives in a plain mutable object, created once per world and
   // shared by the canvas (which drives it) and the overlays (which read it).
   const game = useMemo(
@@ -33,12 +36,31 @@ export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
     [result],
   );
 
+  // A new island starts outdoors with no message, and fades in.
+  useLayoutEffect(() => {
+    const ui = useIslandUiStore.getState();
+    ui.setMap(game?.mapId ?? 'island');
+    ui.setDialogMessage(null);
+    ui.setScreenDark(false);
+  }, [game]);
+
+  const switcher = (
+    <IslandSwitcher
+      key={seed ?? 'home'}
+      isHome={seed === undefined}
+      onNewIsland={onNewIsland}
+      onHome={onHome}
+    />
+  );
   if (!result.ok || !game) {
     return (
-      <WorldErrorPanel
-        title={result.ok ? 'The game could not start' : result.title}
-        details={result.ok ? [] : result.details}
-      />
+      <>
+        <WorldErrorPanel
+          title={result.ok ? 'The game could not start' : result.title}
+          details={result.ok ? [] : result.details}
+        />
+        {switcher}
+      </>
     );
   }
   return (
@@ -51,7 +73,8 @@ export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
       <KeyboardNotice />
       <DayNightToggle />
       <MusicToggle song={CHILL_TUNE} />
-      {devSeed !== undefined && <DevSeedBadge seed={devSeed} />}
+      {switcher}
+      {import.meta.env.DEV && seed !== undefined && <DevSeedBadge seed={seed} />}
     </>
   );
 }

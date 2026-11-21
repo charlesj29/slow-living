@@ -10,17 +10,25 @@
 }
 
 .island-dev-badge {
-  top: 6.25rem; /* below the two top-left buttons */
+  top: 11.75rem; /* below the four top-left buttons */
   left: 0.75rem;
 }
 
-/* Small square buttons stacked in the top-left: day/night, then music. */
+/* Small square buttons stacked in the top-left: day/night, music, another island, home. */
 .island-day-night-toggle {
   top: 0.75rem;
 }
 
 .island-music-toggle {
   top: 3.5rem;
+}
+
+.island-new-island {
+  top: 6.25rem;
+}
+
+.island-home {
+  top: 9rem;
 }
 
 .island-hud-button {

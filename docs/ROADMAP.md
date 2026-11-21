@@ -54,13 +54,14 @@ report.
   - 🎓 framed certificates: education and certifications
   - 📮 post desk / phone: contact links and CV download
 
-### M8 — Compact island and the default seed
+### M8 — Compact island and the default seed ✅ (2026-11-21, seed 46)
 
 - Island size about 96×96; generation tuned so every seed fits beach, lake + dock, forest,
   cliffs, a meadow, the village and the studio within short walks.
 - Validation guarantees the studio and village exist and are reachable on every seed.
 - Pick the best seed with the user; bake it as the default island.
-- R regenerates a new island (decide: for visitors or dev-only; see the assumption above).
+- R (and a dice button) opens a new island for every visitor; Home goes back; `?seed=` links.
+- Done except the studio, which arrives with M7 (its validation then too).
 
 ### M9 — Guidance
 

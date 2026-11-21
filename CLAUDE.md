@@ -6,7 +6,7 @@ project stands and wait for the user's go. The full spec is `PROJECT_BRIEF.md`.
 ## Project
 
 A games website (React + TypeScript + Three.js via React Three Fiber). The site opens straight
-into **Island** at `/`: a fixed 192×192 2D top-down world (pixel art, 16×16 tiles, orthographic
+into **Island** at `/`: a fixed 96×96 2D top-down world (pixel art, 16×16 tiles, orthographic
 camera) loaded from a baked map file. The site has one page: every other address redirects to
 `/`, and there is no site menu (user decision).
 User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`.
@@ -42,8 +42,11 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 ## Generation & world conventions
 
 - **The live world is `src/games/island/data/island.map.json`**, never generated at runtime.
-  Generation is an authoring tool: `npm run bake:island -- <seed>` re-bakes (overwrites hand
-  edits). `?seed=` previews are dev-only. `bakedIsland.test.ts` must stay green.
+  `npm run bake:island` re-bakes the default seed (`generation.authoringSeed`, 46; overwrites
+  hand edits); `npm run overview:island -- <out.png>` draws a contact sheet to compare seeds.
+  Visitors can also play generated islands: R or the dice button opens `/?seed=N` (shareable),
+  Home goes back to `/`. Every seed must pass validation (village included).
+  `bakedIsland.test.ts` must stay green.
 - World grids are flat typed arrays, row-major (`y * width + x`), **y grows downwards**;
   render code flips y for Three.js.
 - Generation steps are pure `(context) => context` (copy arrays you change) and take
@@ -64,7 +67,7 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 
 - UI overlays live in `games/island/ui/` and read the shared `GameState` (sampled on a timer,
   never per frame) or the zustand store (`state.ts`, UI flags only). F3 overlay: FPS + tile.
-- Dev-only features check `import.meta.env.DEV` (R preview key, `?seed=`,
+- Dev-only features check `import.meta.env.DEV` (the "Dev preview · seed" badge,
   `window.__islandRenderer`).
 
 ## Audio conventions

@@ -4,11 +4,11 @@
 
 - **Milestone:** M4 — Polish & handover ✅ complete. **All milestones (M0–M4) delivered.**
 - **What works:** opening the site (`/`, tab title "chilling") shows a "Cooking…" loading
-  screen, then drops you in front of the cabin on the baked 192×192 island, full screen with
+  screen, then drops you in front of the cabin on the baked 96×96 island, full screen with
   no site chrome. Walk with WASD/arrows, run with Shift, zoom with +/− (starts three steps out,
   the user's preferred view). The controls hint fades after your first steps. F3 shows FPS and
-  your tile (dev and production). Dev only: R jumps to a random preview island, `?seed=N`
-  previews a seed. Touch devices see "Best played with a keyboard". Every other address
+  your tile (dev and production). R or the dice button (top-left) visits a random generated island
+  (`/?seed=N`, shareable); Home returns to the default island. Touch devices see "Best played with a keyboard". Every other address
   redirects to `/`. Production console is empty; ~240 FPS on GPU (headless, uncapped);
   renderer memory stays flat across regenerations. Smooth character animation (walk, run,
   breathing, blinking) and looping chill music composed in code (top-left mute button / M).
@@ -17,9 +17,10 @@
   natural paths, leaf-cluster trees + a giant forest tree, a 6×4 reference-style cottage,
   refined explorer with idle breathing, props by the house, stumps and branches, rocky coastal
   ledges, warm palette. The user approved it.
-- **Portfolio roadmap (2026-11-21):** M6 Interiors ✅ done (walk into the cottage; village
-  house doors are locked). **Next: M8** (compact ~96×96 island, default seed, R + dice + Home
-  for everyone), agreed with the user; plan it and wait for OK.
+- **Portfolio roadmap (2026-11-21):** M6 Interiors ✅ (walk into the cottage; village house
+  doors are locked). M8 Compact island ✅ (96×96, default seed 46, R / dice / Home and
+  shareable `?seed=` links for everyone). **Next:** pick with the user: M7 studio, M9
+  guidance, M10 phones, or M5 once the CV arrives.
 - **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
   the project is pushed to GitHub `origin/master` (the only branch; `main` no longer exists). Push only
   when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
@@ -46,9 +47,9 @@
 
 - The site opens straight into the world at `/` (brief: `/` home, `/games/island` game).
 - The world is fixed: always the same layout, loaded from a baked map file (brief: random seed
-  unless `?seed=` given, seed shown in the HUD). `?seed=` and `R`-regenerate are dev-only
-  authoring tools now.
-- Map size 192×192 (brief: 128×128), designed to be pleasant to stroll; the map format must
+  unless `?seed=` given, seed shown in the HUD). Since M8 visitors can also open generated
+  islands (R, dice button, `?seed=`); the baked seed-46 island is home. No seed on screen.
+- Map size 96×96 since M8 (first 192×192; brief: 128×128), compact so the portfolio is a short walk; the map format must
   allow growing the world later.
 - Classic handheld-RPG-inspired pixel art (Pokémon Emerald as a style reference only, no
   copying); big 2×2 trees; the initial view is three zoom steps out from the ~20-tiles-across
@@ -60,7 +61,7 @@
   reference (style only — no copying of the reference character).
 - No site chrome: no menu on the island, no `/games` page; every address redirects to `/`.
 - Debug overlay (F3) shows only FPS and the player's tile, in dev and production (the brief
-  asked for collision tiles too, dev only). `R` = dev-only random preview island.
+  asked for collision tiles too, dev only).
 - Controls hint fades after the first walk; no seed or place name on screen; tab title
   "chilling"; loading text "Cooking…" / "Doing its magic…"; touch devices get a keyboard notice.
 - Bigger cabin pinned with an authoring anchor (5×3, then a 6×4 reference-style cottage in
@@ -84,6 +85,19 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — M8 Compact island and the default seed (portfolio roadmap)
+
+- **Done (D58):** the island is 96×96 (generation retuned: more land, island-scale noise
+  doubled, smaller lake and village, wider village search). New validation rule
+  `village-missing`, so every seed has the village (retries with derived seeds). New authoring
+  tool `npm run overview:island` (contact sheet PNG). Default island: seed 46 (chosen by me,
+  as the user asked: village west of the cottage, lake and dock just south, forests round the
+  edge, an open meadow east for the studio). R, a dice button and a Home button (top-left,
+  with a fade) work for every visitor; generated islands are `/?seed=N` links.
+- **Verified:** typecheck, lint, tests, build pass; seeds 1–48 all valid with a village; in the
+  browser: home island, dice → new seed + Home button, Home → `/`, R from inside the cottage;
+  console clean.
 
 ### 2026-11-21 — M6 Interiors (portfolio roadmap)
 

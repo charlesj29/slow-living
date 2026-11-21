@@ -13,6 +13,7 @@ import type { IslandConfig } from '../config';
 import { computeBlockedMask } from '../world/collision';
 import { OBJECT_REGISTRY } from '../world/objects';
 import { isLakeTile, isLandTile, isSeaTile, isWalkableTile, TileId } from '../world/tiles';
+import type { Village } from '../world/village';
 import { getDoorFrontTile, type WorldObject } from '../world/world';
 import type { GenerationContext } from './context';
 
@@ -28,7 +29,8 @@ export type ValidationIssueCode =
   | 'door-unreachable'
   | 'trail-unreachable'
   | 'beach-cut-off'
-  | 'reachable-area-too-small';
+  | 'reachable-area-too-small'
+  | 'village-missing';
 
 export interface ValidationIssue {
   readonly code: ValidationIssueCode;
@@ -42,6 +44,7 @@ export interface MapSnapshot {
   readonly objects: readonly WorldObject[];
   readonly cabin: WorldObject | null;
   readonly spawn: TilePoint | null;
+  readonly village: Village | null;
 }
 
 type ValidationRules = IslandConfig['validation'];
@@ -161,6 +164,10 @@ const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rule
     : issue('beach-cut-off', 'A beach below a rocky ledge cannot be reached');
 };
 
+/** Every island has the village: the villagers hint at where to go next. */
+const checkVillage: Check = ({ village }) =>
+  village ? null : issue('village-missing', 'No room for the village near the cabin');
+
 const CHECKS: readonly Check[] = [
   checkBorders,
   checkLandShare,
@@ -169,6 +176,7 @@ const CHECKS: readonly Check[] = [
   checkDock,
   checkCabin,
   checkReachability,
+  checkVillage,
 ];
 
 /** Returns every invariant the map breaks; empty means valid. */

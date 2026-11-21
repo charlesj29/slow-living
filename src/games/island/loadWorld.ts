@@ -12,11 +12,11 @@ function describeError(error: unknown): string {
 }
 
 /**
- * The baked island normally; a freshly generated island when a dev seed is
- * given (authoring preview). Never throws: failures become a displayable result.
+ * The baked home island, or a freshly generated island for a seed (dice button,
+ * R, or a shared `?seed=` link). Never throws: failures become a displayable result.
  */
-export function loadWorld(devSeed: number | undefined): WorldLoadResult {
-  if (devSeed === undefined) {
+export function loadWorld(seed: number | undefined): WorldLoadResult {
+  if (seed === undefined) {
     try {
       return { ok: true, world: loadBakedIsland() };
     } catch (error) {
@@ -27,13 +27,13 @@ export function loadWorld(devSeed: number | undefined): WorldLoadResult {
       };
     }
   }
-  const result = generateWorld(devSeed, ISLAND_CONFIG);
+  const result = generateWorld(seed, ISLAND_CONFIG);
   if (result.ok) {
     return { ok: true, world: result.world };
   }
   return {
     ok: false,
-    title: `Seed ${String(devSeed)} produced no valid island after ${String(result.attempts)} attempts`,
+    title: `Seed ${String(seed)} produced no valid island after ${String(result.attempts)} attempts`,
     details: result.issues.map((issue) => issue.message),
   };
 }

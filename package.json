@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
-    "bake:island": "node scripts/bake-island-map.mjs"
+    "bake:island": "node scripts/bake-island-map.mjs",
+    "overview:island": "node scripts/island-overview.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

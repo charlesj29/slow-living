@@ -666,3 +666,22 @@ alternatives → consequences.
 - **Consequences:** rooms are code, not part of the baked map file (they don't depend on the
   seed). New furniture is ordinary registry objects with painted sprites. Villagers are
   simulated only against the island map and drawn only there.
+
+## D58 — A compact 96×96 island; generated islands for everyone
+
+- **Context:** the portfolio should be a short walk, and the user wanted to keep seed generation:
+  the best seed as the default, R for another island, for visitors too. The user left the choice
+  of the seed to me.
+- **Decision:** the map is 96×96. Generation was retuned rather than redesigned: lower sea
+  thresholds and a stronger radial pull (land is about 37% of the map), island-scale noise at
+  about double frequency, lake radius 6–8, a slightly smaller village searched up to 30 tiles
+  from the door, the cabin anchor at the new centre. A validation rule `village-missing` makes
+  every accepted island have the village (attempts retry with derived seeds; seeds 1–48 pass,
+  most on the first attempt). `scripts/island-overview.mjs` renders a contact sheet from the
+  registries' map colours to compare seeds. The default is seed 46. `?seed=N` now works in
+  production: `WorldPage` reads it and navigates; `ui/IslandSwitcher` (dice button, R, Home
+  shown only away from home) fades the screen and then calls the page's callbacks. A new game
+  resets the UI store (outdoors, no message, fade in), so pressing R indoors lands outside.
+- **Consequences:** history works (Back returns to the previous island) and islands can be
+  shared as links. Generating takes ~40 ms, fine on demand. M7 (the studio) changes the pipeline,
+  so the default seed will be re-checked then.

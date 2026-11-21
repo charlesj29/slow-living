@@ -49,6 +49,10 @@ describe('validateGeneration', () => {
     expect(codes(broken)).toContain('lake-touches-sea');
   });
 
+  it('rejects an island without the village', () => {
+    expect(codes({ ...base, village: null })).toContain('village-missing');
+  });
+
   it('rejects a missing cabin', () => {
     expect(codes({ ...base, cabin: null })).toContain('cabin-missing');
   });

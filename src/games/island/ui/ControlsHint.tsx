@@ -10,7 +10,7 @@ export function ControlsHint(): JSX.Element {
       className={`island-hud-panel island-controls-hint${hasStartedWalking ? ' is-faded' : ''}`}
       aria-hidden={hasStartedWalking}
     >
-      WASD / arrows: walk · Shift: run · Space: interact · + / −: zoom · M: music
+      WASD / arrows: walk · Shift: run · Space: interact · + / −: zoom · M: music · R: new island
     </div>
   );
 }
