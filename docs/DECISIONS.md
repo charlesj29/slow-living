@@ -559,3 +559,15 @@ alternatives → consequences.
 - **Consequences:** verified by rendering the whole loop plus the seam offline in Chrome: steady
   loudness (RMS 0.09–0.18 every second, the same across the seam), peak 0.61, no sample jump
   above 0.05 (no clicks). Supersedes the sound and tune parts of D49.
+
+## D52 — Interaction with E: facing reach, one-shot presses, a message box
+
+- **Context:** the user wants interaction on E, starting with the mailbox ("it is empty"),
+  later villagers; messages have no reply choices (user decision).
+- **Decision:** interactions are data (`ObjectDefinition.interaction.message`). The target is
+  whatever occupies the tile one reach past the feet hitbox in the facing direction, so you
+  interact with what you look at. Input gains one-shot presses (`presses`, `consumePress`,
+  `clearPresses` at the end of each step) so a tap counts once on the fixed step. An open
+  dialog freezes the player; E closes it. The UI mirrors the message through zustand (set only
+  on change); a floating "E" keycap sprite (`assets/paintUi.ts`) marks the target.
+- **Consequences:** villagers can reuse the same flow by providing a target and message.

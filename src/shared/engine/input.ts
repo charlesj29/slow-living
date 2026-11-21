@@ -12,10 +12,15 @@ export interface InputState<Action extends string> {
   /** How many bound keys hold each action (two keys can share one action). */
   readonly keyCounts: Map<Action, number>;
   readonly pressedKeys: Set<string>;
+  /**
+   * Fresh presses (not key repeats) since the game last cleared them, for
+   * one-shot actions like "interact"; the fixed step consumes them.
+   */
+  readonly presses: Action[];
 }
 
 export function createInputState<Action extends string>(): InputState<Action> {
-  return { held: [], keyCounts: new Map(), pressedKeys: new Set() };
+  return { held: [], keyCounts: new Map(), pressedKeys: new Set(), presses: [] };
 }
 
 /** Returns true if the key is bound (so the caller can prevent default browser behaviour). */
@@ -28,6 +33,7 @@ export function pressKey<Action extends string>(
   if (action === undefined) return false;
   if (state.pressedKeys.has(code)) return true; // key repeat
   state.pressedKeys.add(code);
+  state.presses.push(action);
   const count = state.keyCounts.get(action) ?? 0;
   state.keyCounts.set(action, count + 1);
   if (count === 0) state.held.push(action);
@@ -54,6 +60,23 @@ export function clearInput<Action extends string>(state: InputState<Action>): vo
   state.held.length = 0;
   state.keyCounts.clear();
   state.pressedKeys.clear();
+  state.presses.length = 0;
+}
+
+/** True (once) if the action was freshly pressed since presses were last cleared. */
+export function consumePress<Action extends string>(
+  state: InputState<Action>,
+  action: Action,
+): boolean {
+  const index = state.presses.indexOf(action);
+  if (index === -1) return false;
+  state.presses.splice(index, 1);
+  return true;
+}
+
+/** Forgets presses nobody consumed (called at the end of each logic step). */
+export function clearPresses<Action extends string>(state: InputState<Action>): void {
+  state.presses.length = 0;
 }
 
 export function isHeld<Action extends string>(state: InputState<Action>, action: Action): boolean {

@@ -10,6 +10,7 @@ import { paintShadowSprites } from './paintShadows';
 import { paintStructureSprites } from './paintStructures';
 import { paintTileSprites } from './paintTiles';
 import { paintTransitionSprites } from './paintTransitions';
+import { paintUiSprites } from './paintUi';
 
 /** Every sprite the island needs, painted in code (placeholder art). */
 export function paintIslandSprites(): SpriteSource[] {
@@ -24,6 +25,7 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintCabinSprites(),
     ...paintPlayerSprites(),
     ...paintShadowSprites(),
+    ...paintUiSprites(),
   ];
 }
 

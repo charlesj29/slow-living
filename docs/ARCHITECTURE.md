@@ -66,6 +66,7 @@ src/
                             #   Deadwood, playerPixels (parts) + sideLegs + playerFrames (strips),
                             #   paintPlayer, islandSprites, chillTune (the music, as data)
       ui/                   # ControlsHint (fades after first walk), DebugOverlay (F3), MusicToggle,
+                            #   DialogBox (E messages),
                             #   KeyboardNotice (touch devices), DevSeedBadge, WorldErrorPanel
 tests/                      # Cross-cutting tests (architecture rules)
 scripts/
@@ -172,12 +173,19 @@ flowchart LR
   `standingSpriteZ(feet)`).
 - **Controls:** WASD/arrows walk in 4 directions: only the most recently pressed key that is
   still held moves (and faces) the player; releasing it falls back to the previous held key,
-  and opposite keys don't cancel (D40). Shift runs, +/− zoom, F3 debug overlay, M mutes the music.
+  and opposite keys don't cancel (D40). Shift runs, E interacts, +/− zoom, F3 debug overlay, M mutes the music.
   Losing window focus releases all keys.
 - **Collision:** a 10×6 px feet hitbox against `world.blocked`; X and Y move separately
   (wall sliding), stop flush at tile edges, and nudge around corners clipped by ≤ 5 px.
 - Only UI-relevant values go into zustand: `isDebugOverlayVisible` (F3),
-  `hasStartedWalking` (set once by `GameLoop`; the controls hint fades) and `isMusicMuted`. The F3 overlay reads
+  `hasStartedWalking` (set once by `GameLoop`; the controls hint fades), `isMusicMuted` and
+  `dialogMessage` (mirrored from `GameState.dialog` by `GameLoop`, only when it changes).
+- **Interaction:** an object kind with `interaction: { message }` in the registry can be
+  checked with E. Each step, `findInteractTarget` looks one reach (`interaction.reachPx`) past
+  the feet hitbox in the facing direction; `render/InteractPrompt` floats an "E" key over that
+  target. A fresh E press (`consumePress`, one-shot presses in `shared/engine/input`) opens
+  `GameState.dialog`; while it is open the player stands still and E closes it. `ui/DialogBox`
+  shows the message (no reply choices). The F3 overlay reads
   `game.framesPerSecond` (smoothed in `advanceGame`) and `playerTile` on a 250 ms timer while
   visible, so React never re-renders per frame.
 - `GameState` is created by `IslandGame` (one per world) and passed to both `GameCanvas`

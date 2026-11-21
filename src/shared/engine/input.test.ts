@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { clearInput, createInputState, isHeld, latestHeld, pressKey, releaseKey } from './input';
+import {
+  clearInput,
+  clearPresses,
+  consumePress,
+  createInputState,
+  isHeld,
+  latestHeld,
+  pressKey,
+  releaseKey,
+} from './input';
 
 type Action = 'up' | 'right' | 'run';
 const BINDINGS = { ArrowUp: 'up', KeyW: 'up', ArrowRight: 'right', ShiftLeft: 'run' } as const;
@@ -49,5 +58,17 @@ describe('input state', () => {
     expect(isHeld(state, 'run')).toBe(false);
     expect(pressKey(state, BINDINGS, 'ShiftLeft')).toBe(true);
     expect(isHeld(state, 'run')).toBe(true);
+  });
+
+  it('reports a fresh press once, ignoring key repeat, until cleared', () => {
+    const state = createInputState<Action>();
+    pressKey(state, BINDINGS, 'ArrowUp');
+    pressKey(state, BINDINGS, 'ArrowUp'); // repeat
+    expect(consumePress(state, 'up')).toBe(true);
+    expect(consumePress(state, 'up')).toBe(false);
+    releaseKey(state, BINDINGS, 'ArrowUp');
+    pressKey(state, BINDINGS, 'ArrowUp');
+    clearPresses(state);
+    expect(consumePress(state, 'up')).toBe(false);
   });
 });

@@ -12,16 +12,20 @@ export interface IslandUiState {
   readonly hasStartedWalking: boolean;
   /** Background music muted (the toggle button and M; remembered by the UI across visits). */
   readonly isMusicMuted: boolean;
+  /** The open interaction message (mirrored from the game state by the loop), or null. */
+  readonly dialogMessage: string | null;
   toggleDebugOverlay: () => void;
   markStartedWalking: () => void;
   setMusicMuted: (muted: boolean) => void;
   toggleMusicMuted: () => void;
+  setDialogMessage: (message: string | null) => void;
 }
 
 export const useIslandUiStore = create<IslandUiState>()((set) => ({
   isDebugOverlayVisible: false,
   hasStartedWalking: false,
   isMusicMuted: false,
+  dialogMessage: null,
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
   },
@@ -33,5 +37,8 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   toggleMusicMuted: () => {
     set((state) => ({ isMusicMuted: !state.isMusicMuted }));
+  },
+  setDialogMessage: (message) => {
+    set({ dialogMessage: message });
   },
 }));

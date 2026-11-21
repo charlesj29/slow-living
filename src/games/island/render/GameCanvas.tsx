@@ -7,6 +7,7 @@ import { ISLAND_CONFIG } from '../core/config';
 import { interpolatedPlayerPosition, type GameState } from '../core/game/gameState';
 import { FollowCamera } from './FollowCamera';
 import { GameLoop } from './GameLoop';
+import { InteractPrompt } from './InteractPrompt';
 import { PlayerSprite } from './PlayerSprite';
 import { Tilemap } from './Tilemap';
 import { useKeyboardInput } from './useKeyboardInput';
@@ -78,6 +79,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         flowerFrameSeconds={ISLAND_CONFIG.render.flowerFrameSeconds}
       />
       <PlayerSprite state={game} atlas={atlas} />
+      <InteractPrompt state={game} atlas={atlas} />
     </Canvas>
   );
 }

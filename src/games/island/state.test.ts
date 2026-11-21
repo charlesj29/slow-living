@@ -7,6 +7,7 @@ describe('island UI store', () => {
       isDebugOverlayVisible: false,
       hasStartedWalking: false,
       isMusicMuted: false,
+      dialogMessage: null,
     });
   });
 
@@ -24,6 +25,13 @@ describe('island UI store', () => {
     expect(useIslandUiStore.getState().isMusicMuted).toBe(false);
     useIslandUiStore.getState().setMusicMuted(true);
     expect(useIslandUiStore.getState().isMusicMuted).toBe(true);
+  });
+
+  it('shows and clears the dialog message', () => {
+    useIslandUiStore.getState().setDialogMessage("It's empty.");
+    expect(useIslandUiStore.getState().dialogMessage).toBe("It's empty.");
+    useIslandUiStore.getState().setDialogMessage(null);
+    expect(useIslandUiStore.getState().dialogMessage).toBeNull();
   });
 
   it('remembers that the player has started walking', () => {

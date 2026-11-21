@@ -5,7 +5,7 @@ architecture is set up so each is a natural addition.
 
 ## Island — play
 
-1. Interactions: read the mailbox, open the cabin door (interior scene), sit on the dock
+1. Interactions: open the cabin door (interior scene), sit on the dock — E and the mailbox are done
 2. Day/night cycle (time lives in core, render tints the scene)
 3. Ambient audio: waves, birds, footsteps (per ground type) — background music is done
 4. Inventory and pickups (flowers, shells, wood)

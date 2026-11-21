@@ -66,10 +66,25 @@
   the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
   the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
 - Background music composed in code (no files, no licences); mute button top-left plus M.
+- Interaction with E; messages have no reply choices. Mailbox: "It's empty.".
 - Features chosen by Claude (user delegated): trails, lake dock, rocks; smooth shorelines in
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Part 1 of 3: interaction with E (user request)
+
+- **Plan agreed with the user (three parts, committed separately):** 1) E interaction and the
+  mailbox; 2) day/night cycle with a mode button above the music button (Auto / Always day /
+  Always night), F3 readout moved bottom-left; 3) a small village of 3 houses near the cottage
+  with 3 villagers who wander inside it and say "Hi!". Messages have no reply choices.
+- **Done (D52):** one-shot presses in `shared/engine/input`; `core/systems/interaction.ts`
+  (reach in the facing direction); `GameState.interactTarget` / `dialog`; mailbox message;
+  `render/InteractPrompt` (floating "E" keycap from `assets/paintUi.ts`); `ui/DialogBox`;
+  controls hint now lists E.
+- **Verified:** typecheck, lint, 302 tests, build pass; browser: turning to the mailbox shows
+  the E bubble, E opens "It's empty.", E again closes it; console clean.
+- **Next:** part 2, the day/night cycle.
 
 ### 2026-11-21 — Side-view animation and a lo-fi music rebuild (user request)
 

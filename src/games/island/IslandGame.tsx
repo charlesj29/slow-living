@@ -6,6 +6,7 @@ import { loadWorld } from './loadWorld';
 import { GameCanvas } from './render/GameCanvas';
 import { ControlsHint } from './ui/ControlsHint';
 import { DebugOverlay } from './ui/DebugOverlay';
+import { DialogBox } from './ui/DialogBox';
 import { DevSeedBadge } from './ui/DevSeedBadge';
 import { KeyboardNotice } from './ui/KeyboardNotice';
 import { MusicToggle } from './ui/MusicToggle';
@@ -43,6 +44,7 @@ export function IslandGame({ devSeed }: IslandGameProps): JSX.Element {
       <GameCanvas game={game} />
       <ControlsHint />
       <DebugOverlay game={game} />
+      <DialogBox />
       <KeyboardNotice />
       <MusicToggle song={CHILL_TUNE} />
       {devSeed !== undefined && <DevSeedBadge seed={devSeed} />}

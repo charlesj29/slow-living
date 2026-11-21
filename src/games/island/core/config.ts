@@ -148,6 +148,10 @@ export interface IslandConfig {
     readonly blinkEverySeconds: number;
     readonly blinkSeconds: number;
   };
+  readonly interaction: {
+    /** How far past the feet hitbox, in the facing direction, the player can reach. */
+    readonly reachPx: number;
+  };
   readonly music: {
     /** 0..1 master volume: background music should sit under the game, not over it. */
     readonly volume: number;
@@ -273,6 +277,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     blinkEverySeconds: 3.7,
     blinkSeconds: 0.14,
   },
+  interaction: { reachPx: 8 },
   music: { volume: 0.55, fadeSeconds: 0.4, fadeInSeconds: 3 },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
   render: {

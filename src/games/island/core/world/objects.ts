@@ -48,6 +48,8 @@ export interface ObjectDefinition {
   readonly mapColor: string;
   /** Door tile, relative to the top-left of the footprint (buildings only). */
   readonly door?: TilePoint;
+  /** What pressing E while facing it shows (no reply choices). */
+  readonly interaction?: { readonly message: string };
 }
 
 const SINGLE_TILE = { width: 1, height: 1 } as const;
@@ -97,7 +99,10 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   stump: solid('stump', 'Tree stump', 'deadwood', '#7a5430'),
   branch: decoration('branch', 'Fallen branch', 'ground', '#6c4a28'),
   fence: solid('fence', 'Wooden fence', 'structure', '#d8bc8c'),
-  mailbox: solid('mailbox', 'Mailbox', 'structure', '#d04040'),
+  mailbox: {
+    ...solid('mailbox', 'Mailbox', 'structure', '#d04040'),
+    interaction: { message: "It's empty." },
+  },
   barrel: solid('barrel', 'Barrel', 'structure', '#9a6436'),
   flower_pot: solid('flower_pot', 'Flower pot', 'structure', '#cc6c3c'),
   sign: solid('sign', 'Wooden sign', 'structure', '#b8844c'),
