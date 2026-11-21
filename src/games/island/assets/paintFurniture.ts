@@ -92,8 +92,22 @@ function bookshelf(): PixelCanvas {
   return c;
 }
 
-/** 32×40 over 2×1: a stone fireplace with a wooden mantle and a crackling fire. */
-function fireplace(): PixelCanvas {
+/** Frames in the fireplace's flame loop. */
+export const FIRE_FRAME_COUNT = 4;
+
+/** Per frame: how tall each tongue of flame reaches, and a spark above it (or none). */
+const FLAME_FRAMES: readonly {
+  readonly heights: readonly [left: number, middle: number, right: number];
+  readonly spark: readonly [x: number, y: number] | null;
+}[] = [
+  { heights: [4, 7, 5], spark: [14, 26] },
+  { heights: [5, 6, 4], spark: null },
+  { heights: [3, 8, 5], spark: [18, 25] },
+  { heights: [5, 7, 3], spark: [15, 24] },
+];
+
+/** 32×40 over 2×1: a stone fireplace with a wooden mantle and a crackling fire (one frame). */
+function fireplace(frame: number): PixelCanvas {
   const c = createPixelCanvas(32, 40);
   const stone = PALETTE.cottage;
   fillRect(c, 0, 8, 32, 32, O);
@@ -104,9 +118,16 @@ function fireplace(): PixelCanvas {
   fillRect(c, 8, 18, 16, 21, O); // opening
   fillRect(c, 9, 19, 14, 20, PALETTE.wallTop.base);
   const fire = PALETTE.fire;
-  fillShape(c, (x, y) => insideEllipse(x, y, 16, 34, 6, 6) && y <= 38, fire.deep);
-  fillShape(c, (x, y) => insideEllipse(x, y, 16, 35, 4, 5) && y <= 38, fire.mid);
-  fillEllipse(c, 16, 36, 2, 3, fire.bright);
+  const flames = FLAME_FRAMES[frame % FLAME_FRAMES.length] ?? FLAME_FRAMES[0];
+  // A glowing bed, then three tongues of flame that rise and fall frame by frame.
+  fillShape(c, (x, y) => insideEllipse(x, y, 16, 36, 6, 3) && y <= 38, fire.deep);
+  flames?.heights.forEach((height, i) => {
+    const cx = 12 + i * 4;
+    fillShape(c, (x, y) => insideEllipse(x, y, cx, 37 - height / 2, 2, height / 2 + 1), fire.deep);
+    fillShape(c, (x, y) => insideEllipse(x, y, cx, 37 - height / 3, 1, height / 3 + 1), fire.mid);
+  });
+  fillEllipse(c, 16, 36, 2, 2, fire.bright);
+  if (flames?.spark) setPixel(c, flames.spark[0], flames.spark[1], fire.bright);
   fillRect(c, 10, 37, 12, 2, PALETTE.bark.outline); // logs
   // A candle and a picture frame on the mantle.
   fillRect(c, 5, 0, 2, 4, PALETTE.cabin.shine);
@@ -164,7 +185,10 @@ export function paintFurnitureSprites(): SpriteSource[] {
     { key: 'table', frames: [table()] },
     { key: 'chair', frames: [chair()] },
     { key: 'bookshelf', frames: [bookshelf()] },
-    { key: 'fireplace', frames: [fireplace()] },
+    {
+      key: 'fireplace',
+      frames: Array.from({ length: FIRE_FRAME_COUNT }, (_, frame) => fireplace(frame)),
+    },
     { key: 'rug', frames: [rug()] },
     { key: 'plant', frames: [plant()] },
     { key: 'floor_lamp', frames: [floorLamp()] },

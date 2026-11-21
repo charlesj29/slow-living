@@ -46,7 +46,9 @@ export function paintWindowLights(
   return sources
     .filter((source) => buildingKeys.includes(source.key))
     .flatMap((source) => {
-      const [frame] = source.frames;
-      return frame ? [{ key: lightsKey(source.key), frames: [lightsFor(frame)] }] : [];
+      // Every frame, so animated lights (the fireplace) flicker with their sprite.
+      return source.frames.length > 0
+        ? [{ key: lightsKey(source.key), frames: source.frames.map(lightsFor) }]
+        : [];
     });
 }

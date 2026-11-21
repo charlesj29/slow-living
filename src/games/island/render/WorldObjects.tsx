@@ -4,7 +4,9 @@ import { Object3D, type InstancedMesh } from 'three';
 import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { lightsKey } from '../assets/paintLights';
+import { FIRE_FRAME_COUNT } from '../assets/paintFurniture';
 import { FLOWER_FRAME_COUNT } from '../assets/paintObjects';
+import { ISLAND_CONFIG } from '../core/config';
 import type { World } from '../core/world/world';
 import type { LightingUniforms } from './lighting';
 import { placeObjectShadows } from './objectShadows';
@@ -18,6 +20,9 @@ import {
   showAnimationFrameAt,
   type SpriteMaterial,
 } from './spriteMaterial';
+
+/** Sprites animated on the fire's clock (faster than the flowers' sway). */
+const FIRE_SPRITE_KEYS: ReadonlySet<string> = new Set(['fireplace']);
 
 /** Window lights sit a hair in front of their building so they win the depth test. */
 const LIGHTS_Z_OFFSET = 0.001;
@@ -84,12 +89,26 @@ export function WorldObjects({
     () => createLightsMaterial(atlas.texture, lighting),
     [atlas, lighting],
   );
+  // The fireplace flickers on its own clock: a second pair of materials.
+  const fireMaterial = useMemo(
+    () => createSpriteMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
+  const fireLightsMaterial = useMemo(
+    () => createLightsMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
   useEffect(() => () => lightsMaterial.dispose(), [lightsMaterial]);
+  useEffect(() => () => fireMaterial.dispose(), [fireMaterial]);
+  useEffect(() => () => fireLightsMaterial.dispose(), [fireLightsMaterial]);
 
   useFrame(({ clock }) => {
     showAnimationFrameAt(material, clock.elapsedTime, flowerFrameSeconds, FLOWER_FRAME_COUNT);
+    const fireSeconds = ISLAND_CONFIG.render.fireFrameSeconds;
+    showAnimationFrameAt(fireMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
+    showAnimationFrameAt(fireLightsMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
   });
 
   const batches = useMemo(
@@ -133,7 +152,7 @@ export function WorldObjects({
         <SpriteBatch
           key={`${key}:${String(instances.length)}`}
           frame={atlas.frame(key)}
-          material={material}
+          material={FIRE_SPRITE_KEYS.has(key) ? fireMaterial : material}
           instances={instances}
         />
       ))}
@@ -141,7 +160,9 @@ export function WorldObjects({
         <SpriteBatch
           key={`lights:${key}:${String(instances.length)}`}
           frame={atlas.frame(key)}
-          material={lightsMaterial}
+          material={
+            FIRE_SPRITE_KEYS.has(key.replace(/_lights$/, '')) ? fireLightsMaterial : lightsMaterial
+          }
           instances={instances}
         />
       ))}

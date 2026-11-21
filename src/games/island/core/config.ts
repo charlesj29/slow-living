@@ -244,6 +244,8 @@ export interface IslandConfig {
     readonly maxPixelScale: number;
     readonly waterFrameSeconds: number;
     readonly flowerFrameSeconds: number;
+    /** How long each frame of the fireplace flames shows. */
+    readonly fireFrameSeconds: number;
     /** Soft, dithered patches of slightly deeper grass (shaded in the tilemap shader). */
     readonly grassPatches: {
       readonly noise: FractalNoiseOptions;
@@ -382,6 +384,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,
     flowerFrameSeconds: 0.6,
+    fireFrameSeconds: 0.14,
     grassPatches: { noise: noise(0.07, 2), threshold: 0.55, shade: 0.92, ditherSpread: 0.14 },
     cameraFollowSharpness: 8,
   },

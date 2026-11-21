@@ -89,6 +89,13 @@
 
 ## Session log
 
+### 2026-11-21 — Fireplace flames (user request)
+
+- The cottage fireplace flickers: a 4-frame flame strip (`FIRE_FRAME_COUNT`) on its own clock
+  (`render.fireFrameSeconds`, 0.14 s) through a second sprite/lights material pair in
+  `WorldObjects`; night-light overlays now keep every frame, so the glow flickers too.
+- **Verified:** typecheck, lint, tests, build; two screenshots in the cottage show different frames.
+
 ### 2026-11-21 — F3 camera readout, controls list (user request)
 
 - F3 also shows the camera: zoom level (pixel scale), zoom step and tiles on screen (`CameraInfo`

@@ -5,6 +5,7 @@ import { cliffPieceKey } from './paintCliff';
 import { createIslandAtlas, paintIslandSprites } from './islandSprites';
 import { TILE_PX } from './paint';
 import { PLAYER_FRAME_COUNT } from '../core/systems/animation';
+import { FIRE_FRAME_COUNT } from './paintFurniture';
 import { FLOWER_FRAME_COUNT } from './paintObjects';
 import { fenceSpriteKey } from './paintStructures';
 import { WATER_FRAME_COUNT } from './paintTiles';
@@ -74,18 +75,21 @@ describe('island sprites', () => {
     }
   });
 
-  it('animates only water, flowers and characters, each with its frame count', () => {
+  it('animates only water, flowers, characters and the fire, each with its frame count', () => {
     for (const source of paintIslandSprites()) {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
       const isFlower = /^flower_(red|yellow|blue|white)$/.test(source.key);
       const isPlayer = source.key.startsWith('player_') || source.key.startsWith('villager_');
+      const isFire = source.key === 'fireplace' || source.key === 'fireplace_lights';
       const expected = isWater
         ? WATER_FRAME_COUNT
         : isFlower
           ? FLOWER_FRAME_COUNT
           : isPlayer
             ? PLAYER_FRAME_COUNT
-            : 1;
+            : isFire
+              ? FIRE_FRAME_COUNT
+              : 1;
       expect(source.frames.length, source.key).toBe(expected);
     }
   });
