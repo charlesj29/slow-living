@@ -24,6 +24,9 @@ export const OBJECT_KINDS = [
   'wood_pile',
   'stepping_stone',
   'cabin',
+  'house_stone',
+  'house_log',
+  'house_thatch',
 ] as const;
 
 export type ObjectKind = (typeof OBJECT_KINDS)[number];
@@ -53,6 +56,23 @@ export interface ObjectDefinition {
 }
 
 const SINGLE_TILE = { width: 1, height: 1 } as const;
+/** Village houses: 4×3 tiles, door on the bottom row, second tile from the left. */
+const HOUSE_FOOTPRINT = { width: 4, height: 3 } as const;
+const HOUSE_DOOR = { x: 1, y: 2 } as const;
+
+function house(kind: ObjectKind, name: string, mapColor: string): ObjectDefinition {
+  return {
+    kind,
+    name,
+    category: 'building',
+    footprint: HOUSE_FOOTPRINT,
+    blocksMovement: true,
+    spriteKey: kind,
+    mapColor,
+    door: HOUSE_DOOR,
+  };
+}
+
 /** Big trees: 2 tiles wide at the trunk; the crown (drawn above) is walk-behind. */
 const BIG_TREE_FOOTPRINT = { width: 2, height: 1 } as const;
 
@@ -118,6 +138,9 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     mapColor: '#8b5a2b',
     door: { x: 2, y: 3 },
   },
+  house_stone: house('house_stone', 'Stone house', '#7c8496'),
+  house_log: house('house_log', 'Log cabin', '#7a5230'),
+  house_thatch: house('house_thatch', 'Thatched house', '#c8a050'),
 };
 
 export function kindsInCategory(category: ObjectCategory): readonly ObjectKind[] {

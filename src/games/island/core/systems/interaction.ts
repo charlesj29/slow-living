@@ -1,16 +1,16 @@
 // Interacting with things: the player reaches a little way past their feet in
-// the direction they face; whatever interactive thing is there can be talked
-// to / checked with Space, which opens a message (no reply choices).
+// the direction they face; whatever interactive thing or villager is there can
+// be checked / talked to with Space, which opens a message (no reply choices).
 import { isInBounds, toIndex } from '@/shared/engine/grid';
 import { hitboxAt, type HitboxSize, type Player } from '../entities/player';
+import type { Villager } from '../entities/villager';
 import { OBJECT_REGISTRY } from '../world/objects';
 import { NO_OBJECT, type World, type WorldObject } from '../world/world';
 
 /** Something the player can interact with right now. */
-export interface InteractTarget {
-  readonly object: WorldObject;
-  readonly message: string;
-}
+export type InteractTarget =
+  | { readonly kind: 'object'; readonly object: WorldObject; readonly message: string }
+  | { readonly kind: 'villager'; readonly villager: Villager; readonly message: string };
 
 export interface Dialog {
   readonly message: string;
@@ -22,6 +22,12 @@ const FACING_STEP = {
   left: { dx: -1, dy: 0 },
   right: { dx: 1, dy: 0 },
 } as const;
+
+/**
+ * Around a villager's feet, the part of them you can reach: their whole
+ * body above the feet, a little to each side and just below.
+ */
+const TALK_ZONE = { side: 8, above: 14, below: 6 };
 
 /** The map point just in front of the player's feet. */
 export function reachPoint(
@@ -37,20 +43,42 @@ export function reachPoint(
   };
 }
 
-/** The interactive object in front of the player, if any. */
+function villagerAt(
+  villagers: readonly Villager[],
+  point: { x: number; y: number },
+): Villager | null {
+  return (
+    villagers.find(
+      (v) =>
+        Math.abs(point.x - v.x) <= TALK_ZONE.side &&
+        point.y >= v.y - TALK_ZONE.above &&
+        point.y <= v.y + TALK_ZONE.below,
+    ) ?? null
+  );
+}
+
+export interface InteractionSettings extends HitboxSize {
+  readonly reachPx: number;
+  readonly greeting: string;
+}
+
+/** The villager or interactive object in front of the player, if any. */
 export function findInteractTarget(
   world: World,
   player: Player,
-  size: HitboxSize,
-  reachPx: number,
+  villagers: readonly Villager[],
+  settings: InteractionSettings,
   tileSizePx: number,
 ): InteractTarget | null {
-  const point = reachPoint(player, size, reachPx);
+  const point = reachPoint(player, settings, settings.reachPx);
+  const villager = villagerAt(villagers, point);
+  if (villager) return { kind: 'villager', villager, message: settings.greeting };
+
   const tileX = Math.floor(point.x / tileSizePx);
   const tileY = Math.floor(point.y / tileSizePx);
   if (!isInBounds(world, tileX, tileY)) return null;
   const id = world.occupancy[toIndex(world, tileX, tileY)] ?? NO_OBJECT;
   const object = id === NO_OBJECT ? undefined : world.objects[id];
   const interaction = object ? OBJECT_REGISTRY[object.kind].interaction : undefined;
-  return object && interaction ? { object, message: interaction.message } : null;
+  return object && interaction ? { kind: 'object', object, message: interaction.message } : null;
 }

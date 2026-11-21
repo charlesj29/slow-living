@@ -100,6 +100,14 @@ export interface IslandConfig {
     readonly speciesNoise: FractalNoiseOptions;
   };
   /** Rocky ledges where the grass drops straight down to a beach (south-facing coasts). */
+  /** The small village near the cottage (layout in core/world/village.ts). */
+  readonly village: {
+    /**
+     * Where the village's top-left may go, relative to the cottage's top-left,
+     * in order of preference; the first spot that is clear grass is used.
+     */
+    readonly offsets: readonly { readonly x: number; readonly y: number }[];
+  };
   readonly ledges: {
     /** Runs of ledge follow this noise along the coast. */
     readonly noise: FractalNoiseOptions;
@@ -159,6 +167,17 @@ export interface IslandConfig {
   readonly interaction: {
     /** How far past the feet hitbox, in the facing direction, the player can reach. */
     readonly reachPx: number;
+  };
+  readonly villagers: {
+    /** Strolling pace (the player walks at 4). */
+    readonly walkSpeedTilesPerSecond: number;
+    /** Standing around between walks. */
+    readonly minRestSeconds: number;
+    readonly maxRestSeconds: number;
+    /** Give up on a walk after being blocked this long. */
+    readonly giveUpSeconds: number;
+    /** What a villager says when you talk to them. */
+    readonly greeting: string;
   };
   readonly music: {
     /** 0..1 master volume: background music should sit under the game, not over it. */
@@ -261,6 +280,14 @@ export const ISLAND_CONFIG: IslandConfig = {
     meadowBushChance: 0.008,
     speciesNoise: noise(0.022),
   },
+  village: {
+    offsets: [
+      { x: -19, y: -14 },
+      { x: 9, y: -12 },
+      { x: -20, y: 4 },
+      { x: 9, y: 6 },
+    ],
+  },
   ledges: { noise: noise(0.05, 2), threshold: 0.35, minRunTiles: 2 },
   deadwood: { searchRadiusTiles: 2, minNearbyTrees: 2, stumpChance: 0.015, branchChance: 0.03 },
   decorations: {
@@ -287,6 +314,13 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   dayNight: { dayLengthSeconds: 720, startTime: 0.33, transitionSharpness: 2.5 },
   interaction: { reachPx: 8 },
+  villagers: {
+    walkSpeedTilesPerSecond: 1.5,
+    minRestSeconds: 2,
+    maxRestSeconds: 6,
+    giveUpSeconds: 1.5,
+    greeting: 'Hi!',
+  },
   music: { volume: 0.55, fadeSeconds: 0.4, fadeInSeconds: 3 },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
   render: {

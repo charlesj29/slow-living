@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ISLAND_CONFIG } from '../config';
 import { validateMap } from '../generation/validate';
 import { loadBakedIsland } from './bakedIsland';
+import { villageHouses, villagerSpawns, villageWanderArea } from './village';
 import { getDoorFrontTile } from './world';
 
 describe('baked island', () => {
@@ -27,5 +28,23 @@ describe('baked island', () => {
     const again = loadBakedIsland();
     expect(again.terrain).toEqual(world.terrain);
     expect(again.objects).toEqual(world.objects);
+  });
+
+  it('has the village: three different houses with villagers inside its area', () => {
+    const houses = villageHouses(world);
+    expect(houses.map((h) => h.kind).sort()).toEqual(['house_log', 'house_stone', 'house_thatch']);
+    const area = villageWanderArea(world);
+    expect(area).not.toBeNull();
+    const spawns = villagerSpawns(world);
+    expect(spawns).toHaveLength(3);
+    for (const spawn of spawns) {
+      expect(world.blocked[spawn.y * world.width + spawn.x]).toBe(0);
+      if (area) {
+        expect(spawn.x).toBeGreaterThanOrEqual(area.left);
+        expect(spawn.x).toBeLessThanOrEqual(area.right);
+        expect(spawn.y).toBeGreaterThanOrEqual(area.top);
+        expect(spawn.y).toBeLessThanOrEqual(area.bottom);
+      }
+    }
   });
 });

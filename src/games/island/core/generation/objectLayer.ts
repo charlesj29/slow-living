@@ -50,3 +50,22 @@ export function addObject(layer: ObjectLayer, kind: ObjectKind, x: number, y: nu
   layer.objects.push(object);
   return object;
 }
+
+/**
+ * A copy of the context's objects without the ones `remove` picks: ids are
+ * renumbered (an id is an index) and occupancy is rebuilt.
+ */
+export function objectLayerWithout(
+  context: GenerationContext,
+  remove: (object: WorldObject) => boolean,
+): ObjectLayer {
+  const layer: ObjectLayer = {
+    size: context.size,
+    objects: [],
+    occupancy: new Int32Array(context.occupancy.length).fill(NO_OBJECT),
+  };
+  for (const object of context.objects) {
+    if (!remove(object)) addObject(layer, object.kind, object.x, object.y);
+  }
+  return layer;
+}

@@ -4,11 +4,16 @@ import { ISLAND_CONFIG } from '../config';
 import { createPlayer, type Direction } from '../entities/player';
 import { createGameState, stepGame } from '../game/gameState';
 import { ISLAND_KEY_BINDINGS } from './controls';
+import { createVillager } from '../entities/villager';
 import { findInteractTarget } from './interaction';
 import { makeTestWorld, TEST_TILE } from './testWorld';
 
 const STEP = 1 / 60;
-const REACH = ISLAND_CONFIG.interaction.reachPx;
+const SETTINGS = {
+  ...ISLAND_CONFIG.player,
+  ...ISLAND_CONFIG.interaction,
+  greeting: ISLAND_CONFIG.villagers.greeting,
+};
 /** A meadow with a mailbox at (2, 1) and a rock at (4, 1). */
 const world = makeTestWorld(
   Array.from({ length: 5 }, () => ',,,,,,'),
@@ -36,31 +41,22 @@ function tapSpace(state: ReturnType<typeof createGameState>): void {
 
 describe('interaction', () => {
   it('finds the mailbox when standing next to it and facing it', () => {
-    const target = findInteractTarget(
-      world,
-      playerAt(2, 2, 'up'),
-      ISLAND_CONFIG.player,
-      REACH,
-      TEST_TILE,
-    );
-    expect(target?.object.kind).toBe('mailbox');
+    const target = findInteractTarget(world, playerAt(2, 2, 'up'), [], SETTINGS, TEST_TILE);
+    expect(target?.kind === 'object' && target.object.kind).toBe('mailbox');
     expect(target?.message).toBe("It's empty.");
   });
 
   it('finds nothing when facing away or when the thing has nothing to say', () => {
-    expect(
-      findInteractTarget(world, playerAt(2, 2, 'down'), ISLAND_CONFIG.player, REACH, TEST_TILE),
-    ).toBeNull();
-    expect(
-      findInteractTarget(world, playerAt(4, 2, 'up'), ISLAND_CONFIG.player, REACH, TEST_TILE),
-    ).toBeNull();
+    expect(findInteractTarget(world, playerAt(2, 2, 'down'), [], SETTINGS, TEST_TILE)).toBeNull();
+    expect(findInteractTarget(world, playerAt(4, 2, 'up'), [], SETTINGS, TEST_TILE)).toBeNull();
   });
 
   it('opens the message with Space, holds the player still, and closes it with Space', () => {
     const state = createGameState(world, ISLAND_CONFIG);
     Object.assign(state.player, playerAt(2, 2, 'up'));
     stepGame(state, STEP, ISLAND_CONFIG);
-    expect(state.interactTarget?.object.kind).toBe('mailbox');
+    const target = state.interactTarget;
+    expect(target?.kind === 'object' && target.object.kind).toBe('mailbox');
 
     tapSpace(state);
     expect(state.dialog).toEqual({ message: "It's empty." });
@@ -80,5 +76,24 @@ describe('interaction', () => {
     Object.assign(state.player, playerAt(0, 4, 'right'));
     tapSpace(state);
     expect(state.dialog).toBeNull();
+  });
+
+  it('talks to a villager in front of the player: "Hi!"', () => {
+    const villager = createVillager(
+      0,
+      0,
+      { x: 2, y: 3 },
+      { left: 0, top: 0, right: 5, bottom: 4 },
+      TEST_TILE,
+    );
+    const target = findInteractTarget(
+      world,
+      playerAt(1, 3, 'right'),
+      [villager],
+      SETTINGS,
+      TEST_TILE,
+    );
+    expect(target?.kind).toBe('villager');
+    expect(target?.message).toBe('Hi!');
   });
 });

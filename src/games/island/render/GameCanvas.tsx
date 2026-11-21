@@ -12,6 +12,7 @@ import { InteractPrompt } from './InteractPrompt';
 import { createLightingUniforms } from './lighting';
 import { PlayerSprite } from './PlayerSprite';
 import { Tilemap } from './Tilemap';
+import { VillagerSprites } from './VillagerSprites';
 import { useKeyboardInput } from './useKeyboardInput';
 import { WorldObjects } from './WorldObjects';
 import { worldYFromMapPx } from './worldSpace';
@@ -86,6 +87,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         lighting={lighting}
       />
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
+      <VillagerSprites state={game} atlas={atlas} lighting={lighting} />
       <InteractPrompt state={game} atlas={atlas} />
     </Canvas>
   );

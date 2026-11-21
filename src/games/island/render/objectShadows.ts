@@ -30,6 +30,9 @@ export const SHADOW_SPECS: Partial<Readonly<Record<ObjectKind, ShadowSpec>>> = {
   wood_pile: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   // The block covers the footprint, shifted right and down so it shows along those sides.
   cabin: { key: SHADOW_KEYS.cabin, offsetX: 10, offsetY: -27 },
+  house_stone: { key: SHADOW_KEYS.house, offsetX: 8, offsetY: -19 },
+  house_log: { key: SHADOW_KEYS.house, offsetX: 8, offsetY: -19 },
+  house_thatch: { key: SHADOW_KEYS.house, offsetX: 8, offsetY: -19 },
 };
 
 /** The player's shadow, relative to the bottom of the feet. */

@@ -9,7 +9,7 @@ architecture is set up so each is a natural addition.
 2. ~~Day/night cycle~~ — done (D53); next: lanterns along the trails, stars, fireflies
 3. Ambient audio: waves, birds, footsteps (per ground type) — background music is done
 4. Inventory and pickups (flowers, shells, wood)
-5. NPCs that wander the trails (A\* in `shared/engine/pathfinding.ts` is ready)
+5. NPCs: the village has 3 wandering villagers (D54); next: more dialogue, villagers on the trails
 6. Saving (player position, picked-up items; the world itself is already plain data)
 
 ## Island — world and art

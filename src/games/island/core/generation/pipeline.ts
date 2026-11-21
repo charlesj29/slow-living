@@ -8,6 +8,7 @@ import { layPaths } from './steps/layPaths';
 import { placeCabin } from './steps/placeCabin';
 import { placeDock } from './steps/placeDock';
 import { placeLedges } from './steps/placeLedges';
+import { placeVillage } from './steps/placeVillage';
 import { scatterDeadwood } from './steps/scatterDeadwood';
 import { scatterFlowers } from './steps/scatterFlowers';
 import { scatterRocks } from './steps/scatterRocks';
@@ -30,6 +31,7 @@ export const GENERATION_STEPS: readonly GenerationStep[] = [
   scatterRocks,
   scatterTrees,
   placeLedges,
+  placeVillage,
   scatterDeadwood,
   scatterFlowers,
   chooseSpawn,

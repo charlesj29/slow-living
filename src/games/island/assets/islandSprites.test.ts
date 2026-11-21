@@ -74,11 +74,11 @@ describe('island sprites', () => {
     }
   });
 
-  it('animates only water, flowers and the player, each with its frame count', () => {
+  it('animates only water, flowers and characters, each with its frame count', () => {
     for (const source of paintIslandSprites()) {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
       const isFlower = /^flower_(red|yellow|blue|white)$/.test(source.key);
-      const isPlayer = source.key.startsWith('player_');
+      const isPlayer = source.key.startsWith('player_') || source.key.startsWith('villager_');
       const expected = isWater
         ? WATER_FRAME_COUNT
         : isFlower

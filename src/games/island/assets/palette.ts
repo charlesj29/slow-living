@@ -60,6 +60,10 @@ export const PALETTE = {
     centerWarm: c('#f8c030'),
     centerDark: c('#a06018'),
   },
+  /** Village roofs: blue slate, mossy green shingles, straw thatch. */
+  slate: ramp('#232c44', '#3a4b70', '#506894', '#6c86b2', '#9cb2d4'),
+  moss: ramp('#1c3420', '#2e5634', '#3e7444', '#58945a', '#84bc7a'),
+  thatch: ramp('#5e4218', '#9c7230', '#c49a4c', '#dcb86a', '#f0d690'),
   roof: ramp('#4c1810', '#902c22', '#c44434', '#e06450', '#f4947c'),
   wall: ramp('#4a2c14', '#8c5a2c', '#b87c44', '#d09858', '#e4b474'),
   cabin: {

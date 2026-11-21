@@ -66,6 +66,8 @@
   the same trail tile); props by the house, stumps and fallen branches, rocky coastal ledges;
   the explorer keeps its design with refined style (softer outline, soft shadow, breathing).
 - Background music composed in code (no files, no licences); mute button top-left plus M.
+- A small village north-west of the cottage: 3 houses (stone/slate, log/moss, plaster/thatch)
+  and 3 villagers who wander only inside it and say "Hi!" (no reply choices).
 - Day/night: a full day is 12 minutes; a top-left button (above music) cycles Auto / Always
   day / Always night; the F3 readout is bottom-left and also shows the time.
 - Interaction with Space (first E, changed by the user); a small down-arrow marks what you can
@@ -74,6 +76,21 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-21 — Part 3 of 3: the village and villagers (user request)
+
+- **Done (D54):** house kinds + `assets/paintHouses.ts`; `core/world/village.ts` (layout, wander
+  area, spawns); `steps/placeVillage.ts` (clear site, houses, lane, link to nearest trail) +
+  `objectLayerWithout`; validation checks every house door; map re-baked from seed 1 (23 tiles,
+  4 rocks + 2 bushes cleared; trees, trails, dock, spawn unchanged); `entities/villager.ts`,
+  `systems/wander.ts` (rest, A* inside the village, mutual blocking, talking); interaction
+  targets villagers ("Hi!"); villager outfits as palette swaps; `render/CharacterSprite` shared
+  by player and villagers, `render/VillagerSprites`.
+- **Verified:** typecheck, lint, 313 tests (incl. villagers never leaving their area or walking
+  into the player, baked village present), build pass; browser: village at day and night (lit
+  windows), villagers wandering, Space next to a villager shows "Hi!" and they turn to face you;
+  console clean.
+- **Next:** wait for the user to try it; nothing pushed since the user asked last.
 
 ### 2026-11-21 — Part 2 of 3: day/night cycle (user request)
 

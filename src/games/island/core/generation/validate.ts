@@ -120,8 +120,11 @@ const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rule
   const blocked = computeBlockedMask(size, terrain, objects);
   const reached = floodFill(size, [toIndex(size, spawn.x, spawn.y)], (i) => blocked[i] === 0);
 
-  const door = getDoorFrontTile(cabin);
-  if (reached[toIndex(size, door.x, door.y)] !== 1) {
+  const doorOf = (building: WorldObject): number => {
+    const door = getDoorFrontTile(building);
+    return toIndex(size, door.x, door.y);
+  };
+  if (reached[doorOf(cabin)] !== 1) {
     return issue('door-unreachable', 'The cabin door cannot be reached from the spawn');
   }
   const strandedTrail = terrain.findIndex(
@@ -137,6 +140,13 @@ const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rule
       'reachable-area-too-small',
       `Only ${(share * 100).toFixed(1)}% of land is reachable`,
     );
+  }
+  // The village houses' doors must be reachable too.
+  const unreachableHouse = objects.find(
+    (o) => OBJECT_REGISTRY[o.kind].category === 'building' && reached[doorOf(o)] !== 1,
+  );
+  if (unreachableHouse) {
+    return issue('door-unreachable', `The door of ${unreachableHouse.kind} cannot be reached`);
   }
   // Ledges are impassable: the beach below one must still be reachable around its ends.
   const cutOffBeach = terrain.findIndex(

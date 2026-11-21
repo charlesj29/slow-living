@@ -10,14 +10,18 @@ import {
   type InputState,
 } from '@/shared/engine/input';
 import { approach } from '@/shared/engine/math';
+import { createRng, type Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import { createPlayer, type Player } from '../entities/player';
+import { bumpsInto, createVillager, type Villager } from '../entities/villager';
+import { villagerSpawns, villageWanderArea } from '../world/village';
 import type { World } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
 import { advanceTimeOfDay } from '../systems/dayNight';
 import { findInteractTarget, type Dialog, type InteractTarget } from '../systems/interaction';
 import { movePlayer } from '../systems/movement';
+import { startTalking, updateVillager } from '../systems/wander';
 
 export interface GameState {
   readonly world: World;
@@ -34,6 +38,22 @@ export interface GameState {
   dialog: Dialog | null;
   /** Fraction of a day (0 = midnight, 0.5 = noon); keeps running in every day/night mode. */
   timeOfDay: number;
+  /** The village's people (none if the world has no village). */
+  readonly villagers: readonly Villager[];
+  /** Randomness for wandering: seeded per world, so a session is reproducible. */
+  readonly wanderRng: Rng;
+}
+
+/** Outfits in sprite order; villagers take them in turn. */
+const VILLAGER_LOOKS = 3;
+const WANDER_SEED_SALT = 0x5a11;
+
+function createVillagers(world: World, tileSizePx: number): Villager[] {
+  const home = villageWanderArea(world);
+  if (!home) return [];
+  return villagerSpawns(world).map((spawn, id) =>
+    createVillager(id, id % VILLAGER_LOOKS, spawn, home, tileSizePx),
+  );
 }
 
 export function createGameState(world: World, config: IslandConfig): GameState {
@@ -47,6 +67,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     interactTarget: null,
     dialog: null,
     timeOfDay: config.dayNight.startTime,
+    villagers: createVillagers(world, config.map.tileSizePx),
+    wanderRng: createRng(world.generationSeed ^ WANDER_SEED_SALT),
   };
 }
 
@@ -65,27 +87,62 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     stepSeconds,
     config.dayNight.dayLengthSeconds,
   );
+  stepVillagers(state, stepSeconds, config);
   if (state.dialog) {
-    if (consumePress(input, 'interact')) state.dialog = null;
+    if (consumePress(input, 'interact')) closeDialog(state);
     player.moving = false;
   } else {
     const intent = readMovementIntent(input);
     if (intent.facing) player.facing = intent.facing;
     movePlayer(player, intent, state.world, stepSeconds, config.player, tileSizePx);
+    if (bumpsInto(player, state.villagers, config.player)) {
+      // Villagers are solid: step back.
+      player.x = player.previousX;
+      player.y = player.previousY;
+      player.moving = false;
+    }
     state.interactTarget = findInteractTarget(
       state.world,
       player,
-      config.player,
-      config.interaction.reachPx,
+      state.villagers,
+      { ...config.player, ...config.interaction, greeting: config.villagers.greeting },
       tileSizePx,
     );
-    if (consumePress(input, 'interact') && state.interactTarget) {
-      state.dialog = { message: state.interactTarget.message };
-      player.moving = false;
-    }
+    if (consumePress(input, 'interact') && state.interactTarget) openDialog(state);
   }
   updatePlayerAnimation(player, stepSeconds, config.player, tileSizePx);
   clearPresses(input);
+}
+
+function stepVillagers(state: GameState, stepSeconds: number, config: IslandConfig): void {
+  const tileSizePx = config.map.tileSizePx;
+  const everyone = [state.player, ...state.villagers];
+  for (const villager of state.villagers) {
+    updateVillager(
+      villager,
+      state.world,
+      everyone,
+      state.wanderRng,
+      stepSeconds,
+      config.villagers,
+      config.player,
+      tileSizePx,
+    );
+    updatePlayerAnimation(villager, stepSeconds, config.player, tileSizePx);
+  }
+}
+
+function openDialog(state: GameState): void {
+  const target = state.interactTarget;
+  if (!target) return;
+  state.dialog = { message: target.message };
+  state.player.moving = false;
+  if (target.kind === 'villager') startTalking(target.villager, state.player);
+}
+
+function closeDialog(state: GameState): void {
+  state.dialog = null;
+  for (const villager of state.villagers) villager.talking = false;
 }
 
 /** Runs the fixed steps owed for this frame and records the interpolation factor. */

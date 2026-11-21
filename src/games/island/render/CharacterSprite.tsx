@@ -1,0 +1,88 @@
+import { useFrame } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, type JSX } from 'react';
+import type { Mesh } from 'three';
+import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
+import { ISLAND_CONFIG } from '../core/config';
+import { playerFootY, type Direction, type Player } from '../core/entities/player';
+import type { GameState } from '../core/game/gameState';
+import { playerFrameIndex } from '../core/systems/animation';
+import type { LightingUniforms } from './lighting';
+import { PLAYER_SHADOW } from './objectShadows';
+import { createSpriteGeometry, setSpriteGeometryFrame } from './spriteGeometry';
+import { createShadowMaterial, createSpriteMaterial, setAnimationFrame } from './spriteMaterial';
+import { SHADOW_Z, standingSpriteZ, worldYFromMapPx } from './worldSpace';
+
+interface CharacterSpriteProps {
+  /** The player or a villager: anything that walks and animates like the player. */
+  readonly body: Player;
+  /** Atlas key of the animation strip for a facing direction. */
+  readonly spriteKeyFor: (facing: Direction) => string;
+  /** Read for the interpolation factor between logic steps. */
+  readonly state: GameState;
+  readonly atlas: SpriteAtlas;
+  readonly lighting: LightingUniforms;
+}
+
+/**
+ * Draws a character from the simulation every frame: interpolated position
+ * snapped to whole pixels (crisp), the strip for the facing direction, the
+ * animation frame, a soft shadow, and depth from the feet so crowns, roofs and
+ * fences cover them when they stand behind.
+ */
+export function CharacterSprite({
+  body,
+  spriteKeyFor,
+  state,
+  atlas,
+  lighting,
+}: CharacterSpriteProps): JSX.Element {
+  const meshRef = useRef<Mesh>(null);
+  const shadowRef = useRef<Mesh>(null);
+  const shownKey = useRef('');
+  const geometry = useMemo(
+    () => createSpriteGeometry(atlas.frame(spriteKeyFor(body.facing))),
+    [atlas, body, spriteKeyFor],
+  );
+  const material = useMemo(() => createSpriteMaterial(atlas.texture, lighting), [atlas, lighting]);
+  const shadowGeometry = useMemo(
+    () => createSpriteGeometry(atlas.frame(PLAYER_SHADOW.key)),
+    [atlas],
+  );
+  const shadowMaterial = useMemo(
+    () => createShadowMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => () => shadowGeometry.dispose(), [shadowGeometry]);
+  useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
+
+  useFrame(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const key = spriteKeyFor(body.facing);
+    const frame = atlas.frame(key);
+    if (shownKey.current !== key) {
+      setSpriteGeometryFrame(geometry, frame);
+      shownKey.current = key;
+    }
+    setAnimationFrame(material, playerFrameIndex(body, ISLAND_CONFIG.player));
+    const t = state.interpolation;
+    const x = Math.round(body.previousX + (body.x - body.previousX) * t);
+    const y = body.previousY + (body.y - body.previousY) * t;
+    const footY = Math.round(playerFootY(y, ISLAND_CONFIG.player));
+    mesh.position.set(x, worldYFromMapPx(footY) + frame.height / 2, standingSpriteZ(footY));
+    shadowRef.current?.position.set(
+      x + PLAYER_SHADOW.offsetX,
+      worldYFromMapPx(footY + PLAYER_SHADOW.offsetY),
+      SHADOW_Z,
+    );
+  });
+
+  return (
+    <>
+      <mesh ref={shadowRef} geometry={shadowGeometry} material={shadowMaterial} />
+      <mesh ref={meshRef} geometry={geometry} material={material} />
+    </>
+  );
+}

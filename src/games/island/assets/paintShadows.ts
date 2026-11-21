@@ -47,12 +47,15 @@ export const SHADOW_KEYS = {
   medium: 'shadow_medium',
   small: 'shadow_small',
   cabin: 'shadow_cabin',
+  house: 'shadow_house',
 } as const;
 
 /** The cottage's shadow block matches its footprint plus a margin. */
 const CABIN_FOOTPRINT_TILES = OBJECT_REGISTRY.cabin.footprint;
 /** Narrower than the footprint: with light from the top-left only the right and bottom show. */
 const CABIN_SHADOW_MARGIN_PX = -8;
+/** Village houses share one footprint, so one block fits them all. */
+const HOUSE_FOOTPRINT_TILES = OBJECT_REGISTRY.house_stone.footprint;
 
 export function paintShadowSprites(): SpriteSource[] {
   return [
@@ -66,6 +69,15 @@ export function paintShadowSprites(): SpriteSource[] {
         blockShadow(
           CABIN_FOOTPRINT_TILES.width * TILE_PX + CABIN_SHADOW_MARGIN_PX,
           CABIN_FOOTPRINT_TILES.height * TILE_PX,
+        ),
+      ],
+    },
+    {
+      key: SHADOW_KEYS.house,
+      frames: [
+        blockShadow(
+          HOUSE_FOOTPRINT_TILES.width * TILE_PX + CABIN_SHADOW_MARGIN_PX,
+          HOUSE_FOOTPRINT_TILES.height * TILE_PX,
         ),
       ],
     },

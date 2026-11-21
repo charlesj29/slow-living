@@ -4,6 +4,7 @@ import { kindsInCategory, OBJECT_REGISTRY } from '../core/world/objects';
 import { paintCabinSprites } from './paintCabin';
 import { paintCliffSprites } from './paintCliff';
 import { paintDeadwoodSprites } from './paintDeadwood';
+import { paintHouseSprites } from './paintHouses';
 import { paintWindowLights } from './paintLights';
 import { paintObjectSprites } from './paintObjects';
 import { paintPlayerSprites } from './paintPlayer';
@@ -19,7 +20,7 @@ const LIT_SPRITE_KEYS = kindsInCategory('building').map((kind) => OBJECT_REGISTR
 
 /** Every sprite the island needs, painted in code. */
 export function paintIslandSprites(): SpriteSource[] {
-  const buildings = paintCabinSprites();
+  const buildings = [...paintCabinSprites(), ...paintHouseSprites()];
   return [
     ...paintTileSprites(),
     ...paintCliffSprites(),

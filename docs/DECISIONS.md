@@ -588,3 +588,21 @@ alternatives → consequences.
   day is 12 real minutes; the game starts in the morning.
 - **Consequences:** new buildings get window lights automatically (category `building`);
   materials take an optional `LightingUniforms` (daylight by default, e.g. in tests).
+
+## D54 — A small village with wandering villagers
+
+- **Context:** the user asked for a small village near the cottage: 3 houses in different simple
+  styles and villagers (chose 3) who wander only inside the village and say "Hi" when talked to.
+- **Decision:** the village is an authoring step (`placeVillage`) after the forests and ledges, at
+  the first clear spot among offsets from the cottage (seed 1: the meadow north-west of it). It
+  clears only its own patch, so the rest of the island stays as it was; its lane joins the nearest
+  existing trail with a short new stretch. The layout lives in `core/world/village.ts` and is read
+  back from the houses at runtime for the villagers' area and spawns, so the map format is
+  unchanged. Houses: 4×3 footprints, 64×64 sprites (stone + slate roof + chimney, logs + moss
+  roof, plaster + thatch), window lights included. Villagers are palette-swapped explorers that
+  share player movement/animation; wandering uses A* inside the area, a seeded RNG and mutual
+  blocking; talking freezes and turns the villager.
+- **Alternatives:** placing the village before the trees (reshuffles every forest); storing a
+  village record in the map file (format change for data the houses already imply).
+- **Consequences:** re-bake changed 23 tiles (lane, door stubs, one joining tile) and removed 4
+  rocks and 2 bushes; trees, trails, dock, spawn unchanged. Validation checks every house door.
