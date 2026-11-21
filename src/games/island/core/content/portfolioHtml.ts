@@ -1,7 +1,7 @@
 // The portfolio as static HTML and structured data, written into index.html at
 // build time (vite.config.ts) so search engines and visitors without
 // JavaScript can read it. Same content as the studio and the Résumé.
-import { PORTFOLIO, type PortfolioLink, type PortfolioPage } from './portfolio';
+import { PORTFOLIO, type PortfolioLink, type PortfolioPage } from './portfolio.ts';
 
 const ESCAPES: Readonly<Record<string, string>> = {
   '&': '&amp;',

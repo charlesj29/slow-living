@@ -14,7 +14,7 @@ import { createRng, type Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import { createPlayer, type Player } from '../entities/player';
 import { bumpsInto, createVillager, type Villager } from '../entities/villager';
-import { villagerSpawns, villageTiles } from '../world/village';
+import { villagerSpawns, wanderTiles } from '../world/village';
 import type { World } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
@@ -27,6 +27,7 @@ import {
   type InteractTarget,
   type PanelOpen,
 } from '../systems/interaction';
+import { createAnimals, updateAnimal, type Animal } from '../systems/animals';
 import { movePlayer } from '../systems/movement';
 import { followWalk, planTap, type AutoWalk } from '../systems/tapToWalk';
 import { startTalking, updateVillager } from '../systems/wander';
@@ -73,6 +74,10 @@ export interface GameState {
   readonly villagers: readonly Villager[];
   /** Randomness for wandering: seeded per world, so a session is reproducible. */
   readonly wanderRng: Rng;
+  /** The village's chickens and cat (island only). */
+  readonly animals: readonly Animal[];
+  /** The village tiles villagers and animals keep to. */
+  readonly villageHome: ReadonlySet<number>;
   /** The island's studio, village and cottage: what hints and signposts point to. */
   readonly landmarks: Landmarks;
 }
@@ -83,13 +88,15 @@ const WANDER_SEED_SALT = 0x5a11;
 
 function createVillagers(world: World, tileSizePx: number): Villager[] {
   if (!world.village) return [];
-  const home = villageTiles(world.village, world);
+  const home = wanderTiles(world);
   return villagerSpawns(world).map((spawn, id) =>
     createVillager(id, id % VILLAGER_LOOKS, spawn, home, tileSizePx),
   );
 }
 
 export function createGameState(world: World, config: IslandConfig): GameState {
+  const wanderRng = createRng(world.generationSeed ^ WANDER_SEED_SALT);
+  const home = wanderTiles(world);
   const maps = new Map<string, World>([[ISLAND_MAP, world]]);
   for (const definition of Object.values(INTERIORS)) {
     maps.set(definition.id, buildInteriorWorld(definition));
@@ -112,7 +119,9 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     autoWalk: null,
     timeOfDay: config.dayNight.startTime,
     villagers: createVillagers(world, config.map.tileSizePx),
-    wanderRng: createRng(world.generationSeed ^ WANDER_SEED_SALT),
+    wanderRng,
+    animals: createAnimals(world, home, wanderRng, config.animals, config.map.tileSizePx),
+    villageHome: new Set(home),
     landmarks: findLandmarks(world),
   };
 }
@@ -133,6 +142,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     config.dayNight.dayLengthSeconds,
   );
   stepVillagers(state, stepSeconds, config);
+  stepAnimals(state, stepSeconds, config);
   if (state.transition) {
     stepTransition(state, stepSeconds, config);
     player.moving = false;
@@ -182,6 +192,21 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   }
   updatePlayerAnimation(player, stepSeconds, config.player, tileSizePx);
   clearPresses(input);
+}
+
+function stepAnimals(state: GameState, stepSeconds: number, config: IslandConfig): void {
+  const island = state.maps.get(ISLAND_MAP) ?? state.world;
+  for (const animal of state.animals) {
+    updateAnimal(
+      animal,
+      island,
+      state.villageHome,
+      state.wanderRng,
+      stepSeconds,
+      config.animals,
+      config.map.tileSizePx,
+    );
+  }
 }
 
 function stepVillagers(state: GameState, stepSeconds: number, config: IslandConfig): void {

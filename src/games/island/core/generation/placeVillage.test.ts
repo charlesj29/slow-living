@@ -1,91 +1,105 @@
 import { describe, expect, it } from 'vitest';
 import { CARDINAL_DIRECTIONS, toIndex } from '@/shared/engine/grid';
-import { ISLAND_CONFIG } from '../config';
 import { OBJECT_REGISTRY } from '../world/objects';
 import { TileId } from '../world/tiles';
 import { villageHouses, villageTiles } from '../world/village';
+import { getDoorFrontTile } from '../world/world';
 import type { GenerationContext } from './context';
 import { validContext } from './testUtils';
 
 const SEEDS = [1, 7, 13, 99, 2024, 31, 5, 42];
 const contexts: GenerationContext[] = SEEDS.map(validContext);
-const withVillage = contexts.filter((c) => c.village !== null);
+/** Plaza furnishings that may stand on its paving (the well) or over it (string lights). */
+const ON_PAVING = new Set(['well', 'string_lights']);
 
-function fenceAt(context: GenerationContext, index: number): boolean {
-  const object = context.objects[context.occupancy[index] ?? -1];
-  return object?.kind === 'fence';
-}
+const kindAt = (context: GenerationContext, index: number): string | undefined =>
+  context.objects[context.occupancy[index] ?? -1]?.kind;
 
 describe('placeVillage', () => {
-  it('builds a village for most seeds', () => {
-    expect(withVillage.length).toBeGreaterThanOrEqual(SEEDS.length - 2);
+  it('builds the village on every valid island', () => {
+    for (const context of contexts) expect(context.village).not.toBeNull();
   });
 
-  it('fences the inside all round, with exactly one gap: the gate, on a path', () => {
-    for (const context of withVillage) {
+  it('is open: no fence runs along the edge of the village', () => {
+    for (const context of contexts) {
       const village = context.village;
       if (!village) continue;
       const inside = new Set(villageTiles(village, context.size));
-      const gate = toIndex(context.size, village.gate.x, village.gate.y);
-      expect(context.terrain[gate]).toBe(TileId.Path);
+      let edgeFences = 0;
+      let edgeTiles = 0;
       for (const tile of inside) {
         const x = tile % context.size.width;
         const y = Math.floor(tile / context.size.width);
         for (const { x: dx, y: dy } of CARDINAL_DIRECTIONS) {
           const n = toIndex(context.size, x + dx, y + dy);
-          expect(inside.has(n) || fenceAt(context, n) || n === gate).toBe(true);
+          if (inside.has(n)) continue;
+          edgeTiles++;
+          if (kindAt(context, n) === 'fence') edgeFences++;
         }
       }
+      expect(edgeFences).toBe(0);
+      expect(edgeTiles).toBeGreaterThan(0);
     }
   });
 
-  it('keeps at least two tiles of open ground between the houses and the fence', () => {
-    for (const context of withVillage) {
+  it('has a paved plaza with the well, and a path from every door', () => {
+    for (const context of contexts) {
+      expect(context.objects.some((o) => o.kind === 'well')).toBe(true);
       for (const house of villageHouses(context)) {
+        const front = getDoorFrontTile(house);
+        expect(context.terrain[toIndex(context.size, front.x, front.y)]).toBe(TileId.Path);
+      }
+    }
+  });
+
+  it('gives most houses a little front garden fence, with a gap at the door path', () => {
+    let gardens = 0;
+    let houses = 0;
+    for (const context of contexts) {
+      for (const house of villageHouses(context)) {
+        houses++;
         const { footprint } = OBJECT_REGISTRY[house.kind];
-        for (let y = house.y - 2; y < house.y + footprint.height + 2; y++) {
-          for (let x = house.x - 2; x < house.x + footprint.width + 2; x++) {
-            expect(fenceAt(context, toIndex(context.size, x, y))).toBe(false);
-          }
-        }
+        const front = getDoorFrontTile(house);
+        const row = house.y + footprint.height + 1;
+        const fenced = kindAt(context, toIndex(context.size, house.x, row)) === 'fence';
+        if (!fenced) continue;
+        gardens++;
+        expect(kindAt(context, toIndex(context.size, front.x, row))).toBeUndefined();
       }
     }
+    expect(gardens).toBeGreaterThanOrEqual(Math.ceil(houses * 0.6));
   });
 
-  it('never puts a decoration on a path', () => {
-    for (const context of withVillage) {
-      const inside = new Set(context.village ? villageTiles(context.village, context.size) : []);
-      for (const tile of inside) {
-        if (context.terrain[tile] !== TileId.Path) continue;
-        expect(context.occupancy[tile]).toBe(-1);
-      }
-    }
-  });
-
-  it('varies the outline and where the gate is from seed to seed', () => {
-    const sizes = new Set(withVillage.map((c) => c.village?.interior.length));
-    expect(sizes.size).toBeGreaterThan(1);
-    const sides = new Set(
-      withVillage.map((c) => {
-        const village = c.village;
-        if (!village) return 'none';
-        const ys = village.interior.map(([y]) => y);
-        const xs = village.interior.flatMap(([, l, r]) => [l, r]);
-        const { x, y } = village.gate;
-        if (x < Math.min(...xs)) return 'left';
-        if (x > Math.max(...xs)) return 'right';
-        return y < Math.min(...ys) ? 'top' : 'bottom';
-      }),
+  it('livens the plaza up: a market stall or benches on most islands', () => {
+    const lively = contexts.filter((c) =>
+      c.objects.some((o) => o.kind === 'market_stall' || o.kind === 'bench'),
     );
-    expect(sides.size).toBeGreaterThan(1);
+    expect(lively.length).toBeGreaterThanOrEqual(Math.ceil(contexts.length * 0.75));
   });
 
-  it('is the same village every time for the same seed', () => {
-    const again = validContext(SEEDS[0] ?? 1);
-    expect(again.village).toEqual(contexts[0]?.village);
+  it('keeps paths clear, apart from the plaza furnishings', () => {
+    for (const context of contexts) {
+      context.terrain.forEach((id, i) => {
+        if (id !== TileId.Path) return;
+        const kind = kindAt(context, i);
+        if (kind) expect(ON_PAVING.has(kind), kind).toBe(true);
+      });
+    }
   });
 
-  it('fits the configured gap rule', () => {
-    expect(ISLAND_CONFIG.village.gapTiles.min).toBeGreaterThanOrEqual(2);
+  it('records the entrance on the path where it leaves the village', () => {
+    for (const context of contexts) {
+      const village = context.village;
+      if (!village) continue;
+      const gate = toIndex(context.size, village.gate.x, village.gate.y);
+      expect(context.terrain[gate]).toBe(TileId.Path);
+      expect(new Set(villageTiles(village, context.size)).has(gate)).toBe(true);
+    }
+  });
+
+  it('varies its shape from seed to seed and stays the same for one seed', () => {
+    const sizes = new Set(contexts.map((c) => c.village?.interior.length));
+    expect(sizes.size).toBeGreaterThan(1);
+    expect(validContext(SEEDS[0] ?? 1).village).toEqual(contexts[0]?.village);
   });
 });

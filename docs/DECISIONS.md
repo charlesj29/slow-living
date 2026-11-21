@@ -774,3 +774,21 @@ alternatives → consequences.
   link-preview crawler reads WebP).
 - **Consequences:** `og:image` is a relative URL until the site has a domain (M11 should make it
   absolute). Mouse clicks also walk on desktop.
+
+## D64 — An open village with a plaza, animals and chimney smoke
+
+- **Context:** the fenced ring made the village feel enclosed; the user chose an open village
+  around a plaza with garden fences per house, plus animals, chimney smoke, string lights, a
+  market stall and benches.
+- **Decision:** the planner's outline stays (per-seed variety) but becomes an invisible area:
+  villagers and animals keep to it (minus the strips behind houses, where only a head would show
+  above a roof). House lots grew to cover the taller roofs and a front garden. The plaza is the
+  open 3×3 spot nearest the doors, preferring a free ring for furnishings; nothing tall stands
+  directly above or below the well, so it is never hidden. Garden fences and furnishings are only
+  kept if every door stays reachable. The map file keeps its `gate` field, now meaning the
+  village entrance (the signpost stands beside it), so older code and files still read. The
+  "every trail is reachable" rule skips paving covered by an object. Animals are simple wanderers
+  (straight walks between open tiles, no collisions with people) so they never get in the way;
+  smoke is render-only, three hard-edged puff sizes on a loop per chimney.
+- **Consequences:** generation takes about two attempts per seed on average (seeds 1–30 pass).
+  Re-baking changed seed 46's village layout.

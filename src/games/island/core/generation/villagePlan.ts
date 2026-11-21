@@ -1,7 +1,8 @@
-// Plans a village in its own little grid (fence ring included, (0, 0) at the
+// Plans a village in its own little grid (edge ring included, (0, 0) at the
 // top-left), before it is placed on the island: a random-sized inside with
-// corners notched away (an irregular, sometimes L-shaped outline), the fence
-// round it, and three houses that keep open grass between them and the fence.
+// corners notched away (an irregular, sometimes L-shaped outline, with no
+// fence: it is the area villagers stay in), and three houses with room for
+// their roofs and front gardens.
 // Pure: randomness comes from the step's rng.
 import type { Rng } from '@/shared/engine/random';
 import type { IslandConfig, Range } from '../config';
@@ -149,6 +150,21 @@ function distancesFrom(
   return distance;
 }
 
+/** Rows a house's roof rises above its footprint (the sprite is two tiles taller). */
+const ROOF_ROWS = 2;
+/** Rows in front: the door step and garden row, then the garden fence row. */
+const GARDEN_ROWS = 2;
+
+/** A house's lot: roof rows, the house, its garden and a path row, a tile either side. */
+function houseLot(x: number, y: number, footprint: { width: number; height: number }): Rect {
+  return {
+    left: x - 1,
+    top: y - ROOF_ROWS,
+    right: x + footprint.width,
+    bottom: y + footprint.height + GARDEN_ROWS,
+  };
+}
+
 /** Of the possible spots, the fifth farthest from the houses already placed, so they spread out. */
 function spreadOut(
   spots: readonly PlannedHouse[],
@@ -162,10 +178,11 @@ function spreadOut(
 }
 
 /**
- * Three houses, spread out, at random spots where the house and its roof keep at least
- * \`gap\` tiles from the fence and its door step is inside. Each house has a
- * lot (roof row above, step and path row below, a tile either side) and lots
- * never overlap, so houses always stand at least two tiles apart.
+ * Three houses, spread out, at random spots where the house keeps at least
+ * `gap` tiles from the edge of the village. Each house has a lot that must lie
+ * inside the village: its two roof rows, the house, a front garden (two rows)
+ * and a path row, a tile either side. Lots never overlap, so a roof never
+ * reaches into a neighbour's garden.
  */
 function planHouses(
   rng: Rng,
@@ -178,6 +195,8 @@ function planHouses(
   const kinds = shuffled(rng, VILLAGE_HOUSE_KINDS);
   const lots: Rect[] = [];
   const houses: PlannedHouse[] = [];
+  const isInside = (x: number, y: number): boolean =>
+    x >= 0 && y >= 0 && x < width && y < height && inside[y * width + x] === 1;
   const roomy = (x: number, y: number): boolean =>
     x >= 0 && y >= 0 && x < width && y < height && (fenceDistance[y * width + x] ?? -1) > gap;
   for (const kind of kinds) {
@@ -185,16 +204,14 @@ function planHouses(
     const spots: PlannedHouse[] = [];
     for (let y = 1; y < height; y++) {
       for (let x = 1; x < width; x++) {
-        const lot = {
-          left: x - 1,
-          top: y - 1,
-          right: x + footprint.width,
-          bottom: y + footprint.height + 1,
-        };
+        const lot = houseLot(x, y, footprint);
         if (lots.some((other) => overlap(lot, other))) continue;
         let fits = true;
-        for (let dy = -1; dy < footprint.height && fits; dy++) {
+        for (let dy = 0; dy < footprint.height && fits; dy++) {
           for (let dx = 0; dx < footprint.width && fits; dx++) fits = roomy(x + dx, y + dy);
+        }
+        for (let ly = lot.top; ly <= lot.bottom && fits; ly++) {
+          for (let lx = lot.left; lx <= lot.right && fits; lx++) fits = isInside(lx, ly);
         }
         const stepX = x + (door?.x ?? 0);
         const stepY = y + (door?.y ?? 0) + 1;
@@ -204,12 +221,7 @@ function planHouses(
     if (spots.length === 0) return null;
     const spot = rng.pick(spreadOut(spots, houses));
     houses.push(spot);
-    lots.push({
-      left: spot.x - 1,
-      top: spot.y - 1,
-      right: spot.x + footprint.width,
-      bottom: spot.y + footprint.height + 1,
-    });
+    lots.push(houseLot(spot.x, spot.y, footprint));
   }
   return houses;
 }

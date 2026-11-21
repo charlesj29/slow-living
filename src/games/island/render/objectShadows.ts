@@ -42,6 +42,8 @@ export const SHADOW_SPECS: Partial<Readonly<Record<ObjectKind, ShadowSpec>>> = {
   chair: { key: SHADOW_KEYS.small, offsetX: 1, offsetY: -1 },
   plant: { key: SHADOW_KEYS.small, offsetX: 1, offsetY: -1 },
   floor_lamp: { key: SHADOW_KEYS.small, offsetX: 1, offsetY: -1 },
+  bench: { key: SHADOW_KEYS.large, offsetX: 2, offsetY: -1 },
+  market_stall: { key: SHADOW_KEYS.xlarge, offsetX: 3, offsetY: -2 },
   studio: { key: SHADOW_KEYS.studio, offsetX: 10, offsetY: -27 },
   desk_laptop: { key: SHADOW_KEYS.large, offsetX: 2, offsetY: -1 },
   post_desk: { key: SHADOW_KEYS.large, offsetX: 2, offsetY: -1 },

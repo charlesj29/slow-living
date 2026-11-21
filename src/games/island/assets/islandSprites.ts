@@ -1,6 +1,7 @@
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { buildSpriteAtlas, type SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { OBJECT_KINDS, OBJECT_REGISTRY } from '../core/world/objects';
+import { paintAnimalSprites } from './paintAnimals';
 import { paintCabinSprites } from './paintCabin';
 import { paintCliffSprites } from './paintCliff';
 import { paintDeadwoodSprites } from './paintDeadwood';
@@ -10,8 +11,10 @@ import { paintHouseSprites } from './paintHouses';
 import { paintWindowLights } from './paintLights';
 import { paintObjectSprites } from './paintObjects';
 import { paintPlayerSprites } from './paintPlayer';
+import { paintPlazaSprites } from './paintPlaza';
 import { paintPropSprites } from './paintProps';
 import { paintShadowSprites } from './paintShadows';
+import { paintSmokeSprites } from './paintSmoke';
 import { paintStructureSprites } from './paintStructures';
 import { paintStudioSprites } from './paintStudio';
 import { paintStudioFurnitureSprites } from './paintStudioFurniture';
@@ -37,13 +40,16 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintStructureSprites(),
     ...paintPropSprites(),
     ...paintVillagePropSprites(),
+    ...paintPlazaSprites(),
     ...paintFurnitureSprites(),
     ...paintStudioFurnitureSprites(),
     ...paintCabinSprites(),
     ...paintHouseSprites(),
     ...paintStudioSprites(),
     ...paintPlayerSprites(),
+    ...paintAnimalSprites(),
     ...paintShadowSprites(),
+    ...paintSmokeSprites(),
     ...paintUiSprites(),
   ];
   return [...sprites, ...paintWindowLights(sprites, LIT_SPRITE_KEYS)];

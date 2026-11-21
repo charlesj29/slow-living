@@ -89,6 +89,24 @@
 
 ## Session log
 
+### 2026-11-22 — An open, livelier village (user request)
+
+- **User choices:** an open village (no ring fence) around a plaza, with little garden fences per
+  house; animals, chimney smoke (plus string lights) and a market stall with benches.
+- **Done (D64):** `placeVillage` rewritten: the village area is recorded but unfenced; each
+  house has a picket-fenced front garden with flowers; a 3×3 paved plaza (with a free ring when
+  possible) has string lights, the well, a market stall to one side and benches; paths run from
+  every door to the plaza and on to the nearest trail; the entrance (stored as `village.gate`)
+  is where that path leaves the village. House lots now include two roof rows; villagers and
+  animals keep off the strips behind houses (`wanderTiles`). New objects `bench`,
+  `market_stall`, `string_lights` (`assets/paintPlaza.ts`); three chickens and a cat
+  (`core/systems/animals.ts`, `assets/paintAnimals.ts`, `render/AnimalSprites`); chimney
+  smoke (`assets/paintSmoke.ts`, `render/ChimneySmoke`). Validation: paving under an object
+  (the well) no longer counts as an unreachable trail. Seed 46 re-baked; seeds 1–30 all get a
+  village with a 3×3 plaza (25 with a market stall).
+- **Verified:** typecheck, lint, tests, build; browser: the open village, plaza, gardens, cat
+  and chickens, smoke from the chimneys; console clean.
+
 ### 2026-11-21 — Cottage-style houses and studio (user request)
 
 - `assets/cottageStyle.ts`: the cottage look as a spec-driven painter (tiled or thatched back

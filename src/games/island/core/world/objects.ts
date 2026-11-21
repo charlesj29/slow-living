@@ -30,6 +30,9 @@ export const OBJECT_KINDS = [
   'crate',
   'lamp_post',
   'crops',
+  'bench',
+  'market_stall',
+  'string_lights',
   'bed',
   'table',
   'chair',
@@ -198,6 +201,21 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   crate: solid('crate', 'Crate', 'structure', '#a87a44'),
   lamp_post: { ...solid('lamp_post', 'Lamp post', 'structure', '#5a4630'), litAtNight: true },
   crops: solid('crops', 'Vegetable patch', 'structure', '#6a8a3a'),
+  // The village plaza.
+  bench: {
+    ...solid('bench', 'Bench', 'structure', '#9a6436', { width: 2, height: 1 }),
+    interaction: says('A good spot to sit and watch the village go by.'),
+  },
+  market_stall: {
+    ...solid('market_stall', 'Market stall', 'structure', '#c84848', { width: 3, height: 1 }),
+    interaction: says('Fresh fruit and veg from the village gardens.', 'Today: pumpkins!'),
+  },
+  // Strung over the plaza between two thin posts: you walk under it; the bulbs glow at night.
+  string_lights: {
+    ...decoration('string_lights', 'String lights', 'structure', '#f2e2b4'),
+    footprint: { width: 3, height: 1 },
+    litAtNight: true,
+  },
   // Furniture (interiors). Wall pieces stand on the row in front of the back wall.
   bed: {
     ...solid('bed', 'Bed', 'structure', '#c84848', { width: 2, height: 2 }),

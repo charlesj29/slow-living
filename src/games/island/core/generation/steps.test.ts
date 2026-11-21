@@ -99,9 +99,11 @@ describe('decorateCabin', () => {
 describe('scatterTrees', () => {
   it('mixes big 2×2 trees with small trees and bushes', () => {
     const kinds = validContext(21).objects.map((o) => o.kind);
-    for (const kind of ['tree_oak', 'tree_pine', 'tree_small', 'bush'] as const) {
+    for (const kind of ['tree_oak', 'tree_pine', 'tree_small'] as const) {
       expect(kinds.filter((k) => k === kind).length, kind).toBeGreaterThan(10);
     }
+    // Bushes are rarer (and the village clears its patch of the island).
+    expect(kinds.filter((k) => k === 'bush').length).toBeGreaterThanOrEqual(5);
   });
 
   it('places trees only on free grass outside reserved areas', () => {
@@ -171,10 +173,12 @@ describe('layPaths', () => {
     expect(onTrail[toIndex(size, dockRoot.x, dockRoot.y)]).toBe(1);
   });
 
-  it('keeps trails free of objects', () => {
+  it('keeps trails free of objects (only the village plaza has its well and string lights)', () => {
     const context = validContext(144);
     context.terrain.forEach((id, i) => {
-      if (id === TileId.Path) expect(context.occupancy[i]).toBe(NO_OBJECT);
+      if (id !== TileId.Path) return;
+      const kind = context.objects[context.occupancy[i] ?? NO_OBJECT]?.kind;
+      if (kind) expect(['well', 'string_lights']).toContain(kind);
     });
   });
 });

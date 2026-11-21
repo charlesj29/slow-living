@@ -126,6 +126,17 @@ export interface IslandConfig {
     /** Each tree or rock a site would clear counts like this many tiles of distance. */
     readonly clearedObjectCost: number;
   };
+  /** The village's chickens and cat. */
+  readonly animals: {
+    readonly chickens: number;
+    readonly cats: number;
+    readonly chickenSpeedTilesPerSecond: number;
+    readonly catSpeedTilesPerSecond: number;
+    /** How far (tiles) an animal wanders from where it stands. */
+    readonly wanderRadiusTiles: number;
+    readonly minRestSeconds: number;
+    readonly maxRestSeconds: number;
+  };
   /** The Developer's Studio: placed near the cottage, after the village. */
   readonly studio: {
     /** How far from the cottage door (in tiles) to look. */
@@ -246,6 +257,8 @@ export interface IslandConfig {
     readonly flowerFrameSeconds: number;
     /** How long each frame of the fireplace flames shows. */
     readonly fireFrameSeconds: number;
+    /** How long a chimney smoke puff takes to rise and fade. */
+    readonly smokePuffSeconds: number;
     /** Soft, dithered patches of slightly deeper grass (shaded in the tilemap shader). */
     readonly grassPatches: {
       readonly noise: FractalNoiseOptions;
@@ -322,8 +335,8 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   village: {
     searchRadiusTiles: 30,
-    interiorWidth: { min: 18, max: 22 },
-    interiorHeight: { min: 14, max: 17 },
+    interiorWidth: { min: 21, max: 25 },
+    interiorHeight: { min: 17, max: 20 },
     maxNotches: 2,
     notchWidth: { min: 4, max: 6 },
     notchHeight: { min: 3, max: 5 },
@@ -331,6 +344,15 @@ export const ISLAND_CONFIG: IslandConfig = {
     lampPosts: 4,
     shapeAttempts: 12,
     clearedObjectCost: 3,
+  },
+  animals: {
+    chickens: 3,
+    cats: 1,
+    chickenSpeedTilesPerSecond: 1.6,
+    catSpeedTilesPerSecond: 0.9,
+    wanderRadiusTiles: 3,
+    minRestSeconds: 1.5,
+    maxRestSeconds: 6,
   },
   studio: {
     searchRadiusTiles: 28,
@@ -385,6 +407,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     waterFrameSeconds: 0.5,
     flowerFrameSeconds: 0.6,
     fireFrameSeconds: 0.14,
+    smokePuffSeconds: 3.6,
     grassPatches: { noise: noise(0.07, 2), threshold: 0.55, shade: 0.92, ditherSpread: 0.14 },
     cameraFollowSharpness: 8,
   },

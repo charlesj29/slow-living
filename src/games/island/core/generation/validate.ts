@@ -132,7 +132,8 @@ const checkReachability: Check = ({ size, terrain, objects, cabin, spawn }, rule
     return issue('door-unreachable', 'The cabin door cannot be reached from the spawn');
   }
   const strandedTrail = terrain.findIndex(
-    (id, i) => (id === TileId.Path || id === TileId.Dock) && reached[i] !== 1,
+    // Paving under a well or a stall is not a way to anywhere: only open trail counts.
+    (id, i) => (id === TileId.Path || id === TileId.Dock) && blocked[i] === 0 && reached[i] !== 1,
   );
   if (strandedTrail !== -1) {
     return issue('trail-unreachable', 'Part of a trail or the dock cannot be reached');

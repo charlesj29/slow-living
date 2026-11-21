@@ -2,7 +2,7 @@ import { fileURLToPath, URL } from 'node:url';
 import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
-import { personJsonLd, portfolioHtml } from './src/games/island/core/content/portfolioHtml';
+import { personJsonLd, portfolioHtml } from './src/games/island/core/content/portfolioHtml.ts';
 
 /**
  * Writes the portfolio into index.html (placeholders <!-- portfolio:html -->

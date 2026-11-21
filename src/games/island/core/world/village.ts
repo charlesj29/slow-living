@@ -56,6 +56,27 @@ export function villageHouses(world: Pick<World, 'objects'>): WorldObject[] {
     .sort((a, b) => a.x - b.x);
 }
 
+/** Rows a house's roof covers above its footprint: someone there looks as if on the roof. */
+const ROOF_ROWS = 2;
+
+/**
+ * The village tiles people and animals wander on: the village area minus the
+ * strips just behind each house (only their heads would show above the roof).
+ */
+export function wanderTiles(
+  world: Pick<World, 'objects' | 'width' | 'height' | 'village'>,
+): number[] {
+  if (!world.village) return [];
+  const behind = new Set<number>();
+  for (const house of villageHouses(world)) {
+    const { footprint } = OBJECT_REGISTRY[house.kind];
+    for (let y = house.y - ROOF_ROWS; y < house.y; y++) {
+      for (let x = house.x; x < house.x + footprint.width; x++) behind.add(toIndex(world, x, y));
+    }
+  }
+  return villageTiles(world.village, world).filter((i) => !behind.has(i));
+}
+
 /** Where each villager starts: in front of a house's door. */
 export function villagerSpawns(world: Pick<World, 'objects'>): TilePoint[] {
   return villageHouses(world)
