@@ -37,13 +37,15 @@ describe('sitting on a bench', () => {
     expect(playerFrameIndex(state.player, ISLAND_CONFIG.player)).toBe(PLAYER_FRAMES.sit);
   });
 
-  it('stays seated until a key is pressed, then stands up where it was', () => {
+  it('stays seated when walking keys are pressed; Space stands up where it was', () => {
     const state = inFrontOfBench();
     const before = { x: state.player.x, y: state.player.y };
     press(state, 'Space');
     for (let i = 0; i < 30; i++) stepGame(state, STEP, ISLAND_CONFIG);
+    press(state, 'ArrowLeft', 20);
+    press(state, 'KeyW', 20);
     expect(state.player.sitting).not.toBeNull();
-    press(state, 'ArrowLeft');
+    press(state, 'Space');
     expect(state.player.sitting).toBeNull();
     expect({ x: state.player.x, y: state.player.y }).toEqual(before);
   });

@@ -14,10 +14,12 @@ import type { IslandConfig } from '../config';
 import type { Player } from '../entities/player';
 import { isLandTile } from '../world/tiles';
 import { villageTiles } from '../world/village';
+import { OBJECT_REGISTRY } from '../world/objects';
 import type { World } from '../world/world';
 
 export type RabbitColor = 'white' | 'brown';
 export type RabbitIdle = 'sit' | 'nibble' | 'alert';
+export type RabbitFacing = 'left' | 'right' | 'up' | 'down';
 
 export interface Hop {
   readonly fromX: number;
@@ -36,8 +38,8 @@ export interface Rabbit {
   y: number;
   previousX: number;
   previousY: number;
-  /** Sprites face left; facing right mirrors them. */
-  facing: 'left' | 'right';
+  /** Which way it looks: left/right use the side view (right mirrored), up the back, down the front. */
+  facing: RabbitFacing;
   /** The hop in progress, or null while idling. */
   hop: Hop | null;
   /** Where the current run of hops is heading (tile), and how many hops are left. */
@@ -46,17 +48,21 @@ export interface Rabbit {
   /** Seconds left idling, and what it does meanwhile. */
   idleTime: number;
   idle: RabbitIdle;
+  /** Seconds to wait before trying to hop again after a hop was blocked (no fidgeting). */
+  waitTime: number;
 }
 
 type RabbitSettings = IslandConfig['rabbits'];
 
 /**
  * The rabbits' meadow: open land tiles a short way outside the village
- * (between `nearVillageTiles.min` and `.max` steps from its edge).
+ * (between `nearVillageTiles.min` and `.max` steps from its edge), and never
+ * close to a building (the cottage, the studio, the houses).
  */
 export function rabbitMeadow(world: World, settings: RabbitSettings): Set<number> {
   const meadow = new Set<number>();
   if (!world.village) return meadow;
+  const nearBuildings = tilesNearBuildings(world, settings.buildingClearanceTiles);
   const village = new Set(villageTiles(world.village, world));
   const distance = new Map<number, number>();
   const queue: number[] = [];
@@ -72,10 +78,25 @@ export function rabbitMeadow(world: World, settings: RabbitSettings): Set<number
       if (!isLandTile(world.terrain[next] ?? 0)) return;
       distance.set(next, d + 1);
       queue.push(next);
-      if (d + 1 >= settings.nearVillageTiles.min) meadow.add(next);
+      if (d + 1 >= settings.nearVillageTiles.min && !nearBuildings.has(next)) meadow.add(next);
     });
   }
   return meadow;
+}
+
+/** Tiles within `clearance` (diagonals count as one) of any building's footprint. */
+function tilesNearBuildings(world: World, clearance: number): Set<number> {
+  const near = new Set<number>();
+  for (const object of world.objects) {
+    const { category, footprint } = OBJECT_REGISTRY[object.kind];
+    if (category !== 'building') continue;
+    for (let y = object.y - clearance; y < object.y + footprint.height + clearance; y++) {
+      for (let x = object.x - clearance; x < object.x + footprint.width + clearance; x++) {
+        if (x >= 0 && y >= 0 && x < world.width && y < world.height) near.add(toIndex(world, x, y));
+      }
+    }
+  }
+  return near;
 }
 
 function startIdle(rabbit: Rabbit, rng: Rng, settings: RabbitSettings): void {
@@ -117,6 +138,7 @@ export function createRabbits(
       hopsLeft: 0,
       idleTime: 0,
       idle: 'sit',
+      waitTime: 0,
     };
     startIdle(rabbit, rng, settings);
     return rabbit;
@@ -128,11 +150,39 @@ const tileOf = (r: Rabbit, tileSizePx: number): TilePoint => ({
   y: Math.floor(r.y / tileSizePx),
 });
 
-/** One hop towards the goal (diagonals allowed), if the next tile is open meadow. */
+/** Close enough to the player to count as in its way (map pixels). */
+const PLAYER_ROOM_PX = 14;
+/** After a blocked hop, wait this long before trying again. */
+const RETRY_SECONDS = 0.6;
+
+/** An open meadow tile the player isn't standing in. */
+function isFree(
+  world: World,
+  meadow: ReadonlySet<number>,
+  player: Player | null,
+  tile: TilePoint,
+  tileSizePx: number,
+): boolean {
+  if (tile.x < 0 || tile.y < 0 || tile.x >= world.width || tile.y >= world.height) return false;
+  if (!meadow.has(toIndex(world, tile.x, tile.y))) return false;
+  if (!player) return true;
+  const cx = (tile.x + 0.5) * tileSizePx;
+  const cy = (tile.y + 0.5) * tileSizePx;
+  return Math.hypot(player.x - cx, player.y - cy) > PLAYER_ROOM_PX;
+}
+
+/** Faces the way of a hop: sideways (also for diagonals), else up or down. */
+function faceTowards(rabbit: Rabbit, dx: number, dy: number): void {
+  if (dx !== 0) rabbit.facing = dx > 0 ? 'right' : 'left';
+  else if (dy !== 0) rabbit.facing = dy > 0 ? 'down' : 'up';
+}
+
+/** One hop towards the goal (diagonals allowed), if the next tile is free. */
 function hopTowardsGoal(
   rabbit: Rabbit,
   world: World,
   meadow: ReadonlySet<number>,
+  player: Player | null,
   tileSizePx: number,
 ): boolean {
   const goal = rabbit.goal;
@@ -142,9 +192,8 @@ function hopTowardsGoal(
   const dy = Math.sign(goal.y - here.y);
   if (dx === 0 && dy === 0) return false;
   const next = { x: here.x + dx, y: here.y + dy };
-  if (next.x < 0 || next.y < 0 || next.x >= world.width || next.y >= world.height) return false;
-  if (!meadow.has(toIndex(world, next.x, next.y))) return false;
-  if (dx !== 0) rabbit.facing = dx > 0 ? 'right' : 'left';
+  if (!isFree(world, meadow, player, next, tileSizePx)) return false;
+  faceTowards(rabbit, dx, dy);
   rabbit.hop = {
     fromX: rabbit.x,
     fromY: rabbit.y,
@@ -155,25 +204,53 @@ function hopTowardsGoal(
   return true;
 }
 
-/** A goal a few tiles away: random, or straight away from the player when fleeing. */
-function chooseGoal(
+const NEIGHBOUR_STEPS = [
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [-1, 0],
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1],
+] as const;
+
+/**
+ * Fleeing: of the free neighbouring tiles, the one that gets furthest from the
+ * player, and a goal a few hops on in that direction (null if boxed in).
+ */
+function fleeGoal(
+  rabbit: Rabbit,
+  world: World,
+  meadow: ReadonlySet<number>,
+  player: Player,
+  settings: RabbitSettings,
+  tileSizePx: number,
+): TilePoint | null {
+  const here = tileOf(rabbit, tileSizePx);
+  let best: { dx: number; dy: number; distance: number } | null = null;
+  for (const [dx, dy] of NEIGHBOUR_STEPS) {
+    const next = { x: here.x + dx, y: here.y + dy };
+    if (!isFree(world, meadow, player, next, tileSizePx)) continue;
+    const distance = Math.hypot(
+      (next.x + 0.5) * tileSizePx - player.x,
+      (next.y + 0.5) * tileSizePx - player.y,
+    );
+    if (!best || distance > best.distance) best = { dx, dy, distance };
+  }
+  return best
+    ? { x: here.x + best.dx * settings.fleeHops, y: here.y + best.dy * settings.fleeHops }
+    : null;
+}
+
+/** A random goal a few tiles away. */
+function wanderGoal(
   rabbit: Rabbit,
   rng: Rng,
   settings: RabbitSettings,
   tileSizePx: number,
-  awayFrom: { x: number; y: number } | null,
 ): TilePoint {
   const here = tileOf(rabbit, tileSizePx);
-  if (awayFrom) {
-    const dx = rabbit.x - awayFrom.x;
-    const dy = rabbit.y - awayFrom.y;
-    const length = Math.hypot(dx, dy) || 1;
-    const reach = settings.fleeHops;
-    return {
-      x: here.x + Math.round((dx / length) * reach),
-      y: here.y + Math.round((dy / length) * reach),
-    };
-  }
   const r = settings.hopRangeTiles;
   return { x: here.x + rng.int(-r, r), y: here.y + rng.int(-r, r) };
 }
@@ -199,15 +276,44 @@ export function updateRabbit(
     if (hop.t < 1) return;
     rabbit.hop = null;
     rabbit.hopsLeft -= 1;
-    if (!hopTowardsGoal(rabbit, world, meadow, tileSizePx)) startIdle(rabbit, rng, settings);
+    if (!hopTowardsGoal(rabbit, world, meadow, player, tileSizePx))
+      startIdle(rabbit, rng, settings);
+    return;
+  }
+  rabbit.idleTime -= stepSeconds;
+  if (rabbit.waitTime > 0) {
+    rabbit.waitTime -= stepSeconds;
     return;
   }
   const near =
     player !== null &&
     Math.hypot(player.x - rabbit.x, player.y - rabbit.y) < settings.fleeRadiusTiles * tileSizePx;
-  rabbit.idleTime -= stepSeconds;
   if (!near && rabbit.idleTime > 0) return;
-  rabbit.goal = chooseGoal(rabbit, rng, settings, tileSizePx, near ? player : null);
+  const goal =
+    near && player
+      ? fleeGoal(rabbit, world, meadow, player, settings, tileSizePx)
+      : wanderGoal(rabbit, rng, settings, tileSizePx);
+  rabbit.goal = goal;
   rabbit.hopsLeft = near ? settings.fleeHops : rng.int(1, settings.hopRangeTiles);
-  if (!hopTowardsGoal(rabbit, world, meadow, tileSizePx)) startIdle(rabbit, rng, settings);
+  if (goal && hopTowardsGoal(rabbit, world, meadow, player, tileSizePx)) return;
+  // Blocked: keep doing what it was doing and try again in a moment (no fidgeting).
+  rabbit.goal = null;
+  rabbit.waitTime = RETRY_SECONDS;
+  if (!near) startIdle(rabbit, rng, settings);
 }
+
+/** True if the player's feet box would overlap a rabbit (rabbits are solid). */
+export function bumpsIntoRabbit(
+  player: Player,
+  rabbits: readonly Rabbit[],
+  size: { readonly hitboxWidthPx: number; readonly hitboxHeightPx: number },
+): boolean {
+  return rabbits.some(
+    (rabbit) =>
+      Math.abs(player.x - rabbit.x) < (size.hitboxWidthPx + RABBIT_BODY.width) / 2 &&
+      Math.abs(player.y - rabbit.y) < (size.hitboxHeightPx + RABBIT_BODY.height) / 2,
+  );
+}
+
+/** A rabbit's solid footprint (map pixels), centred on its feet. */
+const RABBIT_BODY = { width: 10, height: 6 } as const;

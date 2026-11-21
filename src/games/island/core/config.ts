@@ -146,8 +146,10 @@ export interface IslandConfig {
     readonly enabled: boolean;
     readonly white: number;
     readonly brown: number;
-    /** Their meadow: open land this many steps from the village's edge. */
+    /** Their meadow: open land this many steps from the village's edge... */
     readonly nearVillageTiles: Range;
+    /** ...and at least this many tiles from any building (cottage, studio, houses). */
+    readonly buildingClearanceTiles: number;
     /** One hop (one tile). */
     readonly hopSeconds: number;
     /** How far a run of hops goes, at most (tiles). */
@@ -384,9 +386,10 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   rabbits: {
     enabled: true,
-    white: 2,
-    brown: 2,
-    nearVillageTiles: { min: 3, max: 9 },
+    white: 1,
+    brown: 1,
+    nearVillageTiles: { min: 3, max: 10 },
+    buildingClearanceTiles: 4,
     hopSeconds: 0.34,
     hopRangeTiles: 4,
     minIdleSeconds: 1.5,

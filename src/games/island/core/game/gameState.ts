@@ -29,7 +29,13 @@ import {
   type PanelOpen,
 } from '../systems/interaction';
 import { createAnimals, updateAnimal, type Animal } from '../systems/animals';
-import { createRabbits, rabbitMeadow, updateRabbit, type Rabbit } from '../systems/rabbits';
+import {
+  bumpsIntoRabbit,
+  createRabbits,
+  rabbitMeadow,
+  updateRabbit,
+  type Rabbit,
+} from '../systems/rabbits';
 import { movePlayer } from '../systems/movement';
 import { followWalk, planTap, type AutoWalk } from '../systems/tapToWalk';
 import { startTalking, updateVillager } from '../systems/wander';
@@ -163,9 +169,8 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     if (consumePress(input, 'interact')) turnPage(state, state.dialog);
     player.moving = false;
   } else if (player.sitting) {
-    // Sitting on a bench: any direction, Space (or a tap) stands up again.
-    const intent = readMovementIntent(input);
-    if (intent.facing || consumePress(input, 'interact')) standUp(player);
+    // Sitting on a bench: only Space stands up again (or a tap, on phones).
+    if (consumePress(input, 'interact')) standUp(player);
     player.moving = false;
     state.interactTarget = null;
   } else if (state.panel || state.overlayOpen) {
@@ -187,7 +192,11 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     if (intent.facing) player.facing = intent.facing;
     movePlayer(player, intent, state.world, stepSeconds, config.player, tileSizePx);
     const villagersHere = onIsland(state) ? state.villagers : [];
-    if (bumpsInto(player, villagersHere, config.player)) {
+    const rabbitsHere = onIsland(state) ? state.rabbits : [];
+    if (
+      bumpsInto(player, villagersHere, config.player) ||
+      bumpsIntoRabbit(player, rabbitsHere, config.player)
+    ) {
       // Villagers are solid: step back.
       player.x = player.previousX;
       player.y = player.previousY;

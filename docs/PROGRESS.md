@@ -89,6 +89,20 @@
 
 ## Session log
 
+### 2026-11-22 — Rounder rabbits with three views, solid; Space-only standing (user request)
+
+- Rabbits are drawn from soft shapes (plump body, round head level with it, ears, cotton tail)
+  with an automatic outline, in three views: side (left/right), front (hopping towards the
+  viewer) and back (hopping away), each with sit, twitch, two nibble and four squash-and-stretch
+  hop frames. They face the way they hop (`RabbitFacing`).
+- One white and one brown; their meadow keeps `buildingClearanceTiles` (4) from every building.
+  Rabbits are solid (`bumpsIntoRabbit`), never hop onto the player's tile, flee to the free
+  neighbouring tile furthest from the player, and after a blocked hop wait a moment
+  (`waitTime`) instead of re-rolling their pose every step (the stutter).
+- Benches: only Space stands up (a tap too, so phones aren't stuck).
+- **Verified:** typecheck, lint, tests, build; sprite sheet of all frames; browser: both rabbits
+  away from buildings (side and front views); console clean.
+
 ### 2026-11-22 — Wild rabbits, sitting on benches (user request)
 
 - **Rabbits:** two white and two brown (`core/systems/rabbits.ts`, `assets/paintRabbits.ts`,
