@@ -89,6 +89,18 @@
 
 ## Session log
 
+### 2026-11-22 — No vegetable patch, a studio fireplace, arrows on signs (user request)
+
+- The cottage's vegetable patch is left out for now (the `crops` kind and art stay).
+- The studio has a small fireplace (`fireplace_small`, 1×1) between the phone shelf and the
+  timeline; it flickers on the fire clock and glows at night.
+- Signposts show drawn arrow icons instead of compass words: the text carries
+  `[[arrow:<heading>]]` markers (`arrowToken` in `core/systems/compass.ts`) and `ui/DialogBox`
+  draws a pixel arrow rotated to the heading (arrow characters render badly in system fonts).
+  Villager hints keep words. The controls list hides while a message is open.
+- **Verified:** typecheck, lint, tests, build; browser: the cottage sign with arrows, the
+  studio fireplace; console clean.
+
 ### 2026-11-22 — Single-storey cottage and log-lodge studio (user request)
 
 - The studio is now a compact, single-storey log lodge (112×80): cedar shingle roof, stone

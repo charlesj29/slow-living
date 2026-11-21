@@ -135,6 +135,35 @@ function fireplace(frame: number): PixelCanvas {
   return c;
 }
 
+/** 16×30 over 1×1: a narrow stone fireplace with a little mantle and a small fire (one frame). */
+function fireplaceSmall(frame: number): PixelCanvas {
+  const c = createPixelCanvas(16, 30);
+  const stone = PALETTE.cottage;
+  fillRect(c, 0, 6, 16, 24, O);
+  fillRect(c, 1, 7, 14, 22, stone.stone);
+  for (let y = 7; y < 29; y += 5) fillRect(c, 1, y, 14, 1, stone.stoneDark);
+  fillRect(c, 0, 3, 16, 5, O); // mantle
+  fillRect(c, 1, 4, 14, 2, PALETTE.dock.light);
+  fillRect(c, 3, 15, 10, 14, O); // opening
+  fillRect(c, 4, 16, 8, 13, PALETTE.wallTop.base);
+  const fire = PALETTE.fire;
+  const flames = FLAME_FRAMES[frame % FLAME_FRAMES.length] ?? FLAME_FRAMES[0];
+  // The same flicker as the cottage's fire, at about half the size: two tongues.
+  fillShape(c, (x, y) => insideEllipse(x, y, 8, 27, 3, 2) && y <= 28, fire.deep);
+  [flames?.heights[0] ?? 4, flames?.heights[1] ?? 6].forEach((height, i) => {
+    const h = Math.max(2, Math.round(height * 0.6));
+    const cx = 6 + i * 4;
+    fillShape(c, (x, y) => insideEllipse(x, y, cx, 28 - h / 2, 1.5, h / 2 + 0.5), fire.deep);
+    fillShape(c, (x, y) => insideEllipse(x, y, cx, 28 - h / 3, 0.6, h / 3 + 0.5), fire.mid);
+  });
+  setPixel(c, 8, 27, fire.bright);
+  if (flames?.spark) setPixel(c, 7 + (flames.spark[0] % 3), 19, fire.bright);
+  fillRect(c, 5, 28, 6, 1, PALETTE.bark.outline); // a log
+  // A little pot on the mantle.
+  fillRect(c, 10, 0, 3, 3, PALETTE.terracotta.base);
+  return c;
+}
+
 /** 48×32 flat over 3×2: a red rug with a patterned border and fringes. */
 function rug(): PixelCanvas {
   const c = createPixelCanvas(48, 32);
@@ -188,6 +217,10 @@ export function paintFurnitureSprites(): SpriteSource[] {
     {
       key: 'fireplace',
       frames: Array.from({ length: FIRE_FRAME_COUNT }, (_, frame) => fireplace(frame)),
+    },
+    {
+      key: 'fireplace_small',
+      frames: Array.from({ length: FIRE_FRAME_COUNT }, (_, frame) => fireplaceSmall(frame)),
     },
     { key: 'rug', frames: [rug()] },
     { key: 'plant', frames: [plant()] },

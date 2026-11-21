@@ -81,7 +81,7 @@ describe('island sprites', () => {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
       const isFlower = /^flower_(red|yellow|blue|white)$/.test(source.key);
       const isPlayer = source.key.startsWith('player_') || source.key.startsWith('villager_');
-      const isFire = source.key === 'fireplace' || source.key === 'fireplace_lights';
+      const isFire = /^fireplace(_small)?(_lights)?$/.test(source.key);
       const isAnimal = source.key.startsWith('animal_');
       const expected = isWater
         ? WATER_FRAME_COUNT

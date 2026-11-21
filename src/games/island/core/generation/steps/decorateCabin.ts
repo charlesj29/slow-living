@@ -17,8 +17,7 @@ function isFreeGrass(
 }
 
 /**
- * Cosy clutter around the cottage (a bench by the steps, a vegetable patch at
- * the side), as offsets from the footprint's top-left
+ * Cosy clutter around the cottage (a bench by the steps), as offsets from the footprint's top-left
  * (the door is at x 2 on the bottom row, so y = height is the row in front of
  * it). All spots lie inside the cabin's reserved area, off the trail; a spot
  * that isn't free grass is simply skipped, so props never block the way.
@@ -32,10 +31,6 @@ const HOUSE_PROPS: readonly { kind: ObjectKind; dx: number; dy: number }[] = [
   { kind: 'sign', dx: 1, dy: 5 },
   { kind: 'stepping_stone', dx: 3, dy: 5 },
   { kind: 'stepping_stone', dx: 4, dy: 5 },
-  // A little vegetable garden along the cottage's right side, above the wood pile.
-  { kind: 'crops', dx: 6, dy: 0 },
-  { kind: 'crops', dx: 6, dy: 1 },
-  { kind: 'crops', dx: 6, dy: 2 },
 ];
 
 /**

@@ -22,7 +22,7 @@ import {
 } from './spriteMaterial';
 
 /** Sprites animated on the fire's clock (faster than the flowers' sway). */
-const FIRE_SPRITE_KEYS: ReadonlySet<string> = new Set(['fireplace']);
+const FIRE_SPRITE_KEYS: ReadonlySet<string> = new Set(['fireplace', 'fireplace_small']);
 
 /** Window lights sit a hair in front of their building so they win the depth test. */
 const LIGHTS_Z_OFFSET = 0.001;

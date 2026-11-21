@@ -83,6 +83,8 @@ const STUDIO: InteriorDefinition = {
     { kind: 'certificates', x: 2, y: 1 },
     { kind: 'phone_wall', x: 5, y: 1 },
     { kind: 'timeline_board', x: 12, y: 1 },
+    // A small fireplace between the phones and the timeline.
+    { kind: 'fireplace_small', x: 11, y: 2 },
     { kind: 'plant', x: 1, y: 2 },
     { kind: 'floor_lamp', x: 15, y: 2 },
     { kind: 'tech_shelf', x: 1, y: 4 },

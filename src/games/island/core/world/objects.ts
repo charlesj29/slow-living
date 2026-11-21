@@ -38,6 +38,7 @@ export const OBJECT_KINDS = [
   'chair',
   'bookshelf',
   'fireplace',
+  'fireplace_small',
   'rug',
   'plant',
   'floor_lamp',
@@ -232,6 +233,11 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   bookshelf: {
     ...solid('bookshelf', 'Bookshelf', 'structure', '#7a4a28', { width: 2, height: 1 }),
     interaction: says('Rows of well-thumbed books.'),
+  },
+  fireplace_small: {
+    ...solid('fireplace_small', 'Small fireplace', 'structure', '#8c8c94'),
+    interaction: says('A small fire keeps the studio warm.'),
+    litAtNight: true,
   },
   fireplace: {
     ...solid('fireplace', 'Fireplace', 'structure', '#8c8c94', { width: 2, height: 1 }),

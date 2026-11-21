@@ -3,7 +3,7 @@
 import type { TilePoint } from '@/shared/engine/grid';
 import { SIGN_LABELS, VILLAGER_TALKS, type SignPlace } from '../content/guidance';
 import { getDoorFrontTile, type World } from '../world/world';
-import { headingTo } from './compass';
+import { arrowToken, headingTo } from './compass';
 
 /** The places worth pointing to on an island (null when the island has none). */
 export type Landmarks = Readonly<Record<SignPlace, TilePoint | null>>;
@@ -33,12 +33,12 @@ export function villagerTalk(
   return pages.map((page) => page.replaceAll('{studio}', direction));
 }
 
-/** A signpost's message: one line per place it points to, with its direction. */
+/** A signpost's message: one line per place it points to, with an arrow showing the way. */
 export function signpostPages(at: TilePoint, landmarks: Landmarks): readonly string[] {
   const lines = (Object.keys(SIGN_LABELS) as SignPlace[]).flatMap((place) => {
     const target = landmarks[place];
     if (!target || Math.hypot(target.x - at.x, target.y - at.y) < NEARBY_TILES) return [];
-    return [`${SIGN_LABELS[place]}: ${headingTo(at, target)}`];
+    return [`${arrowToken(headingTo(at, target))} ${SIGN_LABELS[place]}`];
   });
   return [lines.length > 0 ? lines.join('\n') : 'Welcome to the island!'];
 }
