@@ -89,6 +89,13 @@
 
 ## Session log
 
+### 2026-11-22 — Message text at the top; day length easy to find (user request)
+
+- The message box keeps its steady size, but the text now starts at the top (a one-line message
+  sits where a two-line one starts) and the blinking ▼ stays bottom-right.
+- `dayNight.dayLengthSeconds` in `core/config.ts` is spelled out with a note (real seconds for
+  one full day); the user sets the value.
+
 ### 2026-11-22 — "Workspace" everywhere, a bigger message box on desktop (user request)
 
 - Visitor-facing text says "workspace": villager hints (now describing the log lodge with the

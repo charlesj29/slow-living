@@ -148,7 +148,9 @@
   left: 50%;
   display: flex;
   gap: 1rem;
-  align-items: flex-end;
+  /* Text starts at the top (a one-line message sits where a two-line one starts);
+     the min-height keeps the box a steady size between messages. */
+  align-items: flex-start;
   width: min(40rem, calc(100% - 2rem));
   min-height: 4.5rem;
   padding: 0.9rem 1.1rem;
@@ -173,6 +175,7 @@
 
 /* A small down-pointing triangle that blinks, like a classic RPG text box. */
 .island-dialog-arrow {
+  align-self: flex-end; /* the blinking ▼ stays in the bottom-right corner */
   width: 0;
   height: 0;
   margin-bottom: 0.2rem;

@@ -428,7 +428,12 @@ export const ISLAND_CONFIG: IslandConfig = {
     blinkEverySeconds: 3.7,
     blinkSeconds: 0.14,
   },
-  dayNight: { dayLengthSeconds: 720, startTime: 0.33, transitionSharpness: 2.5 },
+  dayNight: {
+    // One full day (dawn → day → dusk → night) in real seconds, e.g. 300 = 5 minutes.
+    dayLengthSeconds: 720,
+    startTime: 0.33,
+    transitionSharpness: 2.5,
+  },
   doors: { fadeSeconds: 0.3 },
   interaction: { reachPx: 8 },
   villagers: {
