@@ -83,6 +83,13 @@ export function FollowCamera({
     if (storedOffset !== clamped) useIslandUiStore.getState().setZoomOffset(clamped);
   }, [storedOffset, zoomOffset, lowest, highest]);
 
+  // Tell the F3 readout what the camera shows (only when it changes).
+  const tilesAcross = Math.round(((size.width * dpr) / (pixelScale * tileSizePx)) * 10) / 10;
+  const tilesTall = Math.round(((size.height * dpr) / (pixelScale * tileSizePx)) * 10) / 10;
+  useEffect(() => {
+    useIslandUiStore.getState().setCamera({ pixelScale, zoomOffset, tilesAcross, tilesTall });
+  }, [pixelScale, zoomOffset, tilesAcross, tilesTall]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (ZOOM_IN_KEYS.has(event.code)) useIslandUiStore.getState().zoomBy(1);

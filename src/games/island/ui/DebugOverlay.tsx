@@ -29,12 +29,14 @@ function readStats(game: GameState): Readout {
 }
 
 /**
- * F3 toggles a small readout (top-right) of FPS, the player's tile and the time of day. While visible it
+ * F3 toggles a small readout (top-right) of FPS, the player's tile, the time of day and the
+ * camera (zoom level, zoom step, tiles on screen). While visible it
  * samples the game state a few times per second (never every frame), so React
  * stays out of the render loop.
  */
 export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
   const isVisible = useIslandUiStore((state) => state.isDebugOverlayVisible);
+  const camera = useIslandUiStore((state) => state.camera);
   const [readout, setReadout] = useState<Readout>(() => readStats(game));
 
   useEffect(() => {
@@ -63,6 +65,17 @@ export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
         Tile {readout.tileX}, {readout.tileY}
       </div>
       <div>Time {readout.clock}</div>
+      {camera && (
+        <>
+          <div>
+            Zoom ×{camera.pixelScale} (step {camera.zoomOffset > 0 ? '+' : ''}
+            {camera.zoomOffset})
+          </div>
+          <div>
+            View {camera.tilesAcross} × {camera.tilesTall} tiles
+          </div>
+        </>
+      )}
     </div>
   );
 }

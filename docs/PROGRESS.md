@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-21 — F3 camera readout, controls list (user request)
+
+- F3 also shows the camera: zoom level (pixel scale), zoom step and tiles on screen (`CameraInfo`
+  in the store, set by `FollowCamera` when it changes), ready for min/max camera limits later.
+- The controls hint is a list (key, action) in the bottom right that dims to 45% after the
+  first steps instead of disappearing; on phones the zoom buttons sit above it.
+- **Verified:** typecheck, lint, tests, build; browser (desktop with F3, phone emulation).
+
 ### 2026-11-21 — M10 Phones and the quick view (portfolio roadmap)
 
 - **User choices:** tap to walk; a Résumé button with an overlay (the site stays one page); link

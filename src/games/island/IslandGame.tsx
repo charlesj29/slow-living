@@ -71,12 +71,14 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
   return (
     <>
       <GameCanvas game={game} />
-      <ControlsHint />
       <DebugOverlay game={game} />
       <ScreenFade />
       <StudioVisitMemory />
       <DialogBox />
-      <ZoomButtons />
+      <div className="island-bottom-right">
+        <ZoomButtons />
+        <ControlsHint />
+      </div>
       {/* The top-left buttons, in one column. */}
       <div className="island-hud-stack">
         <DayNightToggle />

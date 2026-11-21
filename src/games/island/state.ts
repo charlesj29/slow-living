@@ -2,6 +2,17 @@ import { create } from 'zustand';
 import { DAY_NIGHT_MODES, type DayNightMode } from './core/systems/dayNight';
 import type { PanelOpen } from './core/systems/interaction';
 
+/** The camera's zoom, as the F3 readout shows it. */
+export interface CameraInfo {
+  /** Screen pixels per art pixel (the 2D "distance": higher = closer). */
+  readonly pixelScale: number;
+  /** Zoom steps away from the automatic scale (+ / −). */
+  readonly zoomOffset: number;
+  /** How much of the map fits on screen, in tiles. */
+  readonly tilesAcross: number;
+  readonly tilesTall: number;
+}
+
 /**
  * UI-facing state only (things the HUD/overlays show or control). The world and
  * entities live in plain mutable objects owned by the game loop, never here,
@@ -26,6 +37,8 @@ export interface IslandUiState {
   readonly hasVisitedStudio: boolean;
   /** Zoom steps away from the automatic scale (+ closer); null until the camera sets its default. */
   readonly zoomOffset: number | null;
+  /** What the camera shows (for the F3 readout); set by the camera when it changes. */
+  readonly camera: CameraInfo | null;
   /** The Résumé page is open over the game. */
   readonly isResumeOpen: boolean;
   /** Day/night: follow the clock, or hold day or night (the top-left button). */
@@ -45,6 +58,7 @@ export interface IslandUiState {
   /** One or more zoom steps (+ closer); ignored until the camera has set a default. */
   zoomBy: (steps: number) => void;
   setResumeOpen: (open: boolean) => void;
+  setCamera: (camera: CameraInfo) => void;
   setDayNightMode: (mode: DayNightMode) => void;
   /** Auto → Always day → Always night → Auto. */
   cycleDayNightMode: () => void;
@@ -61,6 +75,7 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   hasVisitedStudio: false,
   zoomOffset: null,
   isResumeOpen: false,
+  camera: null,
   dayNightMode: 'auto',
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
@@ -100,6 +115,9 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   zoomBy: (steps) => {
     set((state) => (state.zoomOffset === null ? {} : { zoomOffset: state.zoomOffset + steps }));
+  },
+  setCamera: (camera) => {
+    set({ camera });
   },
   setResumeOpen: (open) => {
     set({ isResumeOpen: open });
