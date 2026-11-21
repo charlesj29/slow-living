@@ -41,9 +41,9 @@ export const VILLAGER_TALKS: readonly (readonly (readonly string[])[])[] = [
 
 /** The places signposts point to. */
 export const SIGN_LABELS = {
-  studio: "The Developer's Studio",
-  village: 'The village',
-  cottage: "Charles's cottage",
+  studio: "Charles's Workspace",
+  village: 'The Village',
+  cottage: "Charles's Cottage",
 } as const;
 
 export type SignPlace = keyof typeof SIGN_LABELS;

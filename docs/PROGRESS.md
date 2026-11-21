@@ -89,6 +89,11 @@
 
 ## Session log
 
+### 2026-11-22 — Sign names (user request)
+
+- Signposts read "Charles's Cottage", "Charles's Workspace" (the studio) and "The Village"
+  (`SIGN_LABELS` in `core/content/guidance.ts`).
+
 ### 2026-11-22 — Rounder rabbits with three views, solid; Space-only standing (user request)
 
 - Rabbits are drawn from soft shapes (plump body, round head level with it, ears, cotton tail)

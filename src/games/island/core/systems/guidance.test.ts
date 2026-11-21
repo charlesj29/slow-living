@@ -55,9 +55,9 @@ describe('signpostPages', () => {
 
   it('points to each landmark, skipping the one it stands by', () => {
     const [text] = signpostPages({ x: 10, y: 10 }, landmarks);
-    expect(text).toContain("[[arrow:east]] The Developer's Studio");
-    expect(text).toContain('[[arrow:west]] The village');
-    expect(text).not.toContain('cottage');
+    expect(text).toContain("[[arrow:east]] Charles's Workspace");
+    expect(text).toContain('[[arrow:west]] The Village');
+    expect(text).not.toMatch(/cottage/i);
   });
 });
 
