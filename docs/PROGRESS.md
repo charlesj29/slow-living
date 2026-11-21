@@ -82,6 +82,17 @@
 
 ## Session log
 
+### 2026-11-21 — New direction: the island becomes Charles's portfolio (discussion)
+
+- **Goal:** the site is an interactive portfolio for Charles, a mobile engineer. Agreed: a
+  Developer's Studio as the main building (interior with interactable portfolio sections),
+  touch controls + a quick "Résumé" view for phones and busy visitors, a compact ~96×96 island,
+  seeds kept (best seed baked as default, R to generate another; every seed has village +
+  studio). Open: whether R is for visitors too. Charles will provide his CV.
+- **Roadmap rewritten** (docs/ROADMAP.md): M5 content, M6 interiors, M7 studio, M8 compact
+  island + default seed, M9 guidance, M10 phones + quick view, M11 launch.
+- **Next:** confirm the R question; then plan M5 once the CV arrives.
+
 ### 2026-11-21 — Small update (user request)
 
 - F3 readout moved back to the top-right; the village no longer has a vegetable patch (the crops
