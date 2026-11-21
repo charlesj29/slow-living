@@ -15,7 +15,7 @@ import { standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
 /** Where smoke leaves each chimney, in sprite pixels from the sprite's top-left. */
 const CHIMNEY_TOPS: Readonly<Record<string, { x: number; y: number }>> = {
-  cabin: { x: 80, y: 3 }, // the cottage's chimney (paintCabin)
+  cabin: { x: 80, y: 1 }, // the cottage's chimney (paintCabin)
   ...HOUSE_CHIMNEY_TOPS,
   ...(STUDIO_CHIMNEY_TOP ? { studio: STUDIO_CHIMNEY_TOP } : {}),
 };

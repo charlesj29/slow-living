@@ -89,6 +89,15 @@
 
 ## Session log
 
+### 2026-11-22 — Single-storey cottage and log-lodge studio (user request)
+
+- The studio is now a compact, single-storey log lodge (112×80): cedar shingle roof, stone
+  chimney, a porch with posts, railings, a bench and two lanterns, a carved "</>" sign on the
+  wall; no glass wall or modern parts. The cottage is single-storey too (96×80): a flatter
+  gable without the attic window, lower roofs, the same canopy, windows and steps. Smoke and the
+  sprite-size test follow the new chimney and size.
+- **Verified:** typecheck, lint, tests, build; browser screenshots of both.
+
 ### 2026-11-22 — Diverse village houses, a modern studio, a cosier cottage (user request)
 
 - **User choices:** four village house styles in a pool (stone farmhouse, log cabin with porch,

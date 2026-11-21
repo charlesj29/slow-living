@@ -1,5 +1,5 @@
-// The cottage: 96×96 px. The bottom 64 px match its 6×4-tile footprint; the
-// roof rises two tiles above it. Cozy 16-bit style (original design): a tiled
+// The cottage: 96×80 px, a single storey. The bottom 64 px match its 6×4-tile
+// footprint; the roof rises one tile above it. Cozy 16-bit style (original design): a tiled
 // back roof and side wing, a timber-framed front gable over the door, plaster
 // walls, shuttered windows with flower boxes, a canopy over the door with a
 // hanging basket, a stone foundation and steps.
@@ -16,14 +16,14 @@ import { TILE_PX } from './paint';
 import { PALETTE } from './palette';
 
 const WIDTH = TILE_PX * 6;
-const HEIGHT = TILE_PX * 6;
+const HEIGHT = TILE_PX * 5;
 /** Door tile (third from the left), matching the registry's door. */
 const DOOR_CENTER = TILE_PX * 2 + TILE_PX / 2;
-const GABLE = { apexX: DOOR_CENTER, apexY: 4, eaveY: 62, halfWidth: 32, thickness: 9 } as const;
-const WALL_BOTTOM = 86;
-const FOUNDATION_BOTTOM = 93;
-const WING = { left: 66, right: 91, roofTop: 22, eaveY: 56 } as const;
-const BACK_ROOF = { left: 6, right: 66, top: 12 } as const;
+const GABLE = { apexX: DOOR_CENTER, apexY: 8, eaveY: 46, halfWidth: 32, thickness: 9 } as const;
+const WALL_BOTTOM = 70;
+const FOUNDATION_BOTTOM = 77;
+const WING = { left: 66, right: 91, roofTop: 18, eaveY: 40 } as const;
+const BACK_ROOF = { left: 6, right: 66, top: 14 } as const;
 const WINDOW_SIZE = 10;
 
 const { roof, wall } = PALETTE;
@@ -130,7 +130,7 @@ function frontGable(canvas: PixelCanvas): void {
       if (innerHalf > 0) setPixel(canvas, Math.round(inner), y, roof.dark);
     }
   }
-  // Timber inside the gable: king post, crossbeam, braces, and a small attic window.
+  // Timber inside the gable: king post, crossbeam and braces (one storey: no attic window).
   fillRect(canvas, apexX - 1, apexY + thickness + 2, 2, eaveY - apexY - thickness - 2, C.beam);
   const beamY = eaveY - 14;
   const beamHalf = (beamY - apexY) * slope - thickness;
@@ -139,16 +139,12 @@ function frontGable(canvas: PixelCanvas): void {
     setPixel(canvas, apexX - 2 - i, beamY + 2 + i, C.beam);
     setPixel(canvas, apexX + 1 + i, beamY + 2 + i, C.beam);
   }
-  fillRect(canvas, apexX - 4, beamY - 10, 8, 7, wall.outline);
-  fillRect(canvas, apexX - 3, beamY - 9, 6, 5, PALETTE.cabin.glass);
-  fillRect(canvas, apexX - 3, beamY - 7, 6, 1, C.frame);
-  setPixel(canvas, apexX - 2, beamY - 8, PALETTE.cabin.shine);
   fillRect(canvas, apexX - halfWidth, eaveY + 1, halfWidth * 2 + 1, 1, roof.outline);
 }
 
 function door(canvas: PixelCanvas): void {
   const left = DOOR_CENTER - 6;
-  const top = 66;
+  const top = 50;
   fillRect(canvas, left - 2, top - 2, 16, WALL_BOTTOM - top + 2, C.beam);
   fillRect(canvas, left - 1, top - 1, 14, WALL_BOTTOM - top + 1, wall.outline);
   fillRect(canvas, left, top, 12, WALL_BOTTOM - top, PALETTE.cabin.door);
@@ -163,8 +159,8 @@ function door(canvas: PixelCanvas): void {
 function porchCanopy(canvas: PixelCanvas): void {
   const left = DOOR_CENTER - 12;
   const right = DOOR_CENTER + 12;
-  const top = 60;
-  const bottom = 64;
+  const top = 44;
+  const bottom = 48;
   for (let y = top; y <= bottom; y++) {
     const inset = bottom - y; // a little wider at the bottom, like a sloped hood
     fillRect(canvas, left + inset - 1, y, right - left - 2 * inset + 3, 1, roof.outline);
@@ -211,11 +207,11 @@ function foundation(canvas: PixelCanvas): void {
 
 function chimney(canvas: PixelCanvas): void {
   const left = 76;
-  fillRect(canvas, left - 1, 4, 10, 22, roof.outline);
-  fillRect(canvas, left, 5, 8, 20, C.stone);
-  fillRect(canvas, left, 5, 8, 2, C.stoneLight);
-  for (let y = 9; y < 25; y += 4) fillRect(canvas, left, y, 8, 1, C.stoneDark);
-  fillRect(canvas, left + 6, 7, 2, 18, C.stoneDark);
+  fillRect(canvas, left - 1, 2, 10, 18, roof.outline);
+  fillRect(canvas, left, 3, 8, 16, C.stone);
+  fillRect(canvas, left, 3, 8, 2, C.stoneLight);
+  for (let y = 7; y < 19; y += 4) fillRect(canvas, left, y, 8, 1, C.stoneDark);
+  fillRect(canvas, left + 6, 5, 2, 14, C.stoneDark);
 }
 
 export function paintCabinSprites(): SpriteSource[] {
@@ -230,8 +226,8 @@ export function paintCabinSprites(): SpriteSource[] {
     GABLE.apexX + 10,
   ]);
   frontGable(canvas);
-  shutteredWindow(canvas, 13, 68);
-  shutteredWindow(canvas, 53, 68);
+  shutteredWindow(canvas, 13, 52);
+  shutteredWindow(canvas, 53, 52);
   foundation(canvas);
   door(canvas);
   porchCanopy(canvas);

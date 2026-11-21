@@ -56,22 +56,6 @@ export function paintedWall(c: PixelCanvas, b: Box, base: Rgba, fleck: Rgba): vo
   }
 }
 
-/** Vertical boards (the studio's cladding). */
-export function boardWall(c: PixelCanvas, b: Box): void {
-  const wood = PALETTE.dock;
-  for (let x = b.left; x <= b.right; x++) {
-    const band = (x - b.left) % 5;
-    fillRect(
-      c,
-      x,
-      b.top,
-      1,
-      height(b),
-      band === 4 ? wood.dark : band === 0 ? wood.light : wood.base,
-    );
-  }
-}
-
 /** Outline on the left and right edges of a wall. */
 export function wallEdges(c: PixelCanvas, b: Box): void {
   fillRect(c, b.left - 1, b.top, 1, height(b), O);
