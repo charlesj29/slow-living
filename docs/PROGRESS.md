@@ -18,7 +18,7 @@
   refined explorer with idle breathing, props by the house, stumps and branches, rocky coastal
   ledges, warm palette. The user approved it.
 - **M4 follow-ups resolved (2026-11-21):** the user measured ~240 FPS with F3 on their laptop;
-  the project is pushed to GitHub `origin/master` (`main` on the remote is unused). Push only
+  the project is pushed to GitHub `origin/master` (the only branch; `main` no longer exists). Push only
   when the user asks. **Next:** pick new work from `docs/ROADMAP.md` with the user.
 
 ## Milestones
