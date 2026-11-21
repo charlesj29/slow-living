@@ -88,6 +88,14 @@
 
 ## Session log
 
+### 2026-11-21 — Collapsible project screenshots (user request)
+
+- Each project's screenshot sits behind a "Show screenshots" toggle (collapsed at first, a
+  native `<details>`; the image downloads only when opened; the label turns to "Hide
+  screenshots").
+- **Verified:** typecheck, lint, tests, build pass; in the browser: collapsed with the image not
+  loaded, opens and loads on click, label switches; console clean.
+
 ### 2026-11-21 — Portfolio wording and contact (user request)
 
 - About me in the third person, short and relaxed; simpler project texts; Poly's page says

@@ -65,6 +65,7 @@ function LinkButton({
 /** One page of a portfolio panel: title, details, screenshot and links. */
 export function PortfolioPageView({ page }: { readonly page: PortfolioPage }): JSX.Element {
   const [notice, setNotice] = useState<string | null>(null);
+  const [shotsOpen, setShotsOpen] = useState(false);
   useEffect(() => {
     if (notice === null) return;
     const timer = window.setTimeout(() => setNotice(null), NOTICE_MS);
@@ -89,15 +90,31 @@ export function PortfolioPageView({ page }: { readonly page: PortfolioPage }): J
         </ul>
       )}
       {page.image && (
-        <a
-          className="portfolio-shot"
-          href={resolveHref(page.image.src)}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Open the full-size image"
+        // Collapsed at first: the text comes first, the screenshot on request
+        // (and it only downloads once opened).
+        <details
+          className="portfolio-shot-toggle"
+          onToggle={(event) => {
+            setShotsOpen(event.currentTarget.open);
+          }}
         >
-          <img src={resolveHref(page.image.src)} alt={page.image.alt} loading="lazy" />
-        </a>
+          <summary
+            onClick={(event) => {
+              event.currentTarget.blur(); // or Space would press it again
+            }}
+          >
+            {shotsOpen ? 'Hide screenshots' : 'Show screenshots'}
+          </summary>
+          <a
+            className="portfolio-shot"
+            href={resolveHref(page.image.src)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open the full-size image"
+          >
+            <img src={resolveHref(page.image.src)} alt={page.image.alt} loading="lazy" />
+          </a>
+        </details>
       )}
       {page.tags && (
         <ul className="portfolio-tags" aria-label="Technologies">
