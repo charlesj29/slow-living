@@ -235,7 +235,8 @@ flowchart LR
   `GameCanvas`). `GameLoop` mirrors `calmMode` (resting / touring) into the store: the HUD
   fades or hides and `MusicToggle` makes the music mellow. Nature sounds:
   `shared/audio/ambiencePlayer.ts` + `ambienceSounds.ts`, mixed by `core/systems/soundscape.ts`,
-  driven by `ui/AmbientSound`.
+  driven by `ui/AmbientSound`. Village sounds (chimes, voices, footsteps by ground, the bell) are
+  in `shared/audio/villageSounds.ts`; footsteps follow `Player.footfalls`.
 - **Wildlife (D66):** rabbits (`core/systems/rabbits.ts`) and a duck family
   (`core/systems/ducks.ts`: the mother follows smoothed routes over open lake water from
   `waterPaths.ts`, the ducklings follow her) are simulated in `GameState` on the island.

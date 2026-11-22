@@ -4,7 +4,8 @@
 // samples this now and then and hands the levels to the audio.
 import { distanceField, EIGHT_DIRECTIONS } from '@/shared/engine/grid';
 import type { IslandConfig } from '../config';
-import { getTileDefinition } from '../world/tiles';
+import { getTileDefinition, TileId } from '../world/tiles';
+import { villageTiles } from '../world/village';
 import type { World } from '../world/world';
 
 /** 0..1 per sound layer (the same layers as the audio's). */
@@ -14,6 +15,44 @@ export interface SoundscapeLevels {
   readonly crickets: number;
   readonly rain: number;
   readonly fire: number;
+  /** Wind chimes round the village (day and night). */
+  readonly chimes: number;
+  /** A soft murmur of voices in the village (by day). */
+  readonly chatter: number;
+  /** Footsteps and the bell are short sounds: how loud they come through here. */
+  readonly steps: number;
+  readonly bell: number;
+}
+
+/** Steps (8-way) from every tile to the sea, and to the village. */
+export interface Distances {
+  readonly sea: Int32Array;
+  readonly village: Int32Array;
+}
+
+/** What a footstep sounds like on the ground underfoot. */
+export type Ground = 'path' | 'grass' | 'sand' | 'wood';
+
+const GROUND_BY_TILE: Readonly<Partial<Record<number, Ground>>> = {
+  [TileId.Path]: 'path',
+  [TileId.Grass]: 'grass',
+  [TileId.Sand]: 'sand',
+  [TileId.Dock]: 'wood',
+  [TileId.Floor]: 'wood',
+  [TileId.Doormat]: 'grass',
+};
+
+export function groundAt(world: World, x: number, y: number, tileSizePx: number): Ground {
+  const tx = Math.floor(x / tileSizePx);
+  const ty = Math.floor(y / tileSizePx);
+  if (tx < 0 || ty < 0 || tx >= world.width || ty >= world.height) return 'grass';
+  return GROUND_BY_TILE[world.terrain[ty * world.width + tx] ?? 0] ?? 'grass';
+}
+
+/** Steps from every tile to the village (none without one: everything far away). */
+export function villageDistances(world: World): Int32Array {
+  const village = new Set(world.village ? villageTiles(world.village, world) : []);
+  return distanceField(world, (index) => village.has(index), EIGHT_DIRECTIONS);
 }
 
 export interface Listener {
@@ -69,7 +108,7 @@ export function soundscapeLevels(
   listener: Listener,
   night: number,
   rain: number,
-  seaDistance: Int32Array,
+  distances: Distances,
   settings: IslandConfig['ambience'],
   tileSizePx: number,
 ): SoundscapeLevels {
@@ -84,19 +123,30 @@ export function soundscapeLevels(
       crickets: crickets * damp,
       rain: clamp01(rain * damp * ROOF_RAIN),
       fire: fireLevel(listener, settings, tileSizePx),
+      chimes: 0,
+      chatter: 0,
+      steps: 1,
+      bell: damp,
     };
   }
   const tx = Math.floor(listener.x / tileSizePx);
   const ty = Math.floor(listener.y / tileSizePx);
   const inside = tx >= 0 && ty >= 0 && tx < listener.world.width && ty < listener.world.height;
-  const steps = inside ? (seaDistance[ty * listener.world.width + tx] ?? 0) : 0;
-  const { nearTiles, farTiles, floor } = settings.waves;
-  const near = clamp01(1 - (steps - nearTiles) / (farTiles - nearTiles));
+  const at = (field: Int32Array): number =>
+    inside ? (field[ty * listener.world.width + tx] ?? 0) : Infinity;
+  const fade = (steps: number, range: { nearTiles: number; farTiles: number }): number =>
+    steps < 0 ? 0 : clamp01(1 - (steps - range.nearTiles) / (range.farTiles - range.nearTiles));
+  const { floor } = settings.waves;
+  const village = fade(at(distances.village), settings.village);
   return {
-    waves: floor + (1 - floor) * near,
+    waves: floor + (1 - floor) * fade(at(distances.sea), settings.waves),
     birds,
     crickets,
     rain,
     fire: 0,
+    chimes: village * (1 - 0.5 * rain),
+    chatter: village * day * (1 - rain),
+    steps: 1,
+    bell: 1,
   };
 }

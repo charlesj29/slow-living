@@ -345,7 +345,15 @@ export interface IslandConfig {
       readonly crickets: number;
       readonly rain: number;
       readonly fire: number;
+      readonly chimes: number;
+      readonly chatter: number;
+      readonly steps: number;
+      readonly bell: number;
     };
+    /** Wind chimes and voices are loudest within `nearTiles` of the village, gone by `farTiles`. */
+    readonly village: { readonly nearTiles: number; readonly farTiles: number };
+    /** When the distant village bell rings (fractions of a day: 0.5 = noon, 0.75 = 6 PM). */
+    readonly bellTimes: readonly number[];
     /** Waves are loudest within `nearTiles` of the sea and fade out by `farTiles`. */
     readonly waves: {
       readonly nearTiles: number;
@@ -634,7 +642,19 @@ export const ISLAND_CONFIG: IslandConfig = {
   tour: { idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {
     volume: 0.5,
-    layerVolumes: { waves: 0.5, birds: 0.35, crickets: 0.16, rain: 0.2, fire: 0.5 },
+    layerVolumes: {
+      waves: 0.5,
+      birds: 0.35,
+      crickets: 0.16,
+      rain: 0.2,
+      fire: 0.5,
+      chimes: 0.22,
+      chatter: 0.1,
+      steps: 0.3,
+      bell: 0.28,
+    },
+    village: { nearTiles: 1, farTiles: 14 },
+    bellTimes: [0.5, 0.75],
     waves: { nearTiles: 2, farTiles: 16, floor: 0.06 },
     indoorDamping: 0.3,
     fireNearTiles: 3,

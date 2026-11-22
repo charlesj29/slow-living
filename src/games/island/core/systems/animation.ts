@@ -47,7 +47,12 @@ export function updatePlayerAnimation(
   player.idleTime = 0;
   const moved = Math.hypot(player.x - player.previousX, player.y - player.previousY);
   const inPlace = settings.walkSpeedTilesPerSecond * tileSizePx * stepSeconds;
+  const before = player.strideDistance;
   player.strideDistance += moved > 0 ? moved : inPlace;
+  // A foot lands twice per cycle, a quarter of the way into each half (where the frames plant it).
+  const step = (player.running ? settings.runCyclePx : settings.walkCyclePx) / 2;
+  const landed = (distance: number): number => Math.floor((distance + step / 2) / step);
+  player.footfalls += landed(player.strideDistance) - landed(before);
 }
 
 function idleFrame(idleTime: number, settings: AnimationSettings): number {

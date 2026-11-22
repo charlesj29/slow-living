@@ -5,21 +5,34 @@ import type { GameState } from '../core/game/gameState';
 import { cameraFocus } from '../core/game/idleTour';
 import { ISLAND_MAP } from '../core/game/mapTravel';
 import { targetLighting } from '../core/systems/dayNight';
-import { seaDistances, soundscapeLevels } from '../core/systems/soundscape';
+import {
+  groundAt,
+  seaDistances,
+  soundscapeLevels,
+  villageDistances,
+} from '../core/systems/soundscape';
 import { useIslandUiStore } from '../state';
+
+/** How often to check for a new footstep (ms): short, so steps land on the beat of the feet. */
+const FOOTSTEP_CHECK_MS = 30;
 
 /**
  * Nature sounds under the music (surf, birds, crickets, rain, the fire). They
  * start with the music on the first key press or click, and the same mute
  * button (M) silences both. The mix is sampled from the game a few times a
  * second (never per frame) from where the camera looks: the player, or the
- * ambient tour. Renders nothing.
+ * ambient tour. Footsteps follow the player's steps (checked every few
+ * frames' worth of time), and the village bell rings at its hours. Renders
+ * nothing.
  */
 export function AmbientSound({ game }: { readonly game: GameState }): null {
   const isMuted = useIslandUiStore((state) => state.isMusicMuted);
   const hasGestureRef = useRef(false);
   const island = game.maps.get(ISLAND_MAP) ?? game.world;
-  const seaDistance = useMemo(() => seaDistances(island), [island]);
+  const distances = useMemo(
+    () => ({ sea: seaDistances(island), village: villageDistances(island) }),
+    [island],
+  );
   const player = useMemo(
     () =>
       createAmbiencePlayer({
@@ -64,7 +77,7 @@ export function AmbientSound({ game }: { readonly game: GameState }): null {
           { world: game.world, x: where.x, y: where.y },
           night,
           game.weather.intensity,
-          seaDistance,
+          distances,
           settings,
           ISLAND_CONFIG.map.tileSizePx,
         ),
@@ -73,7 +86,33 @@ export function AmbientSound({ game }: { readonly game: GameState }): null {
     sample();
     const timer = window.setInterval(sample, settings.sampleMs);
     return () => window.clearInterval(timer);
-  }, [game, player, seaDistance]);
+  }, [game, player, distances]);
+
+  // Footsteps: one sound per step the player takes, on the ground underfoot.
+  useEffect(() => {
+    let heard = game.player.footfalls;
+    const timer = window.setInterval(() => {
+      const { player: body } = game;
+      if (body.footfalls === heard) return;
+      heard = body.footfalls;
+      player.footstep(groundAt(game.world, body.x, body.y, ISLAND_CONFIG.map.tileSizePx));
+    }, FOOTSTEP_CHECK_MS);
+    return () => window.clearInterval(timer);
+  }, [game, player]);
+
+  // The village bell, when the clock passes one of its hours (not while day or night is held).
+  useEffect(() => {
+    let last = game.timeOfDay;
+    const timer = window.setInterval(() => {
+      const now = game.timeOfDay;
+      const passed = ISLAND_CONFIG.ambience.bellTimes.some((hour) =>
+        now >= last ? last < hour && hour <= now : hour > last || hour <= now,
+      );
+      last = now;
+      if (passed && game.heldTime === null) player.ringBell();
+    }, ISLAND_CONFIG.ambience.sampleMs);
+    return () => window.clearInterval(timer);
+  }, [game, player]);
 
   return null;
 }

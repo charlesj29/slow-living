@@ -14,8 +14,10 @@ import {
   surf,
 } from './ambienceSounds';
 import { startTicker, type Ticker } from './ticker';
+import { bell, chimes, footstep, syllable, voiceBed, type FootstepGround } from './villageSounds';
 
-export type AmbienceLayer = 'waves' | 'birds' | 'crickets' | 'rain' | 'fire';
+export type AmbienceLayer =
+  'waves' | 'birds' | 'crickets' | 'rain' | 'fire' | 'chimes' | 'chatter' | 'steps' | 'bell';
 /** 0..1 per layer. */
 export type AmbienceLevels = Readonly<Record<AmbienceLayer, number>>;
 
@@ -25,6 +27,10 @@ export const AMBIENCE_LAYERS: readonly AmbienceLayer[] = [
   'crickets',
   'rain',
   'fire',
+  'chimes',
+  'chatter',
+  'steps',
+  'bell',
 ];
 
 export interface AmbiencePlayerOptions {
@@ -40,6 +46,10 @@ export interface AmbiencePlayer {
   start: () => Promise<void>;
   setMuted: (muted: boolean) => void;
   setLevels: (levels: AmbienceLevels) => void;
+  /** A footstep on this ground, now. */
+  footstep: (ground: FootstepGround) => void;
+  /** The distant village bell (three strikes). */
+  ringBell: () => void;
   dispose: () => void;
 }
 
@@ -52,6 +62,7 @@ const TICK_MS = 50;
 /** Seconds between bird phrases (scaled down when birds are loud), crackles and trills. */
 const BIRD_GAP = { min: 1.8, max: 6.5 } as const;
 const CRACKLE_GAP = { min: 0.05, max: 0.45 } as const;
+const CHIME_GAP = { min: 2.5, max: 7 } as const;
 const CRICKETS = [
   { pitch: 4600, every: 0.72 },
   { pitch: 5150, every: 0.93 },
@@ -63,6 +74,8 @@ interface Graph {
   readonly master: GainNode;
   readonly layers: Readonly<Record<AmbienceLayer, GainNode>>;
   readonly noise: AudioBuffer;
+  /** The murmur's syllables open and close this gain on the voice bed. */
+  readonly syllables: GainNode;
 }
 
 function buildGraph(context: AudioContext): Graph {
@@ -81,21 +94,36 @@ function buildGraph(context: AudioContext): Graph {
     crickets: layer(),
     rain: layer(),
     fire: layer(),
+    chimes: layer(),
+    chatter: layer(),
+    steps: layer(),
+    bell: layer(),
   };
   const noise = noiseBuffer(context, 11);
   surf(context, noise, layers.waves);
   rainfall(context, noise, layers.rain);
   fireBed(context, noise, layers.fire);
-  return { context, master, layers, noise };
+  const syllables = voiceBed(context, noise, layers.chatter);
+  return { context, master, layers, noise, syllables };
 }
 
 export function createAmbiencePlayer(options: AmbiencePlayerOptions): AmbiencePlayer {
   let graph: Graph | null = null;
   let ticker: Ticker | null = null;
   let muted = false;
-  let levels: AmbienceLevels = { waves: 0, birds: 0, crickets: 0, rain: 0, fire: 0 };
+  let levels: AmbienceLevels = {
+    waves: 0,
+    birds: 0,
+    crickets: 0,
+    rain: 0,
+    fire: 0,
+    chimes: 0,
+    chatter: 0,
+    steps: 0,
+    bell: 0,
+  };
   const rng = createRng(RNG_SEED);
-  const next = { bird: 0, crackle: 0, crickets: CRICKETS.map(() => 0) };
+  const next = { bird: 0, crackle: 0, chime: 0, syllable: 0, crickets: CRICKETS.map(() => 0) };
 
   /** Queues the short sounds due before the lookahead horizon (or skips them while silent). */
   const tick = (): void => {
@@ -112,6 +140,15 @@ export function createAmbiencePlayer(options: AmbiencePlayerOptions): AmbiencePl
     while (levels.fire >= AUDIBLE && next.crackle < horizon) {
       crackle(context, noise, layers.fire, Math.max(next.crackle, now), rng);
       next.crackle = Math.max(next.crackle, now) + rng.range(CRACKLE_GAP.min, CRACKLE_GAP.max);
+    }
+    if (levels.chimes < AUDIBLE) next.chime = Math.max(next.chime, now);
+    while (levels.chimes >= AUDIBLE && next.chime < horizon) {
+      const end = chimes(context, layers.chimes, Math.max(next.chime, now), rng);
+      next.chime = end + rng.range(CHIME_GAP.min, CHIME_GAP.max) / (0.5 + levels.chimes);
+    }
+    if (levels.chatter < AUDIBLE) next.syllable = Math.max(next.syllable, now);
+    while (levels.chatter >= AUDIBLE && next.syllable < horizon) {
+      next.syllable = syllable(graph.syllables, Math.max(next.syllable, now), rng);
     }
     CRICKETS.forEach((cricket, i) => {
       let at = Math.max(next.crickets[i] ?? 0, now);
@@ -177,6 +214,21 @@ export function createAmbiencePlayer(options: AmbiencePlayerOptions): AmbiencePl
     setLevels: (value) => {
       levels = value;
       applyLevels();
+    },
+    footstep: (ground) => {
+      if (!graph || graph.context.state !== 'running' || levels.steps < AUDIBLE) return;
+      footstep(
+        graph.context,
+        graph.noise,
+        graph.layers.steps,
+        graph.context.currentTime,
+        ground,
+        rng,
+      );
+    },
+    ringBell: () => {
+      if (!graph || graph.context.state !== 'running' || levels.bell < AUDIBLE) return;
+      bell(graph.context, graph.layers.bell, graph.context.currentTime + 0.05);
     },
     dispose: () => {
       ticker?.stop();

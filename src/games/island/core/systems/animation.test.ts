@@ -101,3 +101,25 @@ describe('player animation', () => {
     expect(player.idleTime).toBe(0);
   });
 });
+
+describe('footfalls', () => {
+  it('counts two steps per walk cycle, the first a quarter of a cycle in', () => {
+    const player = moving();
+    walk(player, 9);
+    expect(player.footfalls).toBe(0);
+    walk(player, 2); // 11 px: past a quarter of the 40 px cycle
+    expect(player.footfalls).toBe(1);
+    for (let i = 0; i < 20; i++) walk(player, 2); // 40 px more: one whole cycle
+    expect(player.footfalls).toBe(3);
+  });
+
+  it('takes longer strides when running', () => {
+    const walker = moving();
+    const runner = moving(true);
+    for (let i = 0; i < 60; i++) {
+      walk(walker, 2);
+      walk(runner, 2);
+    }
+    expect(runner.footfalls).toBeLessThan(walker.footfalls);
+  });
+});

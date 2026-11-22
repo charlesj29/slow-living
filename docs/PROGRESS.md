@@ -89,6 +89,21 @@
 
 ## Session log
 
+### 2026-11-22 — Village sounds: footsteps, wind chimes, voices, the bell (user request)
+
+- **Footsteps** on every step the player takes (`Player.footfalls`, two per walk cycle), by the
+  ground underfoot (`groundAt`): a gravel crunch on paths, a swish on grass, a hush on sand, a
+  hollow knock on the dock and wooden floors.
+- **Near the village** (`villageDistances`): soft wind chimes at any hour, and by day a faint
+  murmur of voices (shaped noise, `shared/audio/villageSounds.ts`); both fade with distance.
+- **The village bell**, distant, three strikes at noon and at 6 PM (`ambience.bellTimes`), not while
+  the day/night button holds day or night.
+- New volumes in `ambience.layerVolumes` (`chimes`, `chatter`, `steps`, `bell`) and the village
+  range in `ambience.village`. All under the one mute button.
+- **Verified:** typecheck, lint, tests (footfalls per cycle and when running; chimes and voices by
+  day, chimes only at night, quieter away; ground types), build; browser: walking with sound
+  started, console clean. The sounds themselves are for the user to judge by ear.
+
 ### 2026-11-22 — Slow village life: daily routines and greetings (user request)
 
 - The villagers follow the clock (`core/systems/routine.ts`, schedules in `config.villagerDay`):

@@ -3,19 +3,19 @@ import { ISLAND_CONFIG } from '../config';
 import { generateValidWorld } from '../generation/testUtils';
 import { buildInteriorWorld, INTERIORS } from '../world/interiors';
 import { getTileDefinition } from '../world/tiles';
-import { seaDistances, soundscapeLevels } from './soundscape';
+import { groundAt, seaDistances, soundscapeLevels, villageDistances } from './soundscape';
 
 const TILE = ISLAND_CONFIG.map.tileSizePx;
 const settings = ISLAND_CONFIG.ambience;
 const island = generateValidWorld(46);
-const sea = seaDistances(island);
+const sea = { sea: seaDistances(island), village: villageDistances(island) };
 
 /** The centre of a tile that is (or isn't) right by the sea. */
 function spot(bySea: boolean): { x: number; y: number } {
   for (let i = 0; i < island.terrain.length; i++) {
     const land = getTileDefinition(island.terrain[i] ?? 0).waterBody === null;
     if (!land) continue;
-    const steps = sea[i] ?? 0;
+    const steps = sea.sea[i] ?? 0;
     if (bySea ? steps === 1 : steps > settings.waves.farTiles) {
       return {
         x: ((i % island.width) + 0.5) * TILE,
@@ -27,6 +27,35 @@ function spot(bySea: boolean): { x: number; y: number } {
 }
 
 describe('soundscape', () => {
+  it('hears wind chimes and voices in the village by day, only chimes at night', () => {
+    const gate = island.village?.gate;
+    if (!gate) throw new Error('no village');
+    const where = { world: island, x: (gate.x + 0.5) * TILE, y: (gate.y + 0.5) * TILE };
+    const day = soundscapeLevels(where, 0, 0, sea, settings, TILE);
+    const night = soundscapeLevels(where, 1, 0, sea, settings, TILE);
+    expect(day.chimes).toBe(1);
+    expect(day.chatter).toBe(1);
+    expect(night.chimes).toBe(1);
+    expect(night.chatter).toBe(0);
+    const far = soundscapeLevels({ world: island, ...spot(true) }, 0, 0, sea, settings, TILE);
+    expect(far.chatter).toBeLessThan(day.chatter);
+  });
+
+  it('knows the ground underfoot', () => {
+    const tileOf = (id: number): { x: number; y: number } => {
+      const i = island.terrain.indexOf(id);
+      return {
+        x: ((i % island.width) + 0.5) * TILE,
+        y: (Math.floor(i / island.width) + 0.5) * TILE,
+      };
+    };
+    const at = (p: { x: number; y: number }): string => groundAt(island, p.x, p.y, TILE);
+    expect(at(tileOf(6))).toBe('path');
+    expect(at(tileOf(3))).toBe('grass');
+    expect(at(tileOf(2))).toBe('sand');
+    expect(at(tileOf(7))).toBe('wood');
+  });
+
   it('has loud surf by the sea and only a distant murmur inland', () => {
     const beach = soundscapeLevels({ world: island, ...spot(true) }, 0, 0, sea, settings, TILE);
     const inland = soundscapeLevels({ world: island, ...spot(false) }, 0, 0, sea, settings, TILE);
