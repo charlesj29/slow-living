@@ -10,17 +10,17 @@ interface Control {
 }
 
 const KEYBOARD_CONTROLS: readonly Control[] = [
-  { keys: 'WASD / ←↑↓→', action: 'walk' },
-  { keys: 'Shift', action: 'run' },
-  { keys: 'Space', action: 'interact' },
-  { keys: '+ / −', action: 'zoom' },
-  { keys: 'M', action: 'music' },
-  { keys: 'R', action: 'new island' },
+  { keys: 'WASD / ←↑↓→', action: 'Walk' },
+  { keys: 'Shift', action: 'Run' },
+  { keys: 'Space', action: 'Interact' },
+  { keys: '+ / −', action: 'Zoom' },
+  { keys: 'M', action: 'Music' },
+  { keys: 'R', action: 'New Island' },
 ];
 
 const TOUCH_CONTROLS: readonly Control[] = [
-  { keys: 'Tap', action: 'walk' },
-  { keys: 'Tap people & things', action: 'interact' },
+  { keys: 'Tap', action: 'Walk' },
+  { keys: 'Tap people & things', action: 'Interact' },
 ];
 
 /**

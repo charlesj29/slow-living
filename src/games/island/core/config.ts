@@ -548,7 +548,7 @@ export const ISLAND_CONFIG: IslandConfig = {
   rabbits: {
     enabled: true,
     white: 1,
-    brown: 1,
+    brown: 2,
     nearVillageTiles: { min: 3, max: 10 },
     buildingClearanceTiles: 4,
     hopSeconds: 0.34,
@@ -624,7 +624,7 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   dayNight: {
     // One full day (dawn → day → dusk → night) in real seconds, e.g. 300 = 5 minutes.
-    dayLengthSeconds: 720,
+    dayLengthSeconds: 300,
     startTime: 0.33,
     transitionSharpness: 2.5,
   },
@@ -658,15 +658,15 @@ export const ISLAND_CONFIG: IslandConfig = {
     ],
   },
   weather: {
-    minClearSeconds: 600,
-    maxClearSeconds: 900,
-    minRainSeconds: 70,
-    maxRainSeconds: 110,
+    minClearSeconds: 60,
+    maxClearSeconds: 90,
+    minRainSeconds: 90,
+    maxRainSeconds: 120,
     fadeSeconds: 10,
-    rainTint: [0.72, 0.77, 0.87],
-    dropDensity: 0.7,
+    rainTint: [0.625, 0.715, 0.78],
+    dropDensity: 0.55,
     maxDrops: 600,
-    lakeRings: 18,
+    lakeRings: 15,
     fallSpeedPx: 210,
     windPx: 45,
   },
@@ -681,7 +681,7 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   lanterns: { first: 0.5, last: 0.95 },
   clouds: { count: 5, speedPx: 4 },
-  tour: { enabled: true, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
+  tour: { enabled: false, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {
     volume: 0.5,
     layerVolumes: {
@@ -710,7 +710,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     mellowVolume: 0.7,
     mellowSeconds: 2.5,
   },
-  pointer: { clickToWalk: true },
+  pointer: { clickToWalk: false },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250, showClock: true, fpsOnly: true },
   render: {
     targetTilesAcross: 20,
@@ -718,7 +718,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     defaultZoomSteps: -3,
     touchTargetTilesAcross: 18,
     touchDefaultZoomSteps: 0,
-    zoomEnabled: true,
+    zoomEnabled: false,
     minPixelScale: 1,
     maxPixelScale: 12,
     waterFrameSeconds: 0.5,
