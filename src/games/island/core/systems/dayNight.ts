@@ -98,3 +98,27 @@ export function clockLabel(time: number): string {
   const pad = (n: number): string => String(n).padStart(2, '0');
   return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 }
+
+/** The part of the day, as the clock names it. */
+export type DayPhase = 'dawn' | 'morning' | 'afternoon' | 'evening' | 'night';
+
+/** Where each phase begins (fractions of a day), matching the light's keyframes. */
+const PHASE_STARTS: readonly (readonly [number, DayPhase])[] = [
+  [0.2, 'dawn'],
+  [0.31, 'morning'],
+  [0.5, 'afternoon'],
+  [0.71, 'evening'],
+  [0.83, 'night'],
+];
+
+export function dayPhase(time: number): DayPhase {
+  const t = time - Math.floor(time);
+  let phase: DayPhase = 'night';
+  for (const [start, name] of PHASE_STARTS) if (t >= start) phase = name;
+  return phase;
+}
+
+/** The time the scene shows: the clock in Auto, otherwise the held noon or midnight. */
+export function shownTime(mode: DayNightMode, time: number): number {
+  return mode === 'day' ? NOON : mode === 'night' ? MIDNIGHT : time;
+}

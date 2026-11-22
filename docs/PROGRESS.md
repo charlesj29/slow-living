@@ -89,6 +89,17 @@
 
 ## Session log
 
+### 2026-11-22 — A game-style clock (user request)
+
+- Top right: a parchment plaque like the message box, with a pixel-art sun, sunrise, sunset, moon
+  or rain cloud, the time and the part of the day (Dawn, Morning, Afternoon, Evening, Night). It
+  turns night-blue at night, shows the held noon or midnight when the day/night button holds one,
+  and fades or hides with the other buttons (resting, tour). `debug.showClock` switches it off.
+- F3 now adds the FPS in a small readout under the clock (`debug.fpsOnly`).
+- The weather test now works out the expected showers from the config, so any rain timing passes.
+- **Verified:** typecheck, lint, tests, build; browser: the plaque by day with F3, and at night;
+  console clean.
+
 ### 2026-11-22 — Softer rain sound, an FPS-only F3 box (user request)
 
 - Rain sounds softer: a gentle hush (highs rolled off) over a quieter patter, and a lower level.

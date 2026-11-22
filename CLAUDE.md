@@ -75,7 +75,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 ## UI conventions
 
 - UI overlays live in `games/island/ui/` and read the shared `GameState` (sampled on a timer,
-  never per frame) or the zustand store (`state.ts`, UI flags only). F3 overlay: FPS + tile.
+  never per frame) or the zustand store (`state.ts`, UI flags only). Top right: the clock plaque (`ui/GameClock`, `debug.showClock`); F3 adds the FPS under it
+  (`debug.fpsOnly` off: also tile and camera).
 - Dev-only features check `import.meta.env.DEV` (the "Dev preview · seed" badge,
   `window.__islandRenderer`).
 

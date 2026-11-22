@@ -1,7 +1,6 @@
 import { useEffect, useState, type JSX } from 'react';
 import { ISLAND_CONFIG } from '../core/config';
 import { playerTile, type GameState } from '../core/game/gameState';
-import { clockLabel } from '../core/systems/dayNight';
 import { useIslandUiStore } from '../state';
 import './islandUi.css';
 
@@ -15,24 +14,18 @@ interface Readout {
   readonly fps: number;
   readonly tileX: number;
   readonly tileY: number;
-  readonly clock: string;
 }
 
 function readStats(game: GameState): Readout {
   const tile = playerTile(game, ISLAND_CONFIG.map.tileSizePx);
-  return {
-    fps: Math.round(game.framesPerSecond),
-    tileX: tile.x,
-    tileY: tile.y,
-    clock: clockLabel(game.timeOfDay),
-  };
+  return { fps: Math.round(game.framesPerSecond), tileX: tile.x, tileY: tile.y };
 }
 
 /**
- * F3 toggles a small readout (top-right) of FPS, the player's tile, the time of day and the
- * camera (zoom level, zoom step, tiles on screen), or just the FPS (`debug.fpsOnly`). While visible it
- * samples the game state a few times per second (never every frame), so React
- * stays out of the render loop.
+ * F3 toggles a small readout under the clock (top right): the FPS, and with
+ * `debug.fpsOnly` off also the player's tile and the camera (zoom level, zoom
+ * step, tiles on screen). While visible it samples the game state a few times
+ * per second (never every frame), so React stays out of the render loop.
  */
 export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
   const isVisible = useIslandUiStore((state) => state.isDebugOverlayVisible);
@@ -58,29 +51,25 @@ export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
   }, [isVisible, game]);
 
   if (!isVisible) return null;
-  if (ISLAND_CONFIG.debug.fpsOnly) {
-    return (
-      <div className="island-hud-panel island-debug-overlay" role="status">
-        FPS {readout.fps}
-      </div>
-    );
-  }
   return (
     <div className="island-hud-panel island-debug-overlay" role="status">
       <div>FPS {readout.fps}</div>
-      <div>
-        Tile {readout.tileX}, {readout.tileY}
-      </div>
-      <div>Time {readout.clock}</div>
-      {camera && (
+      {!ISLAND_CONFIG.debug.fpsOnly && (
         <>
           <div>
-            Zoom ×{camera.pixelScale} (step {camera.zoomOffset > 0 ? '+' : ''}
-            {camera.zoomOffset})
+            Tile {readout.tileX}, {readout.tileY}
           </div>
-          <div>
-            View {camera.tilesAcross} × {camera.tilesTall} tiles
-          </div>
+          {camera && (
+            <>
+              <div>
+                Zoom ×{camera.pixelScale} (step {camera.zoomOffset > 0 ? '+' : ''}
+                {camera.zoomOffset})
+              </div>
+              <div>
+                View {camera.tilesAcross} × {camera.tilesTall} tiles
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

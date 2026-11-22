@@ -34,9 +34,12 @@ describe('weather', () => {
         current = 0;
       }
     }
-    // An hour: a few showers (one every 10–15 minutes of clear weather).
-    expect(showers.length).toBeGreaterThanOrEqual(3);
-    expect(showers.length).toBeLessThanOrEqual(6);
+    // An hour holds as many dry-spell-plus-shower cycles as the configured lengths allow
+    // (the last shower may still be running, so one fewer is counted at worst).
+    const longestCycle = settings.maxClearSeconds + settings.maxRainSeconds;
+    const shortestCycle = settings.minClearSeconds + settings.minRainSeconds;
+    expect(showers.length).toBeGreaterThanOrEqual(Math.floor(3600 / longestCycle) - 1);
+    expect(showers.length).toBeLessThanOrEqual(Math.ceil(3600 / shortestCycle));
     for (const length of showers) {
       expect(length).toBeGreaterThanOrEqual(settings.minRainSeconds - STEP);
       expect(length).toBeLessThanOrEqual(settings.maxRainSeconds + STEP);

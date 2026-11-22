@@ -366,7 +366,9 @@ export interface IslandConfig {
     readonly fpsSmoothingSharpness: number;
     /** How often the F3 overlay refreshes its text. */
     readonly overlayRefreshMs: number;
-    /** true: the F3 box (top right) shows only the FPS; false: also tile, time and camera. */
+    /** The island clock (a plaque with the time and part of the day), top right. F3 adds the FPS under it. */
+    readonly showClock: boolean;
+    /** true: F3 adds only the FPS; false: also the tile and camera. */
     readonly fpsOnly: boolean;
   };
   readonly render: {
@@ -617,7 +619,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     mellowVolume: 0.7,
     mellowSeconds: 2.5,
   },
-  debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250, fpsOnly: true },
+  debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250, showClock: true, fpsOnly: true },
   render: {
     targetTilesAcross: 20,
     minTilesTall: 11,

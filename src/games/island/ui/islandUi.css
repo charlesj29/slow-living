@@ -191,11 +191,80 @@
   }
 }
 
-.island-debug-overlay {
+/* Top right: the clock, with the F3 readout under it. */
+.island-top-right {
+  position: absolute;
   top: 0.75rem;
   right: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-end;
+  pointer-events: none;
+  user-select: none;
+}
+
+.island-debug-overlay {
+  position: static;
   font-family: ui-monospace, Consolas, monospace;
   line-height: 1.4;
+  text-align: right;
+}
+
+/* The island clock: a little parchment plaque, like the message box. */
+.island-clock {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.35rem 0.7rem 0.35rem 0.5rem;
+  border: 3px solid #3a2416;
+  border-radius: 0.4rem;
+  background: #fff6e0;
+  box-shadow:
+    inset 0 0 0 2px #d9c39a,
+    0 3px 0 rgb(0 0 0 / 30%);
+  color: #3a2416;
+}
+
+/* At night the plaque turns night-blue, so the moon glows on it. */
+.island-clock.is-night {
+  border-color: #141726;
+  background: #2b3152;
+  box-shadow:
+    inset 0 0 0 2px #4a5482,
+    0 3px 0 rgb(0 0 0 / 35%);
+  color: #f3ead0;
+}
+
+.island-clock.is-night .island-clock-phase {
+  color: #b9c3e6;
+}
+
+.island-clock-icon {
+  width: 2rem;
+  height: 2rem;
+  image-rendering: pixelated;
+}
+
+.island-clock-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.island-clock-time {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.island-clock-phase {
+  color: #8a5a32;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* Phones and tablets: bigger buttons, easier to tap. */
@@ -243,12 +312,14 @@
 /* Quiet moments: resting on a bench fades the buttons (hover brings them back);
    the ambient tour hides them. */
 .island-hud-stack,
-.island-bottom-right {
+.island-bottom-right,
+.island-top-right {
   transition: opacity 1.2s ease;
 }
 
 .island-hud-stack.is-resting,
-.island-bottom-right.is-resting {
+.island-bottom-right.is-resting,
+.island-top-right.is-resting {
   opacity: 0.15;
 }
 
@@ -259,7 +330,8 @@
 }
 
 .island-hud-stack.is-touring,
-.island-bottom-right.is-touring {
+.island-bottom-right.is-touring,
+.island-top-right.is-touring {
   opacity: 0;
   pointer-events: none;
 }

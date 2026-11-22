@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   advanceTimeOfDay,
   clockLabel,
+  dayPhase,
   lightingAt,
   MIDNIGHT,
   NOON,
+  shownTime,
   targetLighting,
 } from './dayNight';
 
@@ -44,5 +46,23 @@ describe('day/night cycle', () => {
     expect(clockLabel(0)).toBe('00:00');
     expect(clockLabel(0.5)).toBe('12:00');
     expect(clockLabel(0.75)).toBe('18:00');
+  });
+});
+
+describe('dayPhase', () => {
+  it('names the parts of the day in order, wrapping round midnight', () => {
+    expect(dayPhase(0)).toBe('night');
+    expect(dayPhase(0.25)).toBe('dawn');
+    expect(dayPhase(0.4)).toBe('morning');
+    expect(dayPhase(0.6)).toBe('afternoon');
+    expect(dayPhase(0.75)).toBe('evening');
+    expect(dayPhase(0.9)).toBe('night');
+    expect(dayPhase(1.4)).toBe('morning');
+  });
+
+  it('shows the held time when the day/night button holds day or night', () => {
+    expect(shownTime('day', 0.9)).toBe(0.5);
+    expect(shownTime('night', 0.4)).toBe(0);
+    expect(shownTime('auto', 0.4)).toBe(0.4);
   });
 });

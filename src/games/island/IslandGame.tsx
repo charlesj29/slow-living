@@ -9,6 +9,7 @@ import { ControlsHint } from './ui/ControlsHint';
 import { AmbientSound } from './ui/AmbientSound';
 import { DayNightToggle } from './ui/DayNightToggle';
 import { DebugOverlay } from './ui/DebugOverlay';
+import { GameClock } from './ui/GameClock';
 import { DevSeedBadge } from './ui/DevSeedBadge';
 import { DialogBox } from './ui/DialogBox';
 import { IslandSwitcher } from './ui/IslandSwitcher';
@@ -76,7 +77,11 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
   return (
     <>
       <GameCanvas game={game} />
-      <DebugOverlay game={game} />
+      {/* Top right: the clock, with the F3 readout under it. */}
+      <div className={`island-top-right${calmClass}`}>
+        {ISLAND_CONFIG.debug.showClock && <GameClock game={game} />}
+        <DebugOverlay game={game} />
+      </div>
       <AmbientSound game={game} />
       <ScreenFade />
       <StudioVisitMemory />
