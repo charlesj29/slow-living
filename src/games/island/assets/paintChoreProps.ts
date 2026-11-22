@@ -21,7 +21,7 @@ export const CHORE_KEYS = {
 } as const;
 export const BROOM_FRAME_COUNT = 4;
 /** The broom sprite (side view, facing right): the hands hold the top-left corner. */
-export const BROOM_SPRITE = { width: 16, height: 14 } as const;
+export const BROOM_SPRITE = { width: 16, height: 10 } as const;
 
 const C: Readonly<Record<string, Rgba>> = {
   h: hexToRgba('#7a4a28'), // wood: broom handle, rod
@@ -60,20 +60,20 @@ function broomFrame(tipX: number, dust: boolean): PixelCanvas {
     const color = C[letter];
     if (color && x >= 0 && x < width && y >= 0 && y < height) setPixel(canvas, x, y, color);
   };
-  // The handle, hands to bristles.
-  const steps = 9;
+  // The handle, from the hands (level with the villager's hand) down to the bristles.
+  const steps = 5;
   for (let i = 0; i <= steps; i++) put(Math.round(1 + ((tipX - 1) * i) / steps), i, 'h');
-  put(tipX, 10, 'm');
+  put(tipX, 6, 'm');
   // Bristles fanning out on the ground.
-  for (let x = tipX - 1; x <= tipX + 1; x++) put(x, 11, 's');
-  for (let x = tipX - 2; x <= tipX + 2; x++) put(x, 12, x % 2 === 0 ? 's' : 'd');
-  for (let x = tipX - 2; x <= tipX + 2; x++) put(x, 13, 'o');
-  put(tipX - 2, 11, 'o');
-  put(tipX + 2, 11, 'o');
+  for (let x = tipX - 1; x <= tipX + 1; x++) put(x, 7, 's');
+  for (let x = tipX - 2; x <= tipX + 2; x++) put(x, 8, x % 2 === 0 ? 's' : 'd');
+  for (let x = tipX - 2; x <= tipX + 2; x++) put(x, 9, 'o');
+  put(tipX - 2, 7, 'o');
+  put(tipX + 2, 7, 'o');
   if (dust) {
-    put(tipX - 4, 12, 'u');
-    put(tipX - 5, 11, 'u');
-    put(tipX - 3, 10, 'u');
+    put(tipX - 4, 8, 'u');
+    put(tipX - 5, 7, 'u');
+    put(tipX - 3, 6, 'u');
   }
   return canvas;
 }

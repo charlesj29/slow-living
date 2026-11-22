@@ -98,7 +98,8 @@
 - Villagers now plan their routes round the player too (the player's tile counts as taken).
 - **Sweeping:** the keeper stands side-on and the broom (a new side-view, 4-frame sprite) sweeps the
   ground in front, with a puff of dust at the end of each stroke; they turn round every quarter of
-  an hour of island time.
+  an hour of island time. The handle starts at the villager's hand (7 px above the feet) and slants down to the
+  bristles in front of them.
 - **Verified:** typecheck, lint, tests (the waiting spot never cuts off the dock on 3 seeds; the
   fisher waits while the player is on the dock, then fishes), build; browser: the keeper sweeping
   side-on with the broom on the ground; console clean.

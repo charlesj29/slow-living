@@ -13,8 +13,11 @@ import { standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
 /** One frame of the sweeping stroke. */
 const SWEEP_SECONDS = 0.22;
-/** The hands hold the broom just in front of the body, at chest height (from the feet). */
-const HANDS = { forward: 1, up: 12 } as const;
+/**
+ * Where the broom's top meets the hands: the villagers' side-view hand sits 7 px
+ * above the feet, level with the body's middle (from the feet, map pixels).
+ */
+const HANDS = { forward: 0, up: 7 } as const;
 /** The bobber rides the ripples, dipping now and then. */
 const BOB_HZ = 0.7;
 /** Props sit a hair in front of (or behind) the villager holding them. */
