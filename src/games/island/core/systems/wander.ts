@@ -39,7 +39,7 @@ export interface Crowd {
 const tileIndexOf = (world: World, body: Player, tileSizePx: number): number =>
   toIndex(world, Math.floor(body.x / tileSizePx), Math.floor(body.y / tileSizePx));
 
-/** Tiles other villagers stand on or are stepping onto right now: never walk through these. */
+/** Tiles other villagers (and the player) stand on or are stepping onto right now: never walk through these. */
 function occupiedTiles(
   villager: Villager,
   crowd: Crowd,
@@ -47,6 +47,7 @@ function occupiedTiles(
   tileSizePx: number,
 ): Set<number> {
   const occupied = new Set<number>();
+  if (crowd.player) occupied.add(tileIndexOf(world, crowd.player, tileSizePx));
   for (const other of crowd.villagers) {
     if (other === villager) continue;
     occupied.add(tileIndexOf(world, other, tileSizePx));
@@ -100,17 +101,17 @@ function planRoute(
   return [];
 }
 
-/** A route to the villager's errand (empty if there's no way right now). */
+/** A route to the villager's errand, or to `goal` on the way (empty if there's no way right now). */
 export function planErrandRoute(
   villager: Villager,
   world: World,
   crowd: Crowd,
   rng: Rng,
   tileSizePx: number,
+  goal?: TilePoint,
 ): TilePoint[] {
-  return villager.errand
-    ? planRoute(villager, world, crowd, rng, tileSizePx, villager.errand.goal)
-    : [];
+  const target = goal ?? villager.errand?.goal;
+  return target ? planRoute(villager, world, crowd, rng, tileSizePx, target) : [];
 }
 
 /** A short pause before trying again when the way is blocked by another villager. */

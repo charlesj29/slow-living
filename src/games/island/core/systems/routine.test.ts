@@ -5,6 +5,7 @@ import { generateValidWorld } from '../generation/testUtils';
 import { MIDNIGHT } from './dayNight';
 import { villagerGreeting } from './guidance';
 import { activityAt } from './routine';
+import { TileId } from '../world/tiles';
 
 const STEP = 1 / 30;
 const TILE = ISLAND_CONFIG.map.tileSizePx;
@@ -118,5 +119,61 @@ describe('who lives where', () => {
       checked += 1;
     }
     expect(checked).toBeGreaterThan(0);
+  });
+});
+
+describe('sharing the dock', () => {
+  it.each([46, 1, 7])('waits beside the way onto the dock, never blocking it (seed %i)', (seed) => {
+    const state = villageAt(0.3, seed);
+    const { dockWait, dockTiles } = state.routinePlaces;
+    const world = state.world;
+    if (!dockWait) throw new Error('no place to wait');
+    const waitIndex = dockWait.tile.y * world.width + dockWait.tile.x;
+    expect(dockTiles.has(waitIndex)).toBe(false);
+    expect(world.terrain[waitIndex]).not.toBe(TileId.Path);
+    // With someone standing there, the dock can still be reached from the cottage door.
+    const start = world.spawn.y * world.width + world.spawn.x;
+    const seen = new Set([start]);
+    const queue = [start];
+    for (const at of queue) {
+      const x = at % world.width;
+      const y = Math.floor(at / world.width);
+      for (const [dx, dy] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ] as const) {
+        const next = (y + dy) * world.width + x + dx;
+        if (seen.has(next) || next === waitIndex) continue;
+        if (world.blocked[next] !== 0 && !dockTiles.has(next)) continue;
+        seen.add(next);
+        queue.push(next);
+      }
+    }
+    for (const plank of dockTiles) expect(seen.has(plank)).toBe(true);
+  });
+
+  it('lets the player have the dock: waits on the shore, then goes out once it is clear', () => {
+    const state = createGameState(generateValidWorld(46), STILL);
+    Object.assign(state, { timeOfDay: 0.3 });
+    const end = state.routinePlaces.dock;
+    if (!end) throw new Error('no dock');
+    // The player stands on the dock, near its end.
+    Object.assign(state.player, {
+      x: (end.tile.x + 0.5) * TILE,
+      y: (end.tile.y + 0.5) * TILE,
+    });
+    Object.assign(state.player, { previousX: state.player.x, previousY: state.player.y });
+    wait(state, 90);
+    const owl = byRole(state, 'owl');
+    const owlTile = Math.floor(owl.y / TILE) * state.world.width + Math.floor(owl.x / TILE);
+    expect(state.routinePlaces.dockTiles.has(owlTile)).toBe(false);
+    expect(owl.atErrand).toBe(false);
+    // The player walks off home; the night owl goes out to fish.
+    Object.assign(state, { mapId: 'cottage' });
+    wait(state, 60);
+    expect(owl.atErrand).toBe(true);
+    expect(owl.activity).toBe('fish');
   });
 });

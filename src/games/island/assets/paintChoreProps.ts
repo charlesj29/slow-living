@@ -1,5 +1,5 @@
-// Little things villagers hold while they go about their day: a broom (two
-// frames, sweeping), a water bucket, a fishing rod (seen sideways, from above
+// Little things villagers hold while they go about their day: a broom (seen
+// from the side, sweeping the ground in front, four frames), a water bucket, a fishing rod (seen sideways, from above
 // pointing down, or pointing up away from us) with its bobber, and a book.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
@@ -19,7 +19,9 @@ export const CHORE_KEYS = {
   bobber: 'chore_bobber',
   book: 'chore_book',
 } as const;
-export const BROOM_FRAME_COUNT = 2;
+export const BROOM_FRAME_COUNT = 4;
+/** The broom sprite (side view, facing right): the hands hold the top-left corner. */
+export const BROOM_SPRITE = { width: 16, height: 14 } as const;
 
 const C: Readonly<Record<string, Rgba>> = {
   h: hexToRgba('#7a4a28'), // wood: broom handle, rod
@@ -32,6 +34,7 @@ const C: Readonly<Record<string, Rgba>> = {
   r: hexToRgba('#e04848'), // bobber red
   b: hexToRgba('#fff6e0'), // bobber white, book pages
   c: hexToRgba('#4f7fc0'), // book cover
+  u: hexToRgba('#d8c8a0'), // a puff of dust
 };
 
 function fromRows(rows: readonly string[]): PixelCanvas {
@@ -45,12 +48,38 @@ function fromRows(rows: readonly string[]): PixelCanvas {
   return canvas;
 }
 
-// Brooms: the handle leans one way, then the other, as the bristles sweep.
-// prettier-ignore
-const BROOM = [
-  ['...h..', '...h..', '...h..', '..h...', '..h...', '..h...', '..h...', '.h....', '.h....', '.h....', '.m....', 'osss..', 'ossd..', 'osdd..', 'oooo..', '......'],
-  ['..h...', '..h...', '..h...', '...h..', '...h..', '...h..', '...h..', '....h.', '....h.', '....h.', '....m.', '..ssso', '..sddo', '..sddo', '..oooo', '......'],
-];
+/**
+ * One frame of sweeping, seen from the side (facing right): the handle runs
+ * from the hands (top left) down to the bristles on the ground, which swing
+ * forward and back; at the far end of a stroke a little dust puffs up behind.
+ */
+function broomFrame(tipX: number, dust: boolean): PixelCanvas {
+  const { width, height } = BROOM_SPRITE;
+  const canvas = createPixelCanvas(width, height);
+  const put = (x: number, y: number, letter: string): void => {
+    const color = C[letter];
+    if (color && x >= 0 && x < width && y >= 0 && y < height) setPixel(canvas, x, y, color);
+  };
+  // The handle, hands to bristles.
+  const steps = 9;
+  for (let i = 0; i <= steps; i++) put(Math.round(1 + ((tipX - 1) * i) / steps), i, 'h');
+  put(tipX, 10, 'm');
+  // Bristles fanning out on the ground.
+  for (let x = tipX - 1; x <= tipX + 1; x++) put(x, 11, 's');
+  for (let x = tipX - 2; x <= tipX + 2; x++) put(x, 12, x % 2 === 0 ? 's' : 'd');
+  for (let x = tipX - 2; x <= tipX + 2; x++) put(x, 13, 'o');
+  put(tipX - 2, 11, 'o');
+  put(tipX + 2, 11, 'o');
+  if (dust) {
+    put(tipX - 4, 12, 'u');
+    put(tipX - 5, 11, 'u');
+    put(tipX - 3, 10, 'u');
+  }
+  return canvas;
+}
+
+/** Where the bristles are in each frame: a stroke forward, then back. */
+const BROOM_TIPS = [6, 9, 12, 9] as const;
 
 // prettier-ignore
 const BUCKET = ['.oooooo.', 'owwwwwwo', 'ohwwwwho', '.ohhhho.', '.ommmmo.', '.ohhhho.', '..oooo..', '........'];
@@ -73,7 +102,7 @@ const BOOK = ['.bbbb.', 'cbbbbc', 'cbbbbc', 'cccccc'];
 
 export function paintChorePropSprites(): SpriteSource[] {
   return [
-    { key: CHORE_KEYS.broom, frames: BROOM.map(fromRows) },
+    { key: CHORE_KEYS.broom, frames: BROOM_TIPS.map((tip, i) => broomFrame(tip, i === 2)) },
     { key: CHORE_KEYS.bucket, frames: [fromRows(BUCKET)] },
     { key: CHORE_KEYS.rodSide, frames: [fromRows(ROD_SIDE)] },
     { key: CHORE_KEYS.rodDown, frames: [fromRows(ROD_DOWN)] },

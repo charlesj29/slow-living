@@ -24,6 +24,10 @@ export interface RoutinePlaces {
   readonly well: Spot | null;
   /** The end of the dock, facing the water. */
   readonly dock: Spot | null;
+  /** On the shore where the dock starts: the fisher waits here while someone is on the dock. */
+  readonly dockWait: Spot | null;
+  /** The dock's planks (tile indexes). */
+  readonly dockTiles: ReadonlySet<number>;
   /** The plaza's bench (the one nearest the well). */
   readonly bench: WorldObject | null;
   /** Spots round the well to gather on in the evening, nearest first. */
@@ -113,8 +117,16 @@ function spotsAround(object: WorldObject, world: World, roam: ReadonlySet<number
   ];
 }
 
-/** The end of the dock (the dock tile furthest along from the shore), facing on out. */
-function dockEnd(world: World): Spot | null {
+interface DockPlaces {
+  readonly end: Spot;
+  readonly wait: Spot | null;
+}
+
+/**
+ * The end of the dock (the dock tile furthest along from the shore), facing on
+ * out, and the shore tile where it starts (facing the dock).
+ */
+function dockPlaces(world: World): DockPlaces | null {
   const dock: TilePoint[] = [];
   world.terrain.forEach((tile, index) => {
     if (tile === TileId.Dock)
@@ -143,7 +155,55 @@ function dockEnd(world: World): Spot | null {
   const dy = end.y - root.y;
   const facing: Direction =
     Math.abs(dy) >= Math.abs(dx) ? (dy >= 0 ? 'down' : 'up') : dx > 0 ? 'right' : 'left';
-  return { tile: end, facing };
+  return { end: { tile: end, facing }, wait: dockWaitSpot(world, root, facing, isDock) };
+}
+
+/** How far round the start of the dock (tiles) to look for a place to wait. */
+const DOCK_WAIT_REACH = 2;
+
+/**
+ * Where the fisher waits while someone is on the dock: beside the way onto it,
+ * never in it. Not the shore tile in front of the dock or the line leading
+ * straight to it, not a path; somewhere open (free tiles all round), as close
+ * to the dock as that allows. Faces the dock.
+ */
+function dockWaitSpot(
+  world: World,
+  root: TilePoint,
+  out: Direction,
+  isDock: (x: number, y: number) => boolean,
+): Spot | null {
+  const along = {
+    x: out === 'right' ? 1 : out === 'left' ? -1 : 0,
+    y: out === 'down' ? 1 : out === 'up' ? -1 : 0,
+  };
+  const shore = { x: root.x - along.x, y: root.y - along.y };
+  const free = (x: number, y: number): boolean => {
+    if (x < 0 || y < 0 || x >= world.width || y >= world.height || isDock(x, y)) return false;
+    const i = toIndex(world, x, y);
+    return world.blocked[i] === 0 && isWalkableTile(world.terrain[i] ?? 0);
+  };
+  // The shore tile and the line behind it (towards land) are the way in: keep off them.
+  const onApproach = (x: number, y: number): boolean =>
+    along.x === 0
+      ? x === shore.x && (y - shore.y) * along.y <= 0
+      : y === shore.y && (x - shore.x) * along.x <= 0;
+  let best: { tile: TilePoint; score: number } | null = null;
+  for (let oy = -DOCK_WAIT_REACH; oy <= DOCK_WAIT_REACH; oy++) {
+    for (let ox = -DOCK_WAIT_REACH; ox <= DOCK_WAIT_REACH; ox++) {
+      const x = shore.x + ox;
+      const y = shore.y + oy;
+      if (!free(x, y) || onApproach(x, y)) continue;
+      if (world.terrain[toIndex(world, x, y)] === TileId.Path) continue;
+      let open = 0;
+      for (let ny = -1; ny <= 1; ny++) {
+        for (let nx = -1; nx <= 1; nx++) if ((nx || ny) && free(x + nx, y + ny)) open++;
+      }
+      const score = open * 2 - Math.max(Math.abs(ox), Math.abs(oy)) * 3;
+      if (!best || score > best.score) best = { tile: { x, y }, score };
+    }
+  }
+  return best ? { tile: best.tile, facing: facingTowards(best.tile, root) } : null;
 }
 
 /** Faces from a tile towards a point (by the bigger offset). */
@@ -158,6 +218,11 @@ export function routinePlaces(world: World, roam: ReadonlySet<number>): RoutineP
   const find = (kind: string): WorldObject | undefined =>
     world.objects.find((object) => object.kind === kind);
   const stall = find('market_stall');
+  const dock = dockPlaces(world);
+  const dockTiles = new Set<number>();
+  world.terrain.forEach((tile, index) => {
+    if (tile === TileId.Dock) dockTiles.add(index);
+  });
   const well = find('well');
   const wellMiddle = well ? { x: well.x + 0.5, y: well.y } : null;
   const benches = world.objects.filter((object) => object.kind === 'bench');
@@ -189,7 +254,9 @@ export function routinePlaces(world: World, roam: ReadonlySet<number>): RoutineP
   return {
     stall: stall ? (spotsAround(stall, world, roam)[0] ?? null) : null,
     well: well ? (spotsAround(well, world, roam).find((s) => s.facing !== 'down') ?? null) : null,
-    dock: dockEnd(world),
+    dock: dock?.end ?? null,
+    dockWait: dock?.wait ?? null,
+    dockTiles,
     bench,
     gather,
   };
@@ -221,7 +288,7 @@ export function errandFor(
     case 'water':
       return places.well ? errandAt(places.well) : null;
     case 'sweep':
-      return { goal: villager.door, facing: 'down', bench: null, goInside: false };
+      return { goal: villager.door, facing: 'right', bench: null, goInside: false };
     case 'fish':
       return places.dock ? errandAt(places.dock) : null;
     case 'read':
@@ -235,6 +302,13 @@ export function errandFor(
     case 'wander':
       return null;
   }
+}
+
+/** Turns between sweeping this way and that, every quarter of an hour on the island clock. */
+const SWEEP_TURNS_PER_DAY = 96;
+
+function sweepFacing(time: number): 'left' | 'right' {
+  return Math.floor(time * SWEEP_TURNS_PER_DAY) % 2 === 0 ? 'right' : 'left';
 }
 
 /** Changes what a villager is doing: stands up, comes outdoors, and sets off. */
@@ -290,17 +364,55 @@ export function updateRoutine(
   const errand = villager.errand;
   if (!errand || villager.talking) return;
   if (villager.atErrand) {
-    // Back to the work after a chat.
-    if (!villager.sitting && !villager.hidden) villager.facing = errand.facing;
+    // Back to the work after a chat; a sweeper turns round now and then to do the other side.
+    if (!villager.sitting && !villager.hidden) {
+      villager.facing = villager.activity === 'sweep' ? sweepFacing(time) : errand.facing;
+    }
+    return;
+  }
+  const tileX = Math.floor(villager.x / tileSizePx);
+  const tileY = Math.floor(villager.y / tileSizePx);
+  // The dock is one plank wide: don't walk out while the player is on it (they'd be
+  // stuck at the end behind us); wait on the shore until it's clear.
+  if (villager.activity === 'fish' && waitForDock(villager, places, world, crowd, tileSizePx)) {
+    const wait = places.dockWait;
+    if (!wait || villager.route.length > 0 || villager.pauseTime > 0) return;
+    if (tileX === wait.tile.x && tileY === wait.tile.y) {
+      villager.facing = wait.facing;
+      villager.pauseTime = RETRY_SECONDS;
+      return;
+    }
+    villager.route = planErrandRoute(villager, world, crowd, rng, tileSizePx, wait.tile);
+    if (villager.route.length === 0) villager.pauseTime = RETRY_SECONDS;
     return;
   }
   if (villager.route.length > 0 || villager.pauseTime > 0) return;
-  const tileX = Math.floor(villager.x / tileSizePx);
-  const tileY = Math.floor(villager.y / tileSizePx);
   if (tileX === errand.goal.x && tileY === errand.goal.y) {
     arrive(villager, errand, tileSizePx);
     return;
   }
   villager.route = planErrandRoute(villager, world, crowd, rng, tileSizePx);
   if (villager.route.length === 0) villager.pauseTime = RETRY_SECONDS;
+}
+
+/**
+ * True while the player is on the dock and the villager isn't (yet): the
+ * villager should wait on the shore. Stops a route that was about to step on.
+ */
+function waitForDock(
+  villager: Villager,
+  places: RoutinePlaces,
+  world: World,
+  crowd: Crowd,
+  tileSizePx: number,
+): boolean {
+  const player = crowd.player;
+  if (!player || places.dockTiles.size === 0) return false;
+  const tileOf = (x: number, y: number): number =>
+    toIndex(world, Math.floor(x / tileSizePx), Math.floor(y / tileSizePx));
+  if (!places.dockTiles.has(tileOf(player.x, player.y))) return false;
+  if (places.dockTiles.has(tileOf(villager.x, villager.y))) return false;
+  const next = villager.route[0];
+  if (next && places.dockTiles.has(toIndex(world, next.x, next.y))) villager.route = [];
+  return true;
 }

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, type JSX } from 'react';
 import type { Mesh } from 'three';
 import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
-import { BROOM_FRAME_COUNT, CHORE_KEYS } from '../assets/paintChoreProps';
+import { BROOM_FRAME_COUNT, BROOM_SPRITE, CHORE_KEYS } from '../assets/paintChoreProps';
 import type { Villager } from '../core/entities/villager';
 import type { GameState } from '../core/game/gameState';
 import type { LightingUniforms } from './lighting';
@@ -11,8 +11,10 @@ import { createSpriteGeometry, setSpriteGeometryFrame } from './spriteGeometry';
 import { createSpriteMaterial, showAnimationFrameAt } from './spriteMaterial';
 import { standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
-/** One sweep of the broom. */
-const SWEEP_SECONDS = 0.45;
+/** One frame of the sweeping stroke. */
+const SWEEP_SECONDS = 0.22;
+/** The hands hold the broom just in front of the body, at chest height (from the feet). */
+const HANDS = { forward: 1, up: 12 } as const;
 /** The bobber rides the ripples, dipping now and then. */
 const BOB_HZ = 0.7;
 /** Props sit a hair in front of (or behind) the villager holding them. */
@@ -98,7 +100,11 @@ function ChorePropsOf({ villager, atlas, lighting }: ChorePropsOfProps): JSX.Ele
       broom.current.visible = doing === 'sweep';
       if (doing === 'sweep') {
         showAnimationFrameAt(broomMaterial, t, SWEEP_SECONDS, BROOM_FRAME_COUNT);
-        placeTopLeft(broom.current, frames.broom, x + 6, y - 15, z + IN_FRONT);
+        // Side on, sweeping the ground in front; mirrored when facing left.
+        const left = villager.facing === 'left';
+        broom.current.scale.x = left ? -1 : 1;
+        const broomLeft = left ? x - HANDS.forward - BROOM_SPRITE.width : x + HANDS.forward;
+        placeTopLeft(broom.current, frames.broom, broomLeft, y - HANDS.up, z + IN_FRONT);
       }
     }
     if (bucket.current) {
