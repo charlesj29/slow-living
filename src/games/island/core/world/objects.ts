@@ -233,7 +233,11 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     interaction: says('Looks comfy. Maybe a nap later.'),
   },
   table: solid('table', 'Table', 'structure', '#9a6436', { width: 2, height: 1 }),
-  chair: solid('chair', 'Chair', 'structure', '#9a6436'),
+  chair: {
+    ...solid('chair', 'Chair', 'structure', '#9a6436'),
+    // Like a bench: Space (or a tap) sits down, Space stands up again.
+    interaction: { sit: true },
+  },
   bookshelf: {
     ...solid('bookshelf', 'Bookshelf', 'structure', '#7a4a28', { width: 2, height: 1 }),
     interaction: says('Rows of well-thumbed books.'),

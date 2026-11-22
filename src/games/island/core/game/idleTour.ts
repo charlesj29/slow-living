@@ -63,6 +63,7 @@ export function stepIdleTour(state: GameState, stepSeconds: number, config: Isla
     return;
   }
   state.idleSeconds += stepSeconds;
+  if (!config.tour.enabled) return;
   if (state.idleSeconds >= config.tour.idleSeconds && state.tourStops.length > 0) {
     state.tour = { seconds: 0, from: { x: state.player.x, y: state.player.y } };
   }

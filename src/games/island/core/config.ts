@@ -348,6 +348,8 @@ export interface IslandConfig {
   };
   /** After a while with no input, the camera glides slowly round the island. */
   readonly tour: {
+    /** false: no ambient tour (the camera always stays with the player). */
+    readonly enabled: boolean;
     readonly idleSeconds: number;
     /** Gliding speed (map pixels per second) and the pause at each place. */
     readonly speedPx: number;
@@ -679,7 +681,7 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   lanterns: { first: 0.5, last: 0.95 },
   clouds: { count: 5, speedPx: 4 },
-  tour: { idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
+  tour: { enabled: true, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {
     volume: 0.5,
     layerVolumes: {

@@ -68,3 +68,28 @@ describe('sitting on a bench', () => {
     expect(state.player.sitting).not.toBeNull();
   });
 });
+
+describe('sitting on a chair', () => {
+  /** The cottage's table with a chair at each end. */
+  const room = makeTestWorld(
+    Array.from({ length: 8 }, () => ',,,,,,,,'),
+    [
+      { kind: 'chair', x: 2, y: 3 },
+      { kind: 'table', x: 3, y: 3 },
+    ],
+  );
+
+  it('Space sits down on it facing out, and stands up again where it was', () => {
+    const state = createGameState(room, ISLAND_CONFIG);
+    Object.assign(state.player, { x: 2.5 * TEST_TILE, y: 4.4 * TEST_TILE, facing: 'up' });
+    stepGame(state, STEP, ISLAND_CONFIG);
+    const before = { x: state.player.x, y: state.player.y };
+    press(state, 'Space');
+    expect(state.player.sitting).not.toBeNull();
+    expect(Math.floor(state.player.x / TEST_TILE)).toBe(2);
+    expect(state.player.facing).toBe('down');
+    press(state, 'Space');
+    expect(state.player.sitting).toBeNull();
+    expect({ x: state.player.x, y: state.player.y }).toEqual(before);
+  });
+});

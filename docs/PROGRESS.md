@@ -89,6 +89,17 @@
 
 ## Session log
 
+### 2026-11-22 — Chairs to sit on, a switch for the ambient tour (user request)
+
+- **Chairs** in the cottage and the workspace work like benches: Space (or a tap) sits down facing
+  out, Space stands up where you were. The workspace chair is behind the desk, so you sit at the
+  laptop facing the room; it is reached from beside it (the interiors test now lets seats be used
+  from a side).
+- **`tour.enabled`** in `core/config.ts`: false = no ambient tour (the camera stays with the player).
+- **Verified:** typecheck, lint, tests (sitting on and standing up from a chair; no tour when
+  switched off), build; browser: sitting on the cottage chair at the table, buttons faded; console
+  clean.
+
 ### 2026-11-22 — A switch for clicking to walk (user request)
 
 - `pointer.clickToWalk` in `core/config.ts`: false = mouse and pen clicks no longer walk the player

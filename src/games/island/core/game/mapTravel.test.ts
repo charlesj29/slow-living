@@ -92,7 +92,7 @@ describe('interiors', () => {
   );
 
   it.each(Object.values(INTERIORS))(
-    '$id: every piece with a message can be faced from a reachable floor tile below it',
+    '$id: every piece can be used from a reachable floor tile (below it; seats from a side too)',
     (room) => {
       const world = buildInteriorWorld(room);
       const entry = toIndex(world, room.entry.x, room.entry.y);
@@ -103,8 +103,16 @@ describe('interiors', () => {
         const below = Array.from({ length: footprint.width }, (_, dx) =>
           toIndex(world, item.x + dx, item.y + footprint.height),
         );
+        // A seat can be sat on from any side (the studio's desk chair stands behind the desk).
+        const beside =
+          'sit' in interaction
+            ? Array.from({ length: footprint.height }, (_, dy) => [
+                toIndex(world, item.x - 1, item.y + dy),
+                toIndex(world, item.x + footprint.width, item.y + dy),
+              ]).flat()
+            : [];
         expect(
-          below.some((i) => reached[i] === 1),
+          [...below, ...beside].some((i) => reached[i] === 1),
           item.kind,
         ).toBe(true);
       }

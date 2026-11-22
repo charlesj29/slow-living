@@ -97,6 +97,13 @@ describe('the idle tour', () => {
     expect({ x: state.player.x, y: state.player.y }).toEqual(before);
   });
 
+  it('never starts when switched off in the config', () => {
+    const off = { ...ISLAND_CONFIG, tour: { ...ISLAND_CONFIG.tour, enabled: false } };
+    const state = createGameState(generateValidWorld(46), off);
+    for (let i = 0; i < (settings.idleSeconds + 5) / STEP; i++) stepGame(state, STEP, off);
+    expect(state.tour).toBeNull();
+  });
+
   it('never starts indoors or while a message is open', () => {
     const state = createGameState(generateValidWorld(46), ISLAND_CONFIG);
     Object.assign(state, { mapId: 'cottage' });
