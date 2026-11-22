@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   advanceTimeOfDay,
   clockLabel,
+  clockLabel12,
   dayPhase,
   lightingAt,
   MIDNIGHT,
@@ -64,5 +65,14 @@ describe('dayPhase', () => {
     expect(shownTime('day', 0.9)).toBe(0.5);
     expect(shownTime('night', 0.4)).toBe(0);
     expect(shownTime('auto', 0.4)).toBe(0.4);
+  });
+});
+
+describe('clockLabel12', () => {
+  it('shows a 12-hour time with AM or PM', () => {
+    expect(clockLabel12(0)).toEqual({ time: '12:00', half: 'AM' });
+    expect(clockLabel12(8.25 / 24)).toEqual({ time: '8:15', half: 'AM' });
+    expect(clockLabel12(0.5)).toEqual({ time: '12:00', half: 'PM' });
+    expect(clockLabel12(21.5 / 24)).toEqual({ time: '9:30', half: 'PM' });
   });
 });

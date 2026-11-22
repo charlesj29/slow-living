@@ -122,3 +122,14 @@ export function dayPhase(time: number): DayPhase {
 export function shownTime(mode: DayNightMode, time: number): number {
   return mode === 'day' ? NOON : mode === 'night' ? MIDNIGHT : time;
 }
+
+/** "h:MM AM" / "h:MM PM" for a time of day (the island clock shows it). */
+export function clockLabel12(time: number): { readonly time: string; readonly half: 'AM' | 'PM' } {
+  const minutes = Math.floor((time - Math.floor(time)) * 24 * 60);
+  const hours = Math.floor(minutes / 60);
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return {
+    time: `${String(hour12)}:${String(minutes % 60).padStart(2, '0')}`,
+    half: hours < 12 ? 'AM' : 'PM',
+  };
+}

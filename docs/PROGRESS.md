@@ -92,7 +92,7 @@
 ### 2026-11-22 — A game-style clock (user request)
 
 - Top right: a parchment plaque like the message box, with a pixel-art sun, sunrise, sunset, moon
-  or rain cloud, the time and the part of the day (Dawn, Morning, Afternoon, Evening, Night). It
+  or rain cloud and a 12-hour time ("8:15 AM"; no part-of-day word, user request). It
   turns night-blue at night, shows the held noon or midnight when the day/night button holds one,
   and fades or hides with the other buttons (resting, tour). `debug.showClock` switches it off.
 - F3 now adds the FPS in a small readout under the clock (`debug.fpsOnly`).

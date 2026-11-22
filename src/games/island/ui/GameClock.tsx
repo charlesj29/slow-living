@@ -1,7 +1,7 @@
 import { useEffect, useState, type JSX } from 'react';
 import { ISLAND_CONFIG } from '../core/config';
 import type { GameState } from '../core/game/gameState';
-import { clockLabel, dayPhase, shownTime, type DayPhase } from '../core/systems/dayNight';
+import { clockLabel12, dayPhase, shownTime, type DayPhase } from '../core/systems/dayNight';
 import { useIslandUiStore } from '../state';
 import './islandUi.css';
 
@@ -10,16 +10,11 @@ const RAINY = 0.3;
 
 type ClockIcon = DayPhase | 'rain';
 
-const PHASE_NAMES: Readonly<Record<DayPhase, string>> = {
-  dawn: 'Dawn',
-  morning: 'Morning',
-  afternoon: 'Afternoon',
-  evening: 'Evening',
-  night: 'Night',
-};
-
 interface ClockFace {
+  /** "8:15" and "AM" / "PM". */
   readonly time: string;
+  readonly half: 'AM' | 'PM';
+  /** Picks the icon and the night look. */
   readonly phase: DayPhase;
   readonly icon: ClockIcon;
 }
@@ -28,7 +23,7 @@ function readClock(game: GameState): ClockFace {
   const time = shownTime(useIslandUiStore.getState().dayNightMode, game.timeOfDay);
   const phase = dayPhase(time);
   return {
-    time: clockLabel(time),
+    ...clockLabel12(time),
     phase,
     icon: game.weather.intensity > RAINY ? 'rain' : phase,
   };
@@ -100,7 +95,7 @@ function ClockIconImage({ icon }: { readonly icon: ClockIcon }): JSX.Element {
 
 /**
  * The island clock, top right: a little parchment plaque (like the message
- * box) with a pixel sun, moon or rain cloud, the time and the part of the day.
+ * box) with a pixel sun, moon or rain cloud and a 12-hour time ("8:15 AM").
  * It shows the held noon or midnight when the day/night button holds one, and
  * samples the game a few times a second (never per frame).
  */
@@ -118,13 +113,13 @@ export function GameClock({ game }: { readonly game: GameState }): JSX.Element {
     <div
       className={`island-clock${face.phase === 'night' ? ' is-night' : ''}`}
       role="timer"
-      aria-label={`${PHASE_NAMES[face.phase]}, ${face.time}`}
+      aria-label={`${face.time} ${face.half}`}
     >
       <ClockIconImage icon={face.icon} />
-      <div className="island-clock-text">
-        <span className="island-clock-time">{face.time}</span>
-        <span className="island-clock-phase">{PHASE_NAMES[face.phase]}</span>
-      </div>
+      <span className="island-clock-time">
+        {face.time}
+        <span className="island-clock-half">{face.half}</span>
+      </span>
     </div>
   );
 }
