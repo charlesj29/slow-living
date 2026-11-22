@@ -224,6 +224,12 @@ flowchart LR
   draws them (4-frame strips, mirrored when facing right). `render/ChimneySmoke` floats puffs
   from every chimney (positions from the cottage-style specs). The fireplace flickers
   (`FIRE_FRAME_COUNT`, its own material pair in `WorldObjects`).
+- **Wildlife (D66):** rabbits (`core/systems/rabbits.ts`) and a duck family
+  (`core/systems/ducks.ts`: the mother follows smoothed routes over open lake water from
+  `waterPaths.ts`, the ducklings follow her) are simulated in `GameState` on the island.
+  Butterflies (day) and fireflies (night, window-light material) are render-only:
+  `render/insectMotion.ts` gives a pose for a time, `render/ambientSpots.ts` picks their
+  flowers and swarm spots.
 - **Guidance (D60):** `GameState.landmarks` (studio door, village gate, cottage door) feed the
   villager hints and signposts: a `sign` (registry `signpost`) answers with one line per
   landmark that isn't right next to it ("The Developer's Studio: east"). Signs stand by the

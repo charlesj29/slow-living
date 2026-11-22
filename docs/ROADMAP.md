@@ -89,7 +89,7 @@ report.
 Not planned yet; kept for after launch.
 
 - Ambient audio: waves, birds, footsteps per ground type
-- Fireflies, stars and lanterns at night
+- Stars at night (fireflies and lanterns are in)
 - More scenery: a lighthouse on the coast, benches, a stream with a bridge
 - Saving (position, visited places)
 - Gamepad support

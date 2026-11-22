@@ -160,6 +160,54 @@ export interface IslandConfig {
     readonly fleeRadiusTiles: number;
     readonly fleeHops: number;
   };
+  /** A mother duck and her ducklings on the lake. */
+  readonly ducks: {
+    readonly enabled: boolean;
+    readonly ducklings: number;
+    /** Gliding speed (map pixels per second); a little faster when shooed. */
+    readonly swimSpeedPx: number;
+    readonly shooedSpeedFactor: number;
+    /** How far one outing goes, at most (tiles). */
+    readonly roamRangeTiles: number;
+    readonly minIdleSeconds: number;
+    readonly maxIdleSeconds: number;
+    /** Chance that a pause is spent dabbling (head under, tail up), and for how long. */
+    readonly dabbleChance: number;
+    readonly dabbleSeconds: number;
+    /** Ducklings keep this gap (map pixels, centre to centre) to the duck ahead, closing it at this rate (1/s). */
+    readonly followGapPx: number;
+    /** The first duckling stays a little further back: the mother is bigger. */
+    readonly motherGapPx: number;
+    readonly followRate: number;
+    /** Closer than this (tiles) and the family paddles away from the player. */
+    readonly shyRadiusTiles: number;
+  };
+  /** Butterflies flitting between flowers (daytime only; drawn, not simulated). */
+  readonly butterflies: {
+    readonly count: number;
+    /** Each one keeps to its own patch of flowers, this far (tiles) from the others. */
+    readonly minSpacingTiles: number;
+    /** It flies to a second flower up to this far away (tiles), rests, and flies back. */
+    readonly hopRangeTiles: number;
+    readonly flightSeconds: number;
+    readonly restSeconds: number;
+    /** How far a flight wanders off the straight line (map pixels), and how high it goes. */
+    readonly wanderPx: number;
+    readonly heightPx: number;
+    /** One wing beat frame while flying. */
+    readonly flapFrameSeconds: number;
+  };
+  /** Little swarms of fireflies by the lake (night only; drawn, not simulated). */
+  readonly fireflies: {
+    readonly swarms: number;
+    readonly perSwarm: number;
+    readonly minSpacingTiles: number;
+    /** How far a firefly drifts from its swarm's centre (map pixels). */
+    readonly driftPx: number;
+    /** One blink cycle lasts between these (seconds); about half of it is lit. */
+    readonly minBlinkSeconds: number;
+    readonly maxBlinkSeconds: number;
+  };
   /** The Developer's Studio: placed near the cottage, after the village. */
   readonly studio: {
     /** How far from the cottage door (in tiles) to look. */
@@ -396,6 +444,39 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxIdleSeconds: 5,
     fleeRadiusTiles: 2.5,
     fleeHops: 3,
+  },
+  ducks: {
+    enabled: true,
+    ducklings: 2,
+    swimSpeedPx: 9,
+    shooedSpeedFactor: 1.8,
+    roamRangeTiles: 6,
+    minIdleSeconds: 2,
+    maxIdleSeconds: 6,
+    dabbleChance: 0.4,
+    dabbleSeconds: 1.6,
+    followGapPx: 10,
+    motherGapPx: 13,
+    followRate: 3,
+    shyRadiusTiles: 2.5,
+  },
+  butterflies: {
+    count: 4,
+    minSpacingTiles: 8,
+    hopRangeTiles: 4,
+    flightSeconds: 7,
+    restSeconds: 3.5,
+    wanderPx: 14,
+    heightPx: 10,
+    flapFrameSeconds: 0.07,
+  },
+  fireflies: {
+    swarms: 3,
+    perSwarm: 4,
+    minSpacingTiles: 6,
+    driftPx: 18,
+    minBlinkSeconds: 2.4,
+    maxBlinkSeconds: 3.6,
   },
   studio: {
     searchRadiusTiles: 28,

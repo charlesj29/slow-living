@@ -36,6 +36,7 @@ import {
   updateRabbit,
   type Rabbit,
 } from '../systems/rabbits';
+import { createDuckFamily, duckWater, updateDuckFamily, type DuckFamily } from '../systems/ducks';
 import { movePlayer } from '../systems/movement';
 import { followWalk, planTap, type AutoWalk } from '../systems/tapToWalk';
 import { startTalking, updateVillager } from '../systems/wander';
@@ -89,6 +90,9 @@ export interface GameState {
   /** Wild rabbits round the village (island only), and the meadow they keep to. */
   readonly rabbits: readonly Rabbit[];
   readonly rabbitMeadow: ReadonlySet<number>;
+  /** A mother duck and her ducklings on the lake (island only), and the water they keep to. */
+  readonly ducks: DuckFamily | null;
+  readonly duckWater: ReadonlySet<number>;
   /** The island's studio, village and cottage: what hints and signposts point to. */
   readonly landmarks: Landmarks;
 }
@@ -111,6 +115,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
   const wanderRng = createRng(world.generationSeed ^ WANDER_SEED_SALT);
   const home = wanderTiles(world);
   const meadow = rabbitMeadow(world, config.rabbits);
+  const water = duckWater(world);
   const maps = new Map<string, World>([[ISLAND_MAP, world]]);
   for (const definition of Object.values(INTERIORS)) {
     maps.set(definition.id, buildInteriorWorld(definition));
@@ -138,6 +143,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     villageHome: new Set(home),
     rabbits: createRabbits(world, meadow, wanderRng, config.rabbits, config.map.tileSizePx),
     rabbitMeadow: meadow,
+    ducks: createDuckFamily(world, water, wanderRng, config.ducks, config.map.tileSizePx),
+    duckWater: water,
     landmarks: findLandmarks(world),
   };
 }
@@ -160,6 +167,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   stepVillagers(state, stepSeconds, config);
   stepAnimals(state, stepSeconds, config);
   stepRabbits(state, stepSeconds, config);
+  stepDucks(state, stepSeconds, config);
   if (state.transition) {
     stepTransition(state, stepSeconds, config);
     player.moving = false;
@@ -236,6 +244,21 @@ function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig
       config.map.tileSizePx,
     );
   }
+}
+
+function stepDucks(state: GameState, stepSeconds: number, config: IslandConfig): void {
+  if (!state.ducks) return;
+  const island = state.maps.get(ISLAND_MAP) ?? state.world;
+  updateDuckFamily(
+    state.ducks,
+    island,
+    state.duckWater,
+    onIsland(state) ? state.player : null,
+    state.wanderRng,
+    stepSeconds,
+    config.ducks,
+    config.map.tileSizePx,
+  );
 }
 
 function stepAnimals(state: GameState, stepSeconds: number, config: IslandConfig): void {

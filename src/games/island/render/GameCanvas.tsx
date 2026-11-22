@@ -14,6 +14,9 @@ import { InteractPrompt } from './InteractPrompt';
 import { AnimalSprites } from './AnimalSprites';
 import { ChimneySmoke } from './ChimneySmoke';
 import { RabbitSprites } from './RabbitSprites';
+import { DuckSprites } from './DuckSprites';
+import { Butterflies } from './Butterflies';
+import { Fireflies } from './Fireflies';
 import { StudioMarker } from './StudioMarker';
 import { TapToWalk } from './TapToWalk';
 import { createLightingUniforms } from './lighting';
@@ -120,6 +123,9 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       <InteractPrompt state={game} atlas={atlas} />
       {mapId === ISLAND_MAP && <AnimalSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <RabbitSprites state={game} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && <DuckSprites state={game} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && <Butterflies world={world} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && <Fireflies world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <ChimneySmoke world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <StudioMarker world={world} atlas={atlas} />}
     </Canvas>

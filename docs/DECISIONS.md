@@ -807,3 +807,17 @@ alternatives → consequences.
   from the painters, so smoke follows the art.
 - **Consequences:** `cottageStyle.ts` was removed (D64's shared cottage look); the cottage keeps
   its own painter. Re-baking changed seed 46's village.
+
+## D66 — Wildlife: simulated ducks, drawn-only insects
+
+- **Context:** the user asked for ducks on the lake, butterflies in the meadows and fireflies at
+  night: noticeable, but not too many.
+- **Decision:** the ducks react to the player (they paddle away), so they are simulated in core
+  like the rabbits (fixed step, the game's rng, `GameState.ducks`). Butterflies and fireflies
+  never affect the game, so they are not simulated: the render layer computes their pose from
+  the clock (`insectMotion.ts`), like the chimney smoke, with spots chosen deterministically
+  from the world (nearest the start first, spread apart). Fireflies reuse the window-light
+  material, so they glow untinted and appear exactly when the lamps come on; butterflies hide
+  at the same moment. Small numbers: one duck family, 4 butterflies, 3 swarms of 4 fireflies.
+- **Consequences:** insects aren't in `GameState` and can't be tested through `stepGame`; their
+  pure motion and spot functions have their own tests. They show on the island only.

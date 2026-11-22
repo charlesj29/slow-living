@@ -7,6 +7,8 @@ import { TILE_PX } from './paint';
 import { PLAYER_FRAME_COUNT } from '../core/systems/animation';
 import { ANIMAL_FRAME_COUNT } from './paintAnimals';
 import { RABBIT_FRAME_COUNT } from './paintRabbits';
+import { DUCK_FRAME_COUNT, DUCK_KEYS, DUCKLING_FRAME_COUNT } from './paintDucks';
+import { BUTTERFLY_FRAME_COUNT } from './paintInsects';
 import { FIRE_FRAME_COUNT } from './paintFurniture';
 import { FLOWER_FRAME_COUNT } from './paintObjects';
 import { fenceSpriteKey } from './paintStructures';
@@ -77,7 +79,7 @@ describe('island sprites', () => {
     }
   });
 
-  it('animates only water, flowers, characters, the fire, animals and rabbits, each with its frame count', () => {
+  it('animates only water, flowers, characters, the fire, animals, rabbits, ducks and butterflies, each with its frame count', () => {
     for (const source of paintIslandSprites()) {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
       const isFlower = /^flower_(red|yellow|blue|white)$/.test(source.key);
@@ -85,6 +87,7 @@ describe('island sprites', () => {
       const isFire = /^fireplace(_small)?(_lights)?$/.test(source.key);
       const isAnimal = source.key.startsWith('animal_');
       const isRabbit = source.key.startsWith('rabbit_');
+      const isButterfly = source.key.startsWith('butterfly_');
       const expected = isWater
         ? WATER_FRAME_COUNT
         : isFlower
@@ -97,7 +100,13 @@ describe('island sprites', () => {
                 ? ANIMAL_FRAME_COUNT
                 : isRabbit
                   ? RABBIT_FRAME_COUNT
-                  : 1;
+                  : isButterfly
+                    ? BUTTERFLY_FRAME_COUNT
+                    : source.key === DUCK_KEYS.mother
+                      ? DUCK_FRAME_COUNT
+                      : source.key === DUCK_KEYS.duckling
+                        ? DUCKLING_FRAME_COUNT
+                        : 1;
       expect(source.frames.length, source.key).toBe(expected);
     }
   });

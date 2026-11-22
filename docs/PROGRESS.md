@@ -89,6 +89,26 @@
 
 ## Session log
 
+### 2026-11-22 — Ducks on the lake, butterflies, fireflies at night (user request)
+
+- **Ducks** (`core/systems/ducks.ts`, `waterPaths.ts`, `assets/paintDucks.ts`,
+  `render/DuckSprites`): a white mother and two yellow ducklings on the lake's open water. She
+  floats (sometimes dabbling: head under, tail up), then glides to another spot within 6 tiles
+  along a smoothed water route; the ducklings follow in a line. If the player comes within 2.5
+  tiles they paddle away (faster). Only what floats is drawn, with a ripple at the waterline.
+- **Butterflies** (`render/Butterflies`): 4 (orange and white), each resting on a flower near
+  the start, fluttering along a wavy path to a nearby flower, resting, and flying back. Out by
+  day only (hidden once the lamps are on).
+- **Fireflies** (`render/Fireflies`): 3 small swarms of 4 on open land by the lake, drifting and
+  blinking; they glow untinted, and only at night (the window-light material).
+- Butterflies and fireflies are decoration: drawn from time alone (`render/insectMotion.ts`),
+  spots picked from the world (`render/ambientSpots.ts`). All counts and timings are in
+  `core/config.ts` (`ducks`, `butterflies`, `fireflies`; ducks have `enabled`).
+- **Verified:** typecheck, lint, tests (ducks stay on the water for 2 minutes on 5 seeds, keep
+  together, shy away; insect motion smooth; spots on flowers / by the lake), build; sprite
+  sheet; browser by day (ducks, two butterflies) and at night (fireflies, no butterflies);
+  console clean.
+
 ### 2026-11-22 — Message text at the top; day length easy to find (user request)
 
 - The message box keeps its steady size, but the text now starts at the top (a one-line message
