@@ -68,6 +68,65 @@ export const CLOUD_SHADOW_KEYS: readonly string[] = CLOUD_SHAPES.map(
   (_, i) => `shadow_cloud_${String(i)}`,
 );
 
+/** Mist banks: wide, low, feathered at the edges (more see-through towards the rim). */
+const MIST_SHAPES: readonly {
+  readonly width: number;
+  readonly height: number;
+  readonly puffs: readonly Puff[];
+}[] = [
+  {
+    width: 144,
+    height: 48,
+    puffs: [
+      [40, 26, 34, 14],
+      [76, 22, 36, 16],
+      [108, 27, 30, 13],
+    ],
+  },
+  {
+    width: 112,
+    height: 40,
+    puffs: [
+      [34, 21, 28, 12],
+      [70, 19, 32, 13],
+    ],
+  },
+  {
+    width: 176,
+    height: 52,
+    puffs: [
+      [44, 28, 36, 15],
+      [88, 24, 40, 17],
+      [134, 29, 34, 14],
+    ],
+  },
+];
+/** Edge to middle: see-through to denser (alpha 0..255). */
+const MIST_ALPHAS = [55, 90, 125] as const;
+const MIST_RGB = '#eef3f6';
+
+export const MIST_KEYS: readonly string[] = MIST_SHAPES.map((_, i) => `mist_${String(i)}`);
+
+function mistBank(width: number, height: number, puffs: readonly Puff[]): PixelCanvas {
+  const canvas = createPixelCanvas(width, height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const inside = (shrink: number): boolean =>
+        puffs.some(([cx, cy, rx, ry]) =>
+          insideEllipse(x, y, cx, cy, rx - shrink, ry - shrink * 0.5),
+        );
+      // Three bands from the rim inwards, denser towards the middle.
+      let band = -1;
+      MIST_ALPHAS.forEach((_, i) => {
+        if (inside(i * 5)) band = i;
+      });
+      const alpha = MIST_ALPHAS[band];
+      if (alpha !== undefined) setPixel(canvas, x, y, hexToRgba(MIST_RGB, alpha));
+    }
+  }
+  return canvas;
+}
+
 export function paintWeatherSprites(): SpriteSource[] {
   return [
     { key: RAIN_DROP_KEY, frames: [fromRows(DROP_ROWS, { h: DROP.head, t: DROP.tail })] },
@@ -78,6 +137,10 @@ export function paintWeatherSprites(): SpriteSource[] {
     ...CLOUD_SHAPES.map((shape, i) => ({
       key: CLOUD_SHADOW_KEYS[i] ?? 'shadow_cloud_0',
       frames: [cloudShadow(shape.width, shape.height, shape.puffs)],
+    })),
+    ...MIST_SHAPES.map((shape, i) => ({
+      key: MIST_KEYS[i] ?? 'mist_0',
+      frames: [mistBank(shape.width, shape.height, shape.puffs)],
     })),
   ];
 }

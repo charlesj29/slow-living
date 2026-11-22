@@ -89,6 +89,19 @@
 
 ## Session log
 
+### 2026-11-22 — Morning mist, lanterns lit one by one (user request)
+
+- **Morning mist** (`render/MorningMist`, `mist_*` sprites, `createMistMaterial`): soft banks over
+  the lake and the meadows round it, thickening at dawn, drifting gently, lifting by mid-morning
+  (`config.mist`). Translucent like the shadows (`mist_` keys may have soft alpha).
+- **Lanterns one by one** (`render/LanternLights`): each lamp post comes on at its own point of the
+  evening light, nearest the village well first, then outwards (`config.lanterns`); they go out
+  the same way at dawn. Windows still light together.
+- Pure helpers with tests: `render/dawnAndDusk.ts` (`mistThickness`, `mistSpots`, `lanternThresholds`).
+- **Verified:** typecheck, lint, tests (mist curve smooth, banks over lake and meadow on 3 seeds,
+  lantern order), build; browser: mist banks at 6 AM; at dusk the lamp by the well first, then the
+  next one out while the far ones are still dark; console clean.
+
 ### 2026-11-22 — Village sounds: footsteps, wind chimes, voices, the bell (user request)
 
 - **Footsteps** on every step the player takes (`Player.footfalls`, two per walk cycle), by the

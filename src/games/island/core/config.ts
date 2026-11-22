@@ -319,6 +319,25 @@ export interface IslandConfig {
     readonly fallSpeedPx: number;
     readonly windPx: number;
   };
+  /** Morning mist over the lake and meadows: comes at dawn, lifts by mid-morning. */
+  readonly mist: {
+    readonly patches: number;
+    /** Times of day (fractions: 0.25 = 6 AM): starts, fully there, starts lifting, gone. */
+    readonly appears: number;
+    readonly thickFrom: number;
+    readonly thickUntil: number;
+    readonly gone: number;
+    /** At its thickest, 0..1. */
+    readonly maxOpacity: number;
+    /** Drift (map pixels per second). */
+    readonly driftPx: number;
+  };
+  /**
+   * Lamp posts light one by one at dusk, in a wave out from the village well:
+   * each switches on when the evening light passes its own point in this range
+   * (0.5 = when lamps start coming on, 1 = full night).
+   */
+  readonly lanterns: { readonly first: number; readonly last: number };
   /** Soft cloud shadows drifting over the island by day. */
   readonly clouds: {
     readonly count: number;
@@ -638,6 +657,16 @@ export const ISLAND_CONFIG: IslandConfig = {
     fallSpeedPx: 210,
     windPx: 45,
   },
+  mist: {
+    patches: 7,
+    appears: 0.17,
+    thickFrom: 0.22,
+    thickUntil: 0.29,
+    gone: 0.4,
+    maxOpacity: 0.6,
+    driftPx: 2.5,
+  },
+  lanterns: { first: 0.5, last: 0.95 },
   clouds: { count: 5, speedPx: 4 },
   tour: { idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {

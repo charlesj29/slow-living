@@ -14,6 +14,8 @@ const SORTED_BASE_Z = 1;
  * cloud shadows darken everything under them, rain falls in front of it all.
  */
 export const CLOUD_SHADOW_Z = 50;
+/** Morning mist hangs just under the cloud shadows. */
+export const MIST_Z = 49;
 export const RAIN_Z = 55;
 /**
  * Per pixel of "foot" height. Small enough that a 192-tile map stays well

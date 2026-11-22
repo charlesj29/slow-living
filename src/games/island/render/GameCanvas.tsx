@@ -21,6 +21,7 @@ import { Butterflies } from './Butterflies';
 import { Fireflies } from './Fireflies';
 import { CloudShadows } from './CloudShadows';
 import { Rain } from './Rain';
+import { MorningMist } from './MorningMist';
 import { StudioMarker } from './StudioMarker';
 import { TapToWalk } from './TapToWalk';
 import { createLightingUniforms } from './lighting';
@@ -142,6 +143,9 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       {mapId === ISLAND_MAP && <Fireflies world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && (
         <CloudShadows world={world} state={game} atlas={atlas} lighting={lighting} />
+      )}
+      {mapId === ISLAND_MAP && (
+        <MorningMist world={world} state={game} atlas={atlas} lighting={lighting} />
       )}
       {mapId === ISLAND_MAP && (
         <Rain world={world} state={game} atlas={atlas} lighting={lighting} />

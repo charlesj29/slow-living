@@ -10,6 +10,7 @@ import { FLOWER_FRAME_COUNT } from '../assets/paintObjects';
 import { ISLAND_CONFIG } from '../core/config';
 import type { World } from '../core/world/world';
 import type { LightingUniforms } from './lighting';
+import { LanternLights } from './LanternLights';
 import { placeObjectShadows } from './objectShadows';
 import { placeObjectSprites, type SpriteInstance } from './objectSprites';
 import { objectSpriteKey } from './objectSpriteKeys';
@@ -27,6 +28,9 @@ const FIRE_SPRITE_KEYS: ReadonlySet<string> = new Set(['fireplace', 'fireplace_s
 
 /** The sleeping cat breathes slowly (its strip is one long, calm loop). */
 const CAT_FRAME_SECONDS = 0.38;
+
+/** Lamp posts' glow comes on one by one (a wave at dusk), not with the windows. */
+const LANTERN_LIGHTS_KEY = lightsKey('lamp_post');
 
 /** Window lights sit a hair in front of their building so they win the depth test. */
 const LIGHTS_Z_OFFSET = 0.001;
@@ -177,16 +181,32 @@ export function WorldObjects({
           instances={instances}
         />
       ))}
-      {lightsBatches.map(([key, instances]) => (
-        <SpriteBatch
-          key={`lights:${key}:${String(instances.length)}`}
-          frame={atlas.frame(key)}
-          material={
-            FIRE_SPRITE_KEYS.has(key.replace(/_lights$/, '')) ? fireLightsMaterial : lightsMaterial
-          }
-          instances={instances}
-        />
-      ))}
+      {lightsBatches
+        .filter(([key]) => key === LANTERN_LIGHTS_KEY)
+        .map(([key, instances]) => (
+          <LanternLights
+            key={`lanterns:${String(instances.length)}`}
+            world={world}
+            frame={atlas.frame(key)}
+            instances={instances}
+            material={lightsMaterial}
+            lighting={lighting}
+          />
+        ))}
+      {lightsBatches
+        .filter(([key]) => key !== LANTERN_LIGHTS_KEY)
+        .map(([key, instances]) => (
+          <SpriteBatch
+            key={`lights:${key}:${String(instances.length)}`}
+            frame={atlas.frame(key)}
+            material={
+              FIRE_SPRITE_KEYS.has(key.replace(/_lights$/, ''))
+                ? fireLightsMaterial
+                : lightsMaterial
+            }
+            instances={instances}
+          />
+        ))}
     </group>
   );
 }

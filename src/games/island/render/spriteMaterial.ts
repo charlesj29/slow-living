@@ -114,6 +114,47 @@ export function createShadowMaterial(
   }) as SpriteMaterial;
 }
 
+// Mist keeps its painted alpha, faded as a whole (it comes and goes with the morning).
+const MIST_FRAGMENT_SHADER = /* glsl */ `
+  uniform sampler2D map;
+  uniform vec3 uTint;
+  uniform float uOpacity;
+  varying vec2 vUv;
+  void main() {
+    vec4 color = texture2D(map, vUv);
+    float alpha = color.a * uOpacity;
+    if (alpha < 0.01) discard;
+    gl_FragColor = vec4(color.rgb * uTint, alpha);
+  }
+`;
+
+export interface MistMaterial extends ShaderMaterial {
+  uniforms: SpriteMaterial['uniforms'] & { uOpacity: { value: number } };
+}
+
+/**
+ * Material for mist banks: blended like the soft shadows, but without writing
+ * depth (overlapping banks just thicken a little), and faded by `uOpacity`.
+ */
+export function createMistMaterial(
+  atlasTexture: Texture,
+  lighting: LightingUniforms,
+): MistMaterial {
+  return new ShaderMaterial({
+    uniforms: { ...spriteUniforms(atlasTexture, lighting), uOpacity: { value: 0 } },
+    vertexShader: VERTEX_SHADER,
+    fragmentShader: MIST_FRAGMENT_SHADER,
+    side: FrontSide,
+    transparent: true,
+    depthWrite: false,
+  }) as MistMaterial;
+}
+
+/** Fades the mist as a whole (0 = gone). */
+export function setMistOpacity(material: MistMaterial, opacity: number): void {
+  material.uniforms.uOpacity.value = opacity;
+}
+
 // Window lights glow by themselves: untinted, and only drawn while lights are on.
 const LIGHTS_FRAGMENT_SHADER = /* glsl */ `
   uniform sampler2D map;

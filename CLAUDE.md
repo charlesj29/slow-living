@@ -95,7 +95,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 - Standing things use `standingSpriteZ(footYPx)` for depth; flat decorations use
   `GROUND_DECAL_Z`. Hard alpha only (`discard`) — no transparency sorting. One exception:
   soft cast shadows (`shadow_*` sprites, `createShadowMaterial`, `SHADOW_Z`) blend, with a
-  strict depth test so overlapping shadows never darken twice.
+  strict depth test so overlapping shadows never darken twice. Cloud shadows reuse that; morning
+  mist (`mist_*`, `createMistMaterial`) blends too, faded as a whole by `uOpacity`.
 - Keep the camera pixel-perfect (`shared/render/PixelPerfectCamera`): whole-number pixel
   scales, snapped positions. The canvas is `flat` + `linear` (exact palette colours).
 - Dispose what you create by hand (textures, geometries, materials) in effect cleanups.
