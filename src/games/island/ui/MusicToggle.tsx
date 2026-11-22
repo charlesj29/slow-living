@@ -44,6 +44,8 @@ function SpeakerIcon({ muted }: { readonly muted: boolean }): JSX.Element {
  */
 export function MusicToggle({ song }: { readonly song: Song }): JSX.Element {
   const isMuted = useIslandUiStore((state) => state.isMusicMuted);
+  // Resting on a bench or touring: the music goes softer and warmer.
+  const isMellow = useIslandUiStore((state) => state.calmMode !== null);
   const playerRef = useRef<MusicPlayer | null>(null);
   const hasGestureRef = useRef(false);
 
@@ -83,6 +85,10 @@ export function MusicToggle({ song }: { readonly song: Song }): JSX.Element {
     if (!isMuted && hasGestureRef.current) void player.start();
   }, [isMuted]);
 
+  useEffect(() => {
+    playerRef.current?.setMellow(isMellow);
+  }, [isMellow]);
+
   const toggle = (event: MouseEvent<HTMLButtonElement>): void => {
     // Let go of focus, or Space (interact) would press the button again.
     event.currentTarget.blur();
@@ -101,8 +107,8 @@ export function MusicToggle({ song }: { readonly song: Song }): JSX.Element {
       className="island-hud-button island-music-toggle"
       onClick={toggle}
       aria-pressed={isMuted}
-      aria-label={isMuted ? 'Unmute music (M)' : 'Mute music (M)'}
-      title={isMuted ? 'Unmute music (M)' : 'Mute music (M)'}
+      aria-label={isMuted ? 'Unmute sound (M)' : 'Mute sound (M)'}
+      title={isMuted ? 'Unmute sound (M)' : 'Mute sound (M)'}
     >
       <SpeakerIcon muted={isMuted} />
     </button>

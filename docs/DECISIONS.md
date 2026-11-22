@@ -821,3 +821,25 @@ alternatives → consequences.
   at the same moment. Small numbers: one duck family, 4 butterflies, 3 swarms of 4 fireflies.
 - **Consequences:** insects aren't in `GameState` and can't be tested through `stepGame`; their
   pure motion and spot functions have their own tests. They show on the island only.
+
+## D67 — Calm features: code-made nature sounds, weather, an idle tour
+
+- **Context:** the user wants a chill, slow portfolio: ambient sounds, cosier bench sitting, a
+  sleeping cat, an ambient camera tour, gentle rain and cloud shadows.
+- **Decision:**
+  - Nature sounds are synthesised with Web Audio (noise beds and scheduled chirps, trills and
+    crackles), like the music: no audio files, nothing to download. The mix is a pure core
+    function of place, time, weather and room; the UI samples it on a timer (never per frame).
+    One mute button covers music and nature (user choice).
+  - Weather and the tour are simulated in core (fixed step, the weather has its own rng so other
+    randomness is unchanged). Rain streaks, lake rings and cloud shadows are drawn from the
+    weather's intensity and the clock (render only).
+  - Cloud shadows reuse the soft-shadow exception (`shadow_*` sprites, `createShadowMaterial`)
+    at a depth above the whole world (`CLOUD_SHADOW_Z`), so they darken everything under them;
+    the strict depth test stops overlapping clouds darkening twice.
+  - The pixel-perfect camera can't zoom smoothly, so sitting eases the camera a little forward
+    instead of zooming in.
+  - The tour starts after 60 s idle on the island (user choice); a key or tap that ends it is
+    swallowed so it only wakes the camera.
+- **Consequences:** `GameState` gains `weather`, `idleSeconds`, `tour`, `tourReturn`,
+  `tourStops`; long idle simulations in tests now include a tour (the player doesn't move).

@@ -88,7 +88,7 @@ report.
 
 Not planned yet; kept for after launch.
 
-- Ambient audio: waves, birds, footsteps per ground type
+- Footsteps per ground type (nature sounds are in)
 - Stars at night (fireflies and lanterns are in)
 - More scenery: a lighthouse on the coast, benches, a stream with a bridge
 - Saving (position, visited places)

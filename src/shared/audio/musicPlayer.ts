@@ -3,7 +3,7 @@
 // clock, so bar 1 follows the last bar exactly on the beat with the echo tails
 // still ringing: the repeat has no seam. Browsers only allow sound after a
 // user gesture: call `start()` from one.
-import { buildMusicGraph, type MusicGraph } from './musicGraph';
+import { buildMusicGraph, MELLOW_OPEN_HZ, type MusicGraph } from './musicGraph';
 import { beatToSeconds, eventsBetween, secondsToBeat, type Song } from './song';
 import { startTicker, type Ticker } from './ticker';
 import { playVoice, type VoiceBuses } from './voices';
@@ -15,12 +15,18 @@ export interface MusicPlayerOptions {
   readonly fadeSeconds: number;
   /** The very first start fades in slowly. */
   readonly fadeInSeconds: number;
+  /** Mellow: the highs rolled off to this (Hz) and the volume scaled by this, over this long. */
+  readonly mellowLowpassHz: number;
+  readonly mellowVolume: number;
+  readonly mellowSeconds: number;
 }
 
 export interface MusicPlayer {
   /** Starts (or resumes) playback; must be called from a user gesture the first time. */
   start: () => Promise<void>;
   setMuted: (muted: boolean) => void;
+  /** Softer and warmer (quiet moments), or back to normal; glides. */
+  setMellow: (mellow: boolean) => void;
   /** Stops everything and releases the audio device. */
   dispose: () => void;
 }
@@ -50,6 +56,9 @@ export function createMusicPlayer(song: Song, options: MusicPlayerOptions): Musi
   let graph: MusicGraph | null = null;
   let ticker: Ticker | null = null;
   let muted = false;
+  let mellow = false;
+  /** The volume to play at now (muted: silence). */
+  const level = (): number => (muted ? 0 : options.volume * (mellow ? options.mellowVolume : 1));
   let songStart = 0;
   let scheduledUpTo = 0;
 
@@ -70,6 +79,19 @@ export function createMusicPlayer(song: Song, options: MusicPlayerOptions): Musi
     gain.linearRampToValueAtTime(level, now + seconds);
   };
 
+  const applyMellow = (): void => {
+    if (!context || !graph) return;
+    const now = context.currentTime;
+    const frequency = graph.mellow.frequency;
+    frequency.cancelScheduledValues(now);
+    frequency.setValueAtTime(frequency.value, now);
+    // Exponential, so the filter closes evenly to the ear.
+    frequency.exponentialRampToValueAtTime(
+      mellow ? options.mellowLowpassHz : MELLOW_OPEN_HZ,
+      now + options.mellowSeconds,
+    );
+  };
+
   // A hidden tab pauses the music; the audio clock stops too, so it resumes on the beat.
   const onVisibility = (): void => {
     if (!context) return;
@@ -87,11 +109,12 @@ export function createMusicPlayer(song: Song, options: MusicPlayerOptions): Musi
         document.addEventListener('visibilitychange', onVisibility);
         await context.resume();
         tick();
-        fadeTo(muted ? 0 : options.volume, options.fadeInSeconds);
+        applyMellow();
+        fadeTo(level(), options.fadeInSeconds);
         return;
       }
       await context.resume();
-      fadeTo(muted ? 0 : options.volume, options.fadeSeconds);
+      fadeTo(level(), options.fadeSeconds);
     },
     setMuted: (value) => {
       muted = value;
@@ -104,8 +127,14 @@ export function createMusicPlayer(song: Song, options: MusicPlayerOptions): Musi
           if (muted) void current.suspend();
         }, options.fadeSeconds * 1000);
       } else {
-        void current.resume().then(() => fadeTo(options.volume, options.fadeSeconds));
+        void current.resume().then(() => fadeTo(level(), options.fadeSeconds));
       }
+    },
+    setMellow: (value) => {
+      if (value === mellow) return;
+      mellow = value;
+      applyMellow();
+      if (!muted) fadeTo(level(), options.mellowSeconds);
     },
     dispose: () => {
       ticker?.stop();

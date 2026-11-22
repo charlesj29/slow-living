@@ -293,12 +293,65 @@ export interface IslandConfig {
     /** Give up on a walk after being blocked this long. */
     readonly giveUpSeconds: number;
   };
+  /** Clear spells and gentle rain showers (seconds of real time). */
+  readonly weather: {
+    readonly minClearSeconds: number;
+    readonly maxClearSeconds: number;
+    readonly minRainSeconds: number;
+    readonly maxRainSeconds: number;
+    /** How long rain takes to come on or die away. */
+    readonly fadeSeconds: number;
+    /** Daylight is multiplied by this in full rain (a soft grey). */
+    readonly rainTint: readonly [r: number, g: number, b: number];
+    /** Rain streaks per 1,000 square map pixels of view at full rain (capped), and rings on the lake. */
+    readonly dropDensity: number;
+    readonly maxDrops: number;
+    readonly lakeRings: number;
+    /** Map pixels per second: falling, and blown sideways. */
+    readonly fallSpeedPx: number;
+    readonly windPx: number;
+  };
+  /** Soft cloud shadows drifting over the island by day. */
+  readonly clouds: {
+    readonly count: number;
+    /** Drift (map pixels per second). */
+    readonly speedPx: number;
+  };
+  /** After a while with no input, the camera glides slowly round the island. */
+  readonly tour: {
+    readonly idleSeconds: number;
+    /** Gliding speed (map pixels per second) and the pause at each place. */
+    readonly speedPx: number;
+    readonly holdSeconds: number;
+    /** Gliding back to the player when the tour ends. */
+    readonly returnSeconds: number;
+  };
+  /** Nature sounds under the music. */
+  readonly ambience: {
+    /** 0..1 volume of the whole layer. */
+    readonly volume: number;
+    /** Waves are loudest within `nearTiles` of the sea and fade out by `farTiles`. */
+    readonly waves: {
+      readonly nearTiles: number;
+      readonly farTiles: number;
+      readonly floor: number;
+    };
+    /** Indoors, outside sounds are this much quieter; a fire is loud within `fireNearTiles`. */
+    readonly indoorDamping: number;
+    readonly fireNearTiles: number;
+    /** How often the UI updates the mix (ms). */
+    readonly sampleMs: number;
+  };
   readonly music: {
     /** 0..1 master volume: background music should sit under the game, not over it. */
     readonly volume: number;
     readonly fadeSeconds: number;
     /** The first start fades in gently instead of bursting in. */
     readonly fadeInSeconds: number;
+    /** Sitting or touring: the music goes softer and warmer (lowpass Hz, volume factor). */
+    readonly mellowLowpassHz: number;
+    readonly mellowVolume: number;
+    readonly mellowSeconds: number;
   };
   readonly debug: {
     /** How quickly the FPS readout follows frame-time changes (higher = jumpier). */
@@ -523,7 +576,36 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxRestSeconds: 6,
     giveUpSeconds: 1.5,
   },
-  music: { volume: 0.55, fadeSeconds: 0.4, fadeInSeconds: 3 },
+  weather: {
+    minClearSeconds: 600,
+    maxClearSeconds: 900,
+    minRainSeconds: 70,
+    maxRainSeconds: 110,
+    fadeSeconds: 10,
+    rainTint: [0.72, 0.77, 0.87],
+    dropDensity: 0.7,
+    maxDrops: 600,
+    lakeRings: 18,
+    fallSpeedPx: 210,
+    windPx: 45,
+  },
+  clouds: { count: 5, speedPx: 4 },
+  tour: { idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
+  ambience: {
+    volume: 0.5,
+    waves: { nearTiles: 2, farTiles: 16, floor: 0.06 },
+    indoorDamping: 0.3,
+    fireNearTiles: 3,
+    sampleMs: 250,
+  },
+  music: {
+    volume: 0.55,
+    fadeSeconds: 0.4,
+    fadeInSeconds: 3,
+    mellowLowpassHz: 1300,
+    mellowVolume: 0.7,
+    mellowSeconds: 2.5,
+  },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
   render: {
     targetTilesAcross: 20,

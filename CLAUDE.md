@@ -83,6 +83,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 
 - Music is code, not files: `src/shared/audio` (Web Audio, no React) plays a `Song` (plain
   data, e.g. `assets/chillTune.ts`). Sound starts only after a user gesture; keep it muteable.
+- Nature sounds are code too (`shared/audio/ambiencePlayer.ts`); the mix comes from
+  `core/systems/soundscape.ts`. One mute button (M) covers music and nature.
 
 ## Rendering conventions
 

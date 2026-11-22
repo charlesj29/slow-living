@@ -224,6 +224,14 @@ flowchart LR
   draws them (4-frame strips, mirrored when facing right). `render/ChimneySmoke` floats puffs
   from every chimney (positions from the cottage-style specs). The fireplace flickers
   (`FIRE_FRAME_COUNT`, its own material pair in `WorldObjects`).
+- **Calm (D67):** `core/systems/weather.ts` (clear spells, showers with an eased intensity,
+  `rainyTint` used by `DayNightLighting`); `render/Rain` (instanced streaks sized to the view,
+  lake rings) and `render/CloudShadows`. `core/systems/tour.ts` (stops, `tourPoint`) and
+  `core/game/idleTour.ts` (idle timer, `noteActivity` from keys and taps, `cameraFocus` read by
+  `GameCanvas`). `GameLoop` mirrors `calmMode` (resting / touring) into the store: the HUD
+  fades or hides and `MusicToggle` makes the music mellow. Nature sounds:
+  `shared/audio/ambiencePlayer.ts` + `ambienceSounds.ts`, mixed by `core/systems/soundscape.ts`,
+  driven by `ui/AmbientSound`.
 - **Wildlife (D66):** rabbits (`core/systems/rabbits.ts`) and a duck family
   (`core/systems/ducks.ts`: the mother follows smoothed routes over open lake water from
   `waterPaths.ts`, the ducklings follow her) are simulated in `GameState` on the island.

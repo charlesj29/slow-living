@@ -23,7 +23,8 @@ export interface InteriorDefinition {
 
 /**
  * Your cottage, inside: bookshelf, fireplace and bed along the back wall, a
- * rug by the fire, a table with chairs, plants and a reading lamp.
+ * rug by the fire (and the cat asleep beside it), a table with chairs, plants
+ * and a reading lamp.
  */
 const COTTAGE: InteriorDefinition = {
   id: 'cottage',
@@ -43,6 +44,8 @@ const COTTAGE: InteriorDefinition = {
   furniture: [
     { kind: 'bookshelf', x: 2, y: 2 },
     { kind: 'fireplace', x: 6, y: 2 },
+    // The cat, curled up asleep beside the fire.
+    { kind: 'cat_sleeping', x: 8, y: 3 },
     { kind: 'bed', x: 10, y: 2 },
     { kind: 'floor_lamp', x: 12, y: 2 },
     { kind: 'plant', x: 1, y: 2 },

@@ -2,6 +2,7 @@ import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { buildSpriteAtlas, type SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { OBJECT_KINDS, OBJECT_REGISTRY } from '../core/world/objects';
 import { paintAnimalSprites } from './paintAnimals';
+import { paintCatSprites } from './paintCat';
 import { paintCabinSprites } from './paintCabin';
 import { paintCliffSprites } from './paintCliff';
 import { paintDeadwoodSprites } from './paintDeadwood';
@@ -23,6 +24,7 @@ import { paintStudioSprites } from './paintStudio';
 import { paintStudioFurnitureSprites } from './paintStudioFurniture';
 import { paintTileSprites } from './paintTiles';
 import { paintTransitionSprites } from './paintTransitions';
+import { paintWeatherSprites } from './paintWeather';
 import { paintUiSprites } from './paintUi';
 import { paintVillagePropSprites } from './paintVillageProps';
 
@@ -54,6 +56,8 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintRabbitSprites(),
     ...paintDuckSprites(),
     ...paintInsectSprites(),
+    ...paintCatSprites(),
+    ...paintWeatherSprites(),
     ...paintShadowSprites(),
     ...paintSmokeSprites(),
     ...paintUiSprites(),

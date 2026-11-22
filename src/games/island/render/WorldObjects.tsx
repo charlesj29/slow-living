@@ -5,6 +5,7 @@ import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { lightsKey } from '../assets/paintLights';
 import { FIRE_FRAME_COUNT } from '../assets/paintFurniture';
+import { SLEEPING_CAT_FRAME_COUNT, SLEEPING_CAT_KEY } from '../assets/paintCat';
 import { FLOWER_FRAME_COUNT } from '../assets/paintObjects';
 import { ISLAND_CONFIG } from '../core/config';
 import type { World } from '../core/world/world';
@@ -23,6 +24,9 @@ import {
 
 /** Sprites animated on the fire's clock (faster than the flowers' sway). */
 const FIRE_SPRITE_KEYS: ReadonlySet<string> = new Set(['fireplace', 'fireplace_small']);
+
+/** The sleeping cat breathes slowly (its strip is one long, calm loop). */
+const CAT_FRAME_SECONDS = 0.38;
 
 /** Window lights sit a hair in front of their building so they win the depth test. */
 const LIGHTS_Z_OFFSET = 0.001;
@@ -98,7 +102,12 @@ export function WorldObjects({
     () => createLightsMaterial(atlas.texture, lighting),
     [atlas, lighting],
   );
+  const catMaterial = useMemo(
+    () => createSpriteMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
   useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => () => catMaterial.dispose(), [catMaterial]);
   useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
   useEffect(() => () => lightsMaterial.dispose(), [lightsMaterial]);
   useEffect(() => () => fireMaterial.dispose(), [fireMaterial]);
@@ -109,6 +118,12 @@ export function WorldObjects({
     const fireSeconds = ISLAND_CONFIG.render.fireFrameSeconds;
     showAnimationFrameAt(fireMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
     showAnimationFrameAt(fireLightsMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
+    showAnimationFrameAt(
+      catMaterial,
+      clock.elapsedTime,
+      CAT_FRAME_SECONDS,
+      SLEEPING_CAT_FRAME_COUNT,
+    );
   });
 
   const batches = useMemo(
@@ -152,7 +167,13 @@ export function WorldObjects({
         <SpriteBatch
           key={`${key}:${String(instances.length)}`}
           frame={atlas.frame(key)}
-          material={FIRE_SPRITE_KEYS.has(key) ? fireMaterial : material}
+          material={
+            FIRE_SPRITE_KEYS.has(key)
+              ? fireMaterial
+              : key === SLEEPING_CAT_KEY
+                ? catMaterial
+                : material
+          }
           instances={instances}
         />
       ))}

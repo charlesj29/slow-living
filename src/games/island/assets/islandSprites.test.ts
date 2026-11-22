@@ -9,6 +9,7 @@ import { ANIMAL_FRAME_COUNT } from './paintAnimals';
 import { RABBIT_FRAME_COUNT } from './paintRabbits';
 import { DUCK_FRAME_COUNT, DUCK_KEYS, DUCKLING_FRAME_COUNT } from './paintDucks';
 import { BUTTERFLY_FRAME_COUNT } from './paintInsects';
+import { SLEEPING_CAT_FRAME_COUNT, SLEEPING_CAT_KEY } from './paintCat';
 import { FIRE_FRAME_COUNT } from './paintFurniture';
 import { FLOWER_FRAME_COUNT } from './paintObjects';
 import { fenceSpriteKey } from './paintStructures';
@@ -79,7 +80,7 @@ describe('island sprites', () => {
     }
   });
 
-  it('animates only water, flowers, characters, the fire, animals, rabbits, ducks and butterflies, each with its frame count', () => {
+  it('animates only water, flowers, characters, the fire, animals, rabbits, ducks, butterflies and the cat, each with its frame count', () => {
     for (const source of paintIslandSprites()) {
       const isWater = /^tile_(deep_sea|shallow_sea|lake_water|lake_shallow)\./.test(source.key);
       const isFlower = /^flower_(red|yellow|blue|white)$/.test(source.key);
@@ -106,7 +107,9 @@ describe('island sprites', () => {
                       ? DUCK_FRAME_COUNT
                       : source.key === DUCK_KEYS.duckling
                         ? DUCKLING_FRAME_COUNT
-                        : 1;
+                        : source.key === SLEEPING_CAT_KEY
+                          ? SLEEPING_CAT_FRAME_COUNT
+                          : 1;
       expect(source.frames.length, source.key).toBe(expected);
     }
   });

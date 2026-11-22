@@ -2,6 +2,12 @@ import { create } from 'zustand';
 import { DAY_NIGHT_MODES, type DayNightMode } from './core/systems/dayNight';
 import type { PanelOpen } from './core/systems/interaction';
 
+/**
+ * Quiet moments: resting on a bench (the buttons fade, the music softens) or
+ * the ambient tour (the buttons hide).
+ */
+export type CalmMode = 'resting' | 'touring' | null;
+
 /** The camera's zoom, as the F3 readout shows it. */
 export interface CameraInfo {
   /** Screen pixels per art pixel (the 2D "distance": higher = closer). */
@@ -43,6 +49,8 @@ export interface IslandUiState {
   readonly isResumeOpen: boolean;
   /** Day/night: follow the clock, or hold day or night (the top-left button). */
   readonly dayNightMode: DayNightMode;
+  /** Resting or touring (mirrored from the game state by the loop). */
+  readonly calmMode: CalmMode;
   toggleDebugOverlay: () => void;
   markStartedWalking: () => void;
   setMusicMuted: (muted: boolean) => void;
@@ -62,6 +70,7 @@ export interface IslandUiState {
   setDayNightMode: (mode: DayNightMode) => void;
   /** Auto → Always day → Always night → Auto. */
   cycleDayNightMode: () => void;
+  setCalmMode: (mode: CalmMode) => void;
 }
 
 export const useIslandUiStore = create<IslandUiState>()((set) => ({
@@ -77,6 +86,7 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   isResumeOpen: false,
   camera: null,
   dayNightMode: 'auto',
+  calmMode: null,
   toggleDebugOverlay: () => {
     set((state) => ({ isDebugOverlayVisible: !state.isDebugOverlayVisible }));
   },
@@ -124,6 +134,9 @@ export const useIslandUiStore = create<IslandUiState>()((set) => ({
   },
   setDayNightMode: (mode) => {
     set({ dayNightMode: mode });
+  },
+  setCalmMode: (mode) => {
+    set({ calmMode: mode });
   },
   cycleDayNightMode: () => {
     set((state) => {

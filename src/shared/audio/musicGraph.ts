@@ -1,6 +1,7 @@
 // The mixing desk for the music, on any audio context (live or offline, so
 // the exact same sound can be rendered in tests): instruments → mix → a
-// muffled lo-fi filter → gentle glue compression → master volume.
+// muffled lo-fi filter → gentle glue compression → a mellow filter (wide open
+// unless the game asks for a softer, warmer sound) → master volume.
 import type { Song } from './song';
 import type { VoiceBuses } from './voices';
 
@@ -8,9 +9,13 @@ export interface MusicGraph {
   readonly buses: VoiceBuses;
   /** Master volume (starts silent; the player fades it). */
   readonly master: GainNode;
+  /** Lowpass before the master: open normally, closed down for a mellow sound. */
+  readonly mellow: BiquadFilterNode;
 }
 
 const NOISE_SECONDS = 2;
+/** The mellow filter when not mellow: above anything audible. */
+export const MELLOW_OPEN_HZ = 20000;
 /** Lo-fi colour: roll off the highs and the rumble. */
 const TONE = { lowpassHz: 4200, highpassHz: 45 };
 /** Just enough to glue the mix; no audible pumping. */
@@ -69,13 +74,15 @@ export function buildMusicGraph(context: BaseAudioContext, song: Song): MusicGra
   const master = context.createGain();
   master.gain.value = 0;
   master.connect(context.destination);
+  const mellow = filter(context, 'lowpass', MELLOW_OPEN_HZ);
+  mellow.connect(master);
   const glue = context.createDynamicsCompressor();
   glue.threshold.value = GLUE.threshold;
   glue.knee.value = GLUE.knee;
   glue.ratio.value = GLUE.ratio;
   glue.attack.value = GLUE.attack;
   glue.release.value = GLUE.release;
-  glue.connect(master);
+  glue.connect(mellow);
   const mix = context.createGain();
   mix
     .connect(filter(context, 'highpass', TONE.highpassHz))
@@ -102,5 +109,6 @@ export function buildMusicGraph(context: BaseAudioContext, song: Song): MusicGra
   return {
     buses: { context, mix, keys, echo, wobble, noise: noiseBuffer(context, 7) },
     master,
+    mellow,
   };
 }

@@ -42,6 +42,7 @@ export const OBJECT_KINDS = [
   'rug',
   'plant',
   'floor_lamp',
+  'cat_sleeping',
   'desk_laptop',
   'phone_wall',
   'tech_shelf',
@@ -248,6 +249,10 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   },
   rug: { ...decoration('rug', 'Rug', 'ground', '#b04a3a'), footprint: { width: 3, height: 2 } },
   plant: solid('plant', 'Potted plant', 'structure', '#4c8f3e'),
+  cat_sleeping: {
+    ...solid('cat_sleeping', 'Sleeping cat', 'structure', '#e0893a'),
+    interaction: says('Fast asleep by the fire, purring softly.'),
+  },
   floor_lamp: { ...solid('floor_lamp', 'Floor lamp', 'structure', '#e0c070'), litAtNight: true },
   // The Developer's Studio: each portfolio piece opens a part of the portfolio.
   desk_laptop: studioPiece('desk_laptop', 'Desk with laptop', '#9a6436', 2),

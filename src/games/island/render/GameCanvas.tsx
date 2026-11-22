@@ -6,6 +6,7 @@ import { WATER_FRAME_COUNT } from '../assets/paintTiles';
 import { ISLAND_CONFIG } from '../core/config';
 import { interpolatedPlayerPosition, type GameState } from '../core/game/gameState';
 import { ISLAND_MAP } from '../core/game/mapTravel';
+import { cameraFocus, noteActivity } from '../core/game/idleTour';
 import { useIslandUiStore } from '../state';
 import { FollowCamera } from './FollowCamera';
 import { DayNightLighting } from './DayNightLighting';
@@ -17,6 +18,8 @@ import { RabbitSprites } from './RabbitSprites';
 import { DuckSprites } from './DuckSprites';
 import { Butterflies } from './Butterflies';
 import { Fireflies } from './Fireflies';
+import { CloudShadows } from './CloudShadows';
+import { Rain } from './Rain';
 import { StudioMarker } from './StudioMarker';
 import { TapToWalk } from './TapToWalk';
 import { createLightingUniforms } from './lighting';
@@ -44,6 +47,8 @@ function exposeRendererInDev({ gl }: { gl: WebGLRenderer }): void {
 
 /** The camera looks at the player's body rather than their feet. */
 const CAMERA_LOOK_ABOVE_FEET_PX = 8;
+/** Sitting on a bench, the camera eases a little forward: you look out at the view. */
+const SIT_LOOK_AHEAD_PX = 18;
 
 interface GameCanvasProps {
   readonly game: GameState;
@@ -66,7 +71,10 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
   // One set of lighting uniforms shared by every world material.
   const lighting = useMemo(() => createLightingUniforms(), []);
 
-  useKeyboardInput(game.input);
+  useKeyboardInput(
+    game.input,
+    useCallback(() => noteActivity(game, ISLAND_CONFIG), [game]),
+  );
 
   const mapWidthPx = world.width * tileSizePx;
   const mapHeightPx = world.height * tileSizePx;
@@ -80,7 +88,11 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
   );
   const followTarget = useCallback(() => {
     const { x, y } = interpolatedPlayerPosition(game);
-    return { x, y: worldYFromMapPx(y - CAMERA_LOOK_ABOVE_FEET_PX) };
+    const lookAhead = game.player.sitting ? SIT_LOOK_AHEAD_PX : 0;
+    const player = { x, y: y - CAMERA_LOOK_ABOVE_FEET_PX + lookAhead };
+    // The ambient tour (or the glide back from it) takes the camera off the player.
+    const focus = cameraFocus(game, player, ISLAND_CONFIG);
+    return { x: focus.x, y: worldYFromMapPx(focus.y) };
   }, [game]);
 
   return (
@@ -126,6 +138,12 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       {mapId === ISLAND_MAP && <DuckSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <Butterflies world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <Fireflies world={world} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && (
+        <CloudShadows world={world} state={game} atlas={atlas} lighting={lighting} />
+      )}
+      {mapId === ISLAND_MAP && (
+        <Rain world={world} state={game} atlas={atlas} lighting={lighting} />
+      )}
       {mapId === ISLAND_MAP && <ChimneySmoke world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <StudioMarker world={world} atlas={atlas} />}
     </Canvas>

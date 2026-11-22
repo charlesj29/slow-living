@@ -43,6 +43,9 @@ import { startTalking, updateVillager } from '../systems/wander';
 import type { Transition } from '../systems/doors';
 import { buildInteriorWorld, INTERIORS } from '../world/interiors';
 import { checkDoors, ISLAND_MAP, stepTransition } from './mapTravel';
+import { stepIdleTour } from './idleTour';
+import { tourStops, type PixelPoint, type Tour, type TourReturn } from '../systems/tour';
+import { createWeather, updateWeather, type Weather } from '../systems/weather';
 
 /** True while the player is outdoors (where the villagers are). */
 export function onIsland(state: GameState): boolean {
@@ -93,6 +96,16 @@ export interface GameState {
   /** A mother duck and her ducklings on the lake (island only), and the water they keep to. */
   readonly ducks: DuckFamily | null;
   readonly duckWater: ReadonlySet<number>;
+  /** Clear spells and rain showers, with their own rng. */
+  readonly weather: Weather;
+  readonly weatherRng: Rng;
+  /** Seconds with no input; after a while the ambient tour starts (and runs until input). */
+  idleSeconds: number;
+  tour: Tour | null;
+  /** The camera gliding back to the player after a tour. */
+  tourReturn: TourReturn | null;
+  /** The places the tour visits (map pixels). */
+  readonly tourStops: readonly PixelPoint[];
   /** The island's studio, village and cottage: what hints and signposts point to. */
   readonly landmarks: Landmarks;
 }
@@ -100,6 +113,7 @@ export interface GameState {
 /** Outfits in sprite order; villagers take them in turn. */
 const VILLAGER_LOOKS = 3;
 const WANDER_SEED_SALT = 0x5a11;
+const WEATHER_SEED_SALT = 0x3a1e;
 /** Sitting, the feet rest just in front of the bench row (so the player draws in front of it). */
 const SEAT_IN_FRONT_PX = 1;
 
@@ -113,6 +127,8 @@ function createVillagers(world: World, tileSizePx: number): Villager[] {
 
 export function createGameState(world: World, config: IslandConfig): GameState {
   const wanderRng = createRng(world.generationSeed ^ WANDER_SEED_SALT);
+  const weatherRng = createRng(world.generationSeed ^ WEATHER_SEED_SALT);
+  const landmarks = findLandmarks(world);
   const home = wanderTiles(world);
   const meadow = rabbitMeadow(world, config.rabbits);
   const water = duckWater(world);
@@ -145,7 +161,13 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     rabbitMeadow: meadow,
     ducks: createDuckFamily(world, water, wanderRng, config.ducks, config.map.tileSizePx),
     duckWater: water,
-    landmarks: findLandmarks(world),
+    weather: createWeather(weatherRng, config.weather),
+    weatherRng,
+    idleSeconds: 0,
+    tour: null,
+    tourReturn: null,
+    tourStops: tourStops(world, landmarks, config.map.tileSizePx),
+    landmarks,
   };
 }
 
@@ -164,6 +186,8 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     stepSeconds,
     config.dayNight.dayLengthSeconds,
   );
+  updateWeather(state.weather, state.weatherRng, stepSeconds, config.weather);
+  stepIdleTour(state, stepSeconds, config);
   stepVillagers(state, stepSeconds, config);
   stepAnimals(state, stepSeconds, config);
   stepRabbits(state, stepSeconds, config);

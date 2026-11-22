@@ -239,3 +239,31 @@
     border-left-width: 0.55rem;
   }
 }
+
+/* Quiet moments: resting on a bench fades the buttons (hover brings them back);
+   the ambient tour hides them. */
+.island-hud-stack,
+.island-bottom-right {
+  transition: opacity 1.2s ease;
+}
+
+.island-hud-stack.is-resting,
+.island-bottom-right.is-resting {
+  opacity: 0.15;
+}
+
+.island-hud-stack.is-resting:hover,
+.island-hud-stack.is-resting:focus-within,
+.island-bottom-right.is-resting:hover {
+  opacity: 1;
+}
+
+.island-hud-stack.is-touring,
+.island-bottom-right.is-touring {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.island-bottom-right.is-touring > * {
+  pointer-events: none;
+}

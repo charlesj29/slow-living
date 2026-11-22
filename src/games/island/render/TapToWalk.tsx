@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Vector3 } from 'three';
 import { ISLAND_CONFIG } from '../core/config';
 import { tapAt, type GameState } from '../core/game/gameState';
+import { noteActivity } from '../core/game/idleTour';
 import { worldYFromMapPx } from './worldSpace';
 
 /** A press that moves less than this (CSS px) and is let go quickly is a tap. */
@@ -34,6 +35,8 @@ export function TapToWalk({ state }: TapToWalkProps): null {
       const quick = event.timeStamp - press.time <= TAP_MAX_MS;
       press = null;
       if (moved > TAP_SLOP_PX || !quick) return;
+      // A tap during the ambient tour just brings the camera back.
+      if (noteActivity(state, ISLAND_CONFIG)) return;
       const rect = canvas.getBoundingClientRect();
       const ndc = new Vector3(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,

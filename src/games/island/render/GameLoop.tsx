@@ -8,7 +8,7 @@ import {
   type GameState,
 } from '../core/game/gameState';
 import { STUDIO_MAP } from '../core/game/mapTravel';
-import { useIslandUiStore } from '../state';
+import { useIslandUiStore, type CalmMode } from '../state';
 
 /** Runs before the camera and sprites each frame (lowest priority first). */
 const LOOP_PRIORITY = -2;
@@ -25,6 +25,7 @@ export function GameLoop({ state }: GameLoopProps): null {
   const shownDark = useRef(false);
   const shownPanel = useRef(false);
   const shownOverlay = useRef(false);
+  const shownCalm = useRef<CalmMode>(null);
   useFrame((_, deltaSeconds) => {
     advanceGame(state, deltaSeconds, ISLAND_CONFIG);
     // Tell the UI once (not every frame) that the player has started walking.
@@ -57,6 +58,12 @@ export function GameLoop({ state }: GameLoopProps): null {
     if (dark !== shownDark.current) {
       shownDark.current = dark;
       useIslandUiStore.getState().setScreenDark(dark);
+    }
+    // Quiet moments: the HUD fades and the music softens (UI and audio react).
+    const calm: CalmMode = state.tour ? 'touring' : state.player.sitting ? 'resting' : null;
+    if (calm !== shownCalm.current) {
+      shownCalm.current = calm;
+      ui.setCalmMode(calm);
     }
     if (state.mapId !== shownMap.current) {
       shownMap.current = state.mapId;

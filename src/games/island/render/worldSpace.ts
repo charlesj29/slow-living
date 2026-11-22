@@ -10,6 +10,12 @@ export const SHADOW_Z = 0.25;
 export const GROUND_DECAL_Z = 0.5;
 const SORTED_BASE_Z = 1;
 /**
+ * Weather sits above the whole sorted world (a 192-tile map ends near z 32):
+ * cloud shadows darken everything under them, rain falls in front of it all.
+ */
+export const CLOUD_SHADOW_Z = 50;
+export const RAIN_Z = 55;
+/**
  * Per pixel of "foot" height. Small enough that a 192-tile map stays well
  * within the camera's depth range, large enough for depth-buffer precision.
  */

@@ -6,6 +6,7 @@ import { loadWorld } from './loadWorld';
 import { GameCanvas } from './render/GameCanvas';
 import { useIslandUiStore } from './state';
 import { ControlsHint } from './ui/ControlsHint';
+import { AmbientSound } from './ui/AmbientSound';
 import { DayNightToggle } from './ui/DayNightToggle';
 import { DebugOverlay } from './ui/DebugOverlay';
 import { DevSeedBadge } from './ui/DevSeedBadge';
@@ -34,6 +35,9 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
   const result = useMemo(() => loadWorld(seed), [seed]);
   // The simulation lives in a plain mutable object, created once per world and
   // shared by the canvas (which drives it) and the overlays (which read it).
+  // Resting on a bench or touring: the buttons fade or hide.
+  const calmMode = useIslandUiStore((state) => state.calmMode);
+  const calmClass = calmMode ? ` is-${calmMode}` : '';
   const game = useMemo(
     () => (result.ok ? createGameState(result.world, ISLAND_CONFIG) : null),
     [result],
@@ -47,6 +51,7 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
     ui.closePanel();
     ui.setResumeOpen(false);
     ui.setScreenDark(false);
+    ui.setCalmMode(null);
   }, [game]);
 
   const switcher = (
@@ -72,15 +77,16 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
     <>
       <GameCanvas game={game} />
       <DebugOverlay game={game} />
+      <AmbientSound game={game} />
       <ScreenFade />
       <StudioVisitMemory />
       <DialogBox />
-      <div className="island-bottom-right">
+      <div className={`island-bottom-right${calmClass}`}>
         <ZoomButtons />
         <ControlsHint />
       </div>
       {/* The top-left buttons, in one column. */}
-      <div className="island-hud-stack">
+      <div className={`island-hud-stack${calmClass}`}>
         <DayNightToggle />
         <MusicToggle song={CHILL_TUNE} />
         <ResumeButton />

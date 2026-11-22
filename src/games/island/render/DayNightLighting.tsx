@@ -5,6 +5,7 @@ import { approach } from '@/shared/engine/math';
 import { ISLAND_CONFIG } from '../core/config';
 import type { GameState } from '../core/game/gameState';
 import { targetLighting } from '../core/systems/dayNight';
+import { rainyTint } from '../core/systems/weather';
 import { useIslandUiStore } from '../state';
 import type { LightingUniforms } from './lighting';
 
@@ -41,8 +42,13 @@ export function DayNightLighting({ state, lighting, background }: DayNightLighti
 
   useFrame(({ scene }, deltaSeconds) => {
     const mode = useIslandUiStore.getState().dayNightMode;
-    const target = targetLighting(mode, state.timeOfDay, state.world.indoor === true);
-    const goal = [...target.tint, target.lights];
+    const indoor = state.world.indoor === true;
+    const target = targetLighting(mode, state.timeOfDay, indoor);
+    // Rain greys the daylight outdoors (rooms keep their lamplight).
+    const tint = indoor
+      ? target.tint
+      : rainyTint(target.tint, state.weather.intensity, ISLAND_CONFIG.weather);
+    const goal = [...tint, target.lights];
     // Start at the right light; afterwards ease towards it.
     const now = (current.current ??= goal);
     const sharpness = ISLAND_CONFIG.dayNight.transitionSharpness;
