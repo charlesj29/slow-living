@@ -89,6 +89,19 @@
 
 ## Session log
 
+### 2026-11-22 — Washing lines and fresh-bread steam (user request)
+
+- **Washing lines** (`laundry_line`, 3×1, walk-under): a shirt, a striped sheet and a towel pegged
+  between two posts, swaying in the breeze (still in the rain). Hung beside the village houses by a
+  new last generation step, `hangLaundry` (`village.laundryLines`: 2), so nothing else moves;
+  seed 46 re-baked (the map diff only adds the two lines). Space: "Fresh laundry, drying in the
+  breeze."
+- **Bread steam** (`render/BreadSteam`): two loaves now sit on the market stall's counter, and thin
+  curls of steam rise from them while the baker is at the stall.
+- **Verified:** typecheck, lint, tests (lines inside the village on open grass, never at a door, on
+  6 seeds; everything else identical with and without the step; 50-seed validity), build; browser:
+  both lines by the houses, the keeper sweeping, steam over the loaves; console clean.
+
 ### 2026-11-22 — Morning mist, lanterns lit one by one (user request)
 
 - **Morning mist** (`render/MorningMist`, `mist_*` sprites, `createMistMaterial`): soft banks over

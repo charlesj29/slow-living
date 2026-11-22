@@ -227,7 +227,9 @@ flowchart LR
 - **Village day (D68):** `core/systems/routine.ts` (roles, `activityAt`, `routinePlaces`:
   stall, well, dock end, plaza bench, gathering spots; `updateRoutine` before `updateVillager`),
   errand routes via `planErrandRoute` in `wander.ts`, benches via `seat.ts`; greetings in
-  `content/guidance.ts` + `villagerGreeting`; props drawn by `render/ChoreProps`.
+  `content/guidance.ts` + `villagerGreeting`; props drawn by `render/ChoreProps`; steam over the stall's loaves by
+  `render/BreadSteam`. Washing lines come from the last generation step, `hangLaundry` (after the
+  flowers, so earlier placements never change).
 - **Calm (D67):** `core/systems/weather.ts` (clear spells, showers with an eased intensity,
   `rainyTint` used by `DayNightLighting`); `render/Rain` (instanced streaks sized to the view,
   lake rings) and `render/CloudShadows`. `core/systems/tour.ts` (stops, `tourPoint`) and

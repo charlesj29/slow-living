@@ -12,6 +12,7 @@ import { paintFurnitureSprites } from './paintFurniture';
 import { paintInteriorSprites } from './paintInterior';
 import { paintHouseSprites } from './paintHouses';
 import { paintInsectSprites } from './paintInsects';
+import { paintLaundrySprites } from './paintLaundry';
 import { paintWindowLights } from './paintLights';
 import { paintObjectSprites } from './paintObjects';
 import { paintPlayerSprites } from './paintPlayer';
@@ -59,6 +60,7 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintInsectSprites(),
     ...paintCatSprites(),
     ...paintChorePropSprites(),
+    ...paintLaundrySprites(),
     ...paintWeatherSprites(),
     ...paintShadowSprites(),
     ...paintSmokeSprites(),

@@ -49,6 +49,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
   `bakedIsland.test.ts` must stay green.
 - World grids are flat typed arrays, row-major (`y * width + x`), **y grows downwards**;
   render code flips y for Three.js.
+- New generation steps that only add decorations go at the end (before `chooseSpawn`) with their
+  own step rng, so existing islands keep their layout (see `hangLaundry`).
 - Generation steps are pure `(context) => context` (copy arrays you change) and take
   randomness only from `createStepRng(context, '<stepName>')`. Never `Math.random()` in core.
 - New invariants go into `generation/validate.ts` plus a test; generation must stay

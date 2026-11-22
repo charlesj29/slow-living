@@ -6,6 +6,7 @@ import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { lightsKey } from '../assets/paintLights';
 import { FIRE_FRAME_COUNT } from '../assets/paintFurniture';
 import { SLEEPING_CAT_FRAME_COUNT, SLEEPING_CAT_KEY } from '../assets/paintCat';
+import { LAUNDRY_FRAME_COUNT, LAUNDRY_KEY } from '../assets/paintLaundry';
 import { FLOWER_FRAME_COUNT } from '../assets/paintObjects';
 import { ISLAND_CONFIG } from '../core/config';
 import type { World } from '../core/world/world';
@@ -19,6 +20,7 @@ import {
   createLightsMaterial,
   createShadowMaterial,
   createSpriteMaterial,
+  setAnimationFrame,
   showAnimationFrameAt,
   type SpriteMaterial,
 } from './spriteMaterial';
@@ -28,6 +30,8 @@ const FIRE_SPRITE_KEYS: ReadonlySet<string> = new Set(['fireplace', 'fireplace_s
 
 /** The sleeping cat breathes slowly (its strip is one long, calm loop). */
 const CAT_FRAME_SECONDS = 0.38;
+/** Washing sways in the breeze at this pace. */
+const LAUNDRY_FRAME_SECONDS = 0.4;
 
 /** Lamp posts' glow comes on one by one (a wave at dusk), not with the windows. */
 const LANTERN_LIGHTS_KEY = lightsKey('lamp_post');
@@ -75,6 +79,8 @@ interface WorldObjectsProps {
   readonly tileSizePx: number;
   readonly flowerFrameSeconds: number;
   readonly lighting: LightingUniforms;
+  /** False in the rain: the washing hangs still (wet). */
+  readonly isBreezy?: () => boolean;
 }
 
 /**
@@ -87,6 +93,7 @@ export function WorldObjects({
   tileSizePx,
   flowerFrameSeconds,
   lighting,
+  isBreezy,
 }: WorldObjectsProps): JSX.Element {
   const material = useMemo(() => createSpriteMaterial(atlas.texture, lighting), [atlas, lighting]);
   const shadowMaterial = useMemo(
@@ -112,6 +119,11 @@ export function WorldObjects({
   );
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => () => catMaterial.dispose(), [catMaterial]);
+  const laundryMaterial = useMemo(
+    () => createSpriteMaterial(atlas.texture, lighting),
+    [atlas, lighting],
+  );
+  useEffect(() => () => laundryMaterial.dispose(), [laundryMaterial]);
   useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
   useEffect(() => () => lightsMaterial.dispose(), [lightsMaterial]);
   useEffect(() => () => fireMaterial.dispose(), [fireMaterial]);
@@ -122,6 +134,16 @@ export function WorldObjects({
     const fireSeconds = ISLAND_CONFIG.render.fireFrameSeconds;
     showAnimationFrameAt(fireMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
     showAnimationFrameAt(fireLightsMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
+    if (isBreezy?.() ?? true) {
+      showAnimationFrameAt(
+        laundryMaterial,
+        clock.elapsedTime,
+        LAUNDRY_FRAME_SECONDS,
+        LAUNDRY_FRAME_COUNT,
+      );
+    } else {
+      setAnimationFrame(laundryMaterial, 0);
+    }
     showAnimationFrameAt(
       catMaterial,
       clock.elapsedTime,
@@ -176,7 +198,9 @@ export function WorldObjects({
               ? fireMaterial
               : key === SLEEPING_CAT_KEY
                 ? catMaterial
-                : material
+                : key === LAUNDRY_KEY
+                  ? laundryMaterial
+                  : material
           }
           instances={instances}
         />

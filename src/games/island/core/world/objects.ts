@@ -43,6 +43,7 @@ export const OBJECT_KINDS = [
   'plant',
   'floor_lamp',
   'cat_sleeping',
+  'laundry_line',
   'desk_laptop',
   'phone_wall',
   'tech_shelf',
@@ -249,6 +250,12 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
   },
   rug: { ...decoration('rug', 'Rug', 'ground', '#b04a3a'), footprint: { width: 3, height: 2 } },
   plant: solid('plant', 'Potted plant', 'structure', '#4c8f3e'),
+  // A washing line between two posts, three tiles long; you can walk under it.
+  laundry_line: {
+    ...decoration('laundry_line', 'Washing line', 'structure', '#d8d0c0'),
+    footprint: { width: 3, height: 1 },
+    interaction: says('Fresh laundry, drying in the breeze.'),
+  },
   cat_sleeping: {
     ...solid('cat_sleeping', 'Sleeping cat', 'structure', '#e0893a'),
     interaction: says('Fast asleep by the fire, purring softly.'),

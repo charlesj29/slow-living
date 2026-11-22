@@ -17,6 +17,7 @@ import { ChimneySmoke } from './ChimneySmoke';
 import { RabbitSprites } from './RabbitSprites';
 import { DuckSprites } from './DuckSprites';
 import { ChoreProps } from './ChoreProps';
+import { BreadSteam } from './BreadSteam';
 import { Butterflies } from './Butterflies';
 import { Fireflies } from './Fireflies';
 import { CloudShadows } from './CloudShadows';
@@ -51,6 +52,8 @@ function exposeRendererInDev({ gl }: { gl: WebGLRenderer }): void {
 const CAMERA_LOOK_ABOVE_FEET_PX = 8;
 /** Sitting on a bench, the camera eases a little forward: you look out at the view. */
 const SIT_LOOK_AHEAD_PX = 18;
+/** Above this much rain the washing is too wet to sway. */
+const WET_WASHING = 0.3;
 
 interface GameCanvasProps {
   readonly game: GameState;
@@ -88,6 +91,8 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
     () => ({ widthPx: mapWidthPx, heightPx: mapHeightPx }),
     [mapWidthPx, mapHeightPx],
   );
+  // The washing hangs still in the rain.
+  const isBreezy = useCallback(() => game.weather.intensity < WET_WASHING, [game]);
   const followTarget = useCallback(() => {
     const { x, y } = interpolatedPlayerPosition(game);
     const lookAhead = game.player.sitting ? SIT_LOOK_AHEAD_PX : 0;
@@ -131,10 +136,14 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         tileSizePx={tileSizePx}
         flowerFrameSeconds={ISLAND_CONFIG.render.flowerFrameSeconds}
         lighting={lighting}
+        isBreezy={isBreezy}
       />
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
       {mapId === ISLAND_MAP && <VillagerSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <ChoreProps state={game} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && (
+        <BreadSteam world={world} state={game} atlas={atlas} lighting={lighting} />
+      )}
       <InteractPrompt state={game} atlas={atlas} />
       {mapId === ISLAND_MAP && <AnimalSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <RabbitSprites state={game} atlas={atlas} lighting={lighting} />}

@@ -1,7 +1,12 @@
 // Chimney smoke: three puffs of growing size (hard-edged pixel clouds, lit on
 // the top-left), shown one after another as a puff rises and spreads.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
-import { createPixelCanvas, hexToRgba, type PixelCanvas } from '@/shared/render/pixelCanvas';
+import {
+  createPixelCanvas,
+  hexToRgba,
+  setPixel,
+  type PixelCanvas,
+} from '@/shared/render/pixelCanvas';
 import { fillEllipse } from './paint';
 
 const SMOKE = {
@@ -24,6 +29,29 @@ function puff(size: number): PixelCanvas {
   return c;
 }
 
+/** Steam from fresh bread: two thin curls, swapped as a wisp rises. */
+export const STEAM_KEYS = ['steam_0', 'steam_1'] as const;
+const STEAM = { w: hexToRgba('#ffffff'), l: hexToRgba('#dfe6ea') } as const;
+// prettier-ignore
+const STEAM_ROWS = [
+  ['.w.', 'w..', 'l..', '.w.', '..l', '...'],
+  ['.w.', '..w', '..l', '.w.', 'l..', '...'],
+];
+
+function wisp(rows: readonly string[]): PixelCanvas {
+  const c = createPixelCanvas(rows[0]?.length ?? 0, rows.length);
+  rows.forEach((row, y) => {
+    [...row].forEach((letter, x) => {
+      if (letter === 'w') setPixel(c, x, y, STEAM.w);
+      if (letter === 'l') setPixel(c, x, y, STEAM.l);
+    });
+  });
+  return c;
+}
+
 export function paintSmokeSprites(): SpriteSource[] {
-  return PUFF_SIZES.map((size, i) => ({ key: SMOKE_KEYS[i] ?? 'smoke_0', frames: [puff(size)] }));
+  return [
+    ...PUFF_SIZES.map((size, i) => ({ key: SMOKE_KEYS[i] ?? 'smoke_0', frames: [puff(size)] })),
+    ...STEAM_KEYS.map((key, i) => ({ key, frames: [wisp(STEAM_ROWS[i] ?? [])] })),
+  ];
 }

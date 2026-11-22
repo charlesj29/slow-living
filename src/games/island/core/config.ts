@@ -127,6 +127,8 @@ export interface IslandConfig {
     readonly shapeAttempts: number;
     /** Each tree or rock a site would clear counts like this many tiles of distance. */
     readonly clearedObjectCost: number;
+    /** Washing lines hung beside the houses (placed last, so nothing else moves). */
+    readonly laundryLines: number;
   };
   /** The village's chickens and cat. */
   readonly animals: {
@@ -521,6 +523,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     houses: 3,
     shapeAttempts: 12,
     clearedObjectCost: 3,
+    laundryLines: 2,
   },
   animals: {
     enabled: false,

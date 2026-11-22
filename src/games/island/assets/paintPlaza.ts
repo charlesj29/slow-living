@@ -5,6 +5,7 @@ import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
   createPixelCanvas,
   fillRect,
+  hexToRgba,
   setPixel,
   type PixelCanvas,
   type Rgba,
@@ -42,6 +43,21 @@ function crate(c: PixelCanvas, x: number, y: number, fruit: Rgba, shade: Rgba): 
   }
 }
 
+/** Two fresh loaves at the front of the stall's counter: left x of each, and their top row (sprite pixels). */
+export const STALL_LOAVES = { xs: [11, 30], top: 27, width: 7 } as const;
+const CRUST = hexToRgba('#c98a4a');
+const CRUST_LIGHT = hexToRgba('#e8b070');
+
+/** A little round loaf with two scores across the top. */
+function loaf(c: PixelCanvas, x: number, y: number): void {
+  fillRect(c, x + 1, y, 5, 1, O);
+  fillRect(c, x, y + 1, 7, 2, O);
+  fillRect(c, x + 1, y + 1, 5, 2, CRUST);
+  setPixel(c, x + 2, y + 1, CRUST_LIGHT);
+  setPixel(c, x + 4, y + 1, CRUST_LIGHT);
+  fillRect(c, x + 1, y + 3, 5, 1, O);
+}
+
 /** 48×44 over 3×1: a counter of produce under a red-and-white striped awning. */
 function marketStall(): PixelCanvas {
   const c = createPixelCanvas(48, 44);
@@ -65,6 +81,7 @@ function marketStall(): PixelCanvas {
   crate(c, 4, 20, PALETTE.flowers.red.petal, PALETTE.quilt.dark);
   crate(c, 18, 20, PALETTE.fire.mid, PALETTE.terracotta.base);
   crate(c, 32, 20, PALETTE.moss.light, PALETTE.moss.base);
+  for (const x of STALL_LOAVES.xs) loaf(c, x, STALL_LOAVES.top);
   return c;
 }
 

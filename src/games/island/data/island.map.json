@@ -443,7 +443,8 @@
         ["grass_tuft",22,26],
         ["flower_yellow",23,26],
         ["flower_red",22,27],
-        ["grass_tuft",25,27]
+        ["grass_tuft",25,27],
+        ["laundry_line",31,5]
       ]
     },
     {
@@ -611,7 +612,8 @@
         ["flower_red",0,31],
         ["flower_red",1,31],
         ["flower_red",3,31],
-        ["flower_blue",19,31]
+        ["flower_blue",19,31],
+        ["laundry_line",3,6]
       ]
     },
     {
