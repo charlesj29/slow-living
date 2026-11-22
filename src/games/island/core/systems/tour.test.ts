@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pressKey } from '@/shared/engine/input';
-import { ISLAND_CONFIG } from '../config';
+import { ISLAND_CONFIG as LIVE_CONFIG, type IslandConfig } from '../config';
 import { cameraFocus, noteActivity } from '../game/idleTour';
 import { createGameState, stepGame, type GameState } from '../game/gameState';
 import { generateValidWorld } from '../generation/testUtils';
@@ -8,6 +8,11 @@ import { ISLAND_KEY_BINDINGS } from './controls';
 import { tourPoint, tourStops } from './tour';
 
 const STEP = 1 / 60;
+/** The tour switched on, whatever the local config says (it can be switched off there). */
+const ISLAND_CONFIG: IslandConfig = {
+  ...LIVE_CONFIG,
+  tour: { ...LIVE_CONFIG.tour, enabled: true },
+};
 const TILE = ISLAND_CONFIG.map.tileSizePx;
 const settings = ISLAND_CONFIG.tour;
 

@@ -1,4 +1,4 @@
-# chilling
+# Slow Days · Charles
 
 A small browser game built with React, TypeScript and Three.js (via React Three Fiber). Opening
 the site drops you straight onto **Island**: a hand-picked, pixel-art 2D top-down world to stroll

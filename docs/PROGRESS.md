@@ -3,7 +3,7 @@
 ## Current status
 
 - **Milestone:** M4 — Polish & handover ✅ complete. **All milestones (M0–M4) delivered.**
-- **What works:** opening the site (`/`, tab title "chilling") shows a "Cooking…" loading
+- **What works:** opening the site (`/`, tab title "Slow Days · Charles" with a cottage icon) shows a "Cooking…" loading
   screen, then drops you in front of the cabin on the baked 96×96 island, full screen with
   no site chrome. Walk with WASD/arrows, run with Shift, zoom with +/− (starts three steps out,
   the user's preferred view). The controls hint fades after your first steps. F3 shows FPS and
@@ -88,6 +88,13 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-22 — Tab title and icon (user request)
+
+- The tab reads **Slow Days · Charles** (user choice from four suggestions) and shows a 16×16
+  pixel-art cottage with chimney smoke: `public/favicon.svg` (crisp vector pixels), a 32 px PNG
+  fallback and a 180 px `apple-touch-icon.png` (on a soft sky) for phone home screens. Link
+  previews keep their professional title.
 
 ### 2026-11-22 — CONFIG.md (user request)
 
