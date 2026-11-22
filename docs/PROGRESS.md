@@ -89,6 +89,12 @@
 
 ## Session log
 
+### 2026-11-22 — CONFIG.md (user request)
+
+- `CONFIG.md` in the project root: a short, plain guide to what can be changed in
+  `core/config.ts` (quick switches, time and weather, sound, island life, layout and re-baking) and
+  where the texts, music and CV live.
+
 ### 2026-11-22 — Chairs to sit on, a switch for the ambient tour (user request)
 
 - **Chairs** in the cottage and the workspace work like benches: Space (or a tap) sits down facing

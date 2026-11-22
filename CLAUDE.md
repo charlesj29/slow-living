@@ -117,6 +117,7 @@ DevTools info lines are fine).
 - TypeScript strict + `noUncheckedIndexedAccess`; no `any`. Named exports only (no default
   exports in `src/`). Explicit return types on exported functions (`JSX.Element` for components).
 - Files small (~200 lines), one responsibility. Intent-revealing names. Comments explain _why_.
-- No magic numbers: game tunables go in `src/games/<game>/core/config.ts`.
+- No magic numbers: game tunables go in `src/games/<game>/core/config.ts`. `CONFIG.md` (root) lists the
+  settings in plain words: keep it in step when adding or renaming one.
 - Import alias `@/` → `src/`. Tests: `*.test.ts` next to the code (Vitest, node environment).
 - Prettier: single quotes, semicolons, trailing commas, width 100, LF line endings.
