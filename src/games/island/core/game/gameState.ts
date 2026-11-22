@@ -13,14 +13,19 @@ import { approach } from '@/shared/engine/math';
 import { createRng, type Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import { createPlayer, type Player } from '../entities/player';
-import { OBJECT_REGISTRY } from '../world/objects';
 import { bumpsInto, createVillager, type Villager } from '../entities/villager';
-import { villagerSpawns, wanderTiles } from '../world/village';
-import type { World, WorldObject } from '../world/world';
+import { villageHouses, villagerSpawns, wanderTiles } from '../world/village';
+import type { World } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
 import { advanceTimeOfDay } from '../systems/dayNight';
-import { findLandmarks, signpostPages, villagerTalk, type Landmarks } from '../systems/guidance';
+import {
+  findLandmarks,
+  signpostPages,
+  villagerGreeting,
+  villagerTalk,
+  type Landmarks,
+} from '../systems/guidance';
 import {
   findInteractTarget,
   type Dialog,
@@ -44,6 +49,15 @@ import type { Transition } from '../systems/doors';
 import { buildInteriorWorld, INTERIORS } from '../world/interiors';
 import { checkDoors, ISLAND_MAP, stepTransition } from './mapTravel';
 import { stepIdleTour } from './idleTour';
+import { sitOn, standUp } from '../systems/seat';
+import {
+  roamTiles,
+  roleFor,
+  routinePlaces,
+  updateRoutine,
+  type RoutinePlaces,
+} from '../systems/routine';
+import { dayPhase } from '../systems/dayNight';
 import { tourStops, type PixelPoint, type Tour, type TourReturn } from '../systems/tour';
 import { createWeather, updateWeather, type Weather } from '../systems/weather';
 
@@ -82,6 +96,13 @@ export interface GameState {
   autoWalk: AutoWalk | null;
   /** Fraction of a day (0 = midnight, 0.5 = noon); keeps running in every day/night mode. */
   timeOfDay: number;
+  /**
+   * The time the scene shows when the day/night button holds day or night
+   * (null: follow the clock). Villagers keep to it, so a held night is quiet.
+   */
+  heldTime: number | null;
+  /** Where the village's day happens (the stall, the well, the dock end...). */
+  readonly routinePlaces: RoutinePlaces;
   /** The village's people (none if the world has no village). */
   readonly villagers: readonly Villager[];
   /** Randomness for wandering: seeded per world, so a session is reproducible. */
@@ -112,23 +133,45 @@ export interface GameState {
 
 /** Outfits in sprite order; villagers take them in turn. */
 const VILLAGER_LOOKS = 3;
+/** The baker's outfit (the third look). */
+const BAKER_LOOK = 2;
 const WANDER_SEED_SALT = 0x5a11;
 const WEATHER_SEED_SALT = 0x3a1e;
-/** Sitting, the feet rest just in front of the bench row (so the player draws in front of it). */
-const SEAT_IN_FRONT_PX = 1;
 
-function createVillagers(world: World, tileSizePx: number): Villager[] {
+function createVillagers(world: World, roam: ReadonlySet<number>, tileSizePx: number): Villager[] {
   if (!world.village) return [];
   const home = wanderTiles(world);
-  return villagerSpawns(world).map((spawn, id) =>
-    createVillager(id, id % VILLAGER_LOOKS, spawn, home, tileSizePx),
-  );
+  // Outfits go round in turn, except that the baker lives in the bakery if there is one.
+  const looks = villagerSpawns(world).map((_, id) => id % VILLAGER_LOOKS);
+  const bakery = villageHouses(world).findIndex((house) => house.kind === 'house_bakery');
+  const baker = looks.indexOf(BAKER_LOOK);
+  if (bakery >= 0 && baker >= 0) [looks[bakery], looks[baker]] = [BAKER_LOOK, looks[bakery] ?? 0];
+  return villagerSpawns(world).map((spawn, id) => {
+    const look = looks[id] ?? id % VILLAGER_LOOKS;
+    return createVillager(id, look, spawn, home, tileSizePx, roleFor(look), roam);
+  });
+}
+
+/** The villagers out and about (not indoors for the night), if the player is out there too. */
+function villagersOut(state: GameState): Villager[] {
+  return onIsland(state) ? state.villagers.filter((villager) => !villager.hidden) : [];
+}
+
+/** The time the village keeps: the held day or night, otherwise the clock. */
+export function villageTime(state: GameState): number {
+  return state.heldTime ?? state.timeOfDay;
+}
+
+/** The day/night button holds day or night (a time), or follows the clock (null). */
+export function setHeldTime(state: GameState, time: number | null): void {
+  state.heldTime = time;
 }
 
 export function createGameState(world: World, config: IslandConfig): GameState {
   const wanderRng = createRng(world.generationSeed ^ WANDER_SEED_SALT);
   const weatherRng = createRng(world.generationSeed ^ WEATHER_SEED_SALT);
   const landmarks = findLandmarks(world);
+  const roam = roamTiles(world);
   const home = wanderTiles(world);
   const meadow = rabbitMeadow(world, config.rabbits);
   const water = duckWater(world);
@@ -153,7 +196,9 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     overlayOpen: false,
     autoWalk: null,
     timeOfDay: config.dayNight.startTime,
-    villagers: createVillagers(world, config.map.tileSizePx),
+    heldTime: null,
+    routinePlaces: routinePlaces(world, roam),
+    villagers: createVillagers(world, roam, config.map.tileSizePx),
     wanderRng,
     animals: createAnimals(world, home, wanderRng, config.animals, config.map.tileSizePx),
     villageHome: new Set(home),
@@ -223,7 +268,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     }
     if (intent.facing) player.facing = intent.facing;
     movePlayer(player, intent, state.world, stepSeconds, config.player, tileSizePx);
-    const villagersHere = onIsland(state) ? state.villagers : [];
+    const villagersHere = villagersOut(state);
     const rabbitsHere = onIsland(state) ? state.rabbits : [];
     if (
       bumpsInto(player, villagersHere, config.player) ||
@@ -303,9 +348,21 @@ function stepAnimals(state: GameState, stepSeconds: number, config: IslandConfig
 function stepVillagers(state: GameState, stepSeconds: number, config: IslandConfig): void {
   const tileSizePx = config.map.tileSizePx;
   // Villagers live on the island; the player only gets in their way when out there too.
-  const crowd = { player: onIsland(state) ? state.player : null, villagers: state.villagers };
+  const out = state.villagers.filter((villager) => !villager.hidden);
+  const crowd = { player: onIsland(state) ? state.player : null, villagers: out };
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
+  const time = villageTime(state);
   for (const villager of state.villagers) {
+    updateRoutine(
+      villager,
+      time,
+      state.routinePlaces,
+      island,
+      crowd,
+      state.wanderRng,
+      config.villagerDay,
+      tileSizePx,
+    );
     updateVillager(
       villager,
       island,
@@ -332,6 +389,7 @@ function interactionSettings(state: GameState, config: IslandConfig): Interactio
         villager.timesTalked,
         { x: Math.floor(villager.x / tile), y: Math.floor(villager.y / tile) },
         state.landmarks.studio,
+        villagerGreeting(villager.activity, dayPhase(villageTime(state))),
       ),
     signPages: (sign) => signpostPages({ x: sign.x, y: sign.y }, state.landmarks),
   };
@@ -396,34 +454,8 @@ export function tapAt(
   }
   const tileSizePx = config.map.tileSizePx;
   const tile = { x: Math.floor(point.x / tileSizePx), y: Math.floor(point.y / tileSizePx) };
-  const villagers = onIsland(state) ? state.villagers : [];
+  const villagers = villagersOut(state);
   state.autoWalk = planTap(state.world, state.player, villagers, tile, tileSizePx);
-}
-
-/**
- * Sits down on a bench: on the bench tile nearest the player, facing out,
- * feet just in front of it (so the player is drawn in front of the bench; the
- * renderer lifts the sitting sprite onto the seat). Remembers where to stand up.
- */
-function sitOn(player: Player, bench: WorldObject, tileSizePx: number): void {
-  const { footprint } = OBJECT_REGISTRY[bench.kind];
-  const nearest = Math.floor(player.x / tileSizePx);
-  const tileX = Math.min(bench.x + footprint.width - 1, Math.max(bench.x, nearest));
-  player.sitting = { standX: player.x, standY: player.y };
-  player.x = (tileX + 0.5) * tileSizePx;
-  player.y = (bench.y + footprint.height) * tileSizePx + SEAT_IN_FRONT_PX;
-  player.facing = 'down';
-  player.moving = false;
-}
-
-/** Stands up from a bench, back where the player was before sitting down. */
-function standUp(player: Player): void {
-  if (!player.sitting) return;
-  player.x = player.sitting.standX;
-  player.y = player.sitting.standY;
-  player.previousX = player.x;
-  player.previousY = player.y;
-  player.sitting = null;
 }
 
 /** A page over the game (the Résumé) opened or closed; the game waits while it is open. */

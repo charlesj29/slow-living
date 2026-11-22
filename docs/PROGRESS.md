@@ -89,6 +89,29 @@
 
 ## Session log
 
+### 2026-11-22 — Slow village life: daily routines and greetings (user request)
+
+- The villagers follow the clock (`core/systems/routine.ts`, schedules in `config.villagerDay`):
+  - **baker** (lives in the bakery if there is one): minds the market stall in the morning;
+  - **keeper**: fetches water at the well, then sweeps the doorstep;
+  - **night owl**: fishes off the dock end, reads on the plaza bench in the afternoon, and stays
+    on that bench through the evening and night (so there's always someone to ask the way);
+  - evenings: everyone gathers round the well; at night the baker and keeper walk home and go
+    indoors (not drawn, not solid). In the morning they step out of their front door.
+- Chore props (`assets/paintChoreProps.ts`, `render/ChoreProps`): a sweeping broom, a bucket, a
+  fishing rod with a bobbing float, a book on the lap.
+- Villagers can now sit on benches (`core/systems/seat.ts`, shared with the player) and walk
+  anywhere open on errands (`roamTiles`); wandering still keeps to the village.
+- Greetings come first and fit the moment: "Morning! The bread's still warm.", "Shh... I think
+  something's biting.", "Good afternoon!", "Can't sleep either? The stars are lovely tonight."
+  The conversations no longer open with a second "Hi".
+- The day/night button holding day or night also holds the village's time (`heldTime`).
+- **Verified:** typecheck, lint, tests (schedule, places on 3 seeds, morning chores reached on 3
+  seeds, night: home + owl on the bench, held night, out of the door at dawn, the baker in the
+  bakery, greetings), build; browser: the baker behind the stall, the keeper sweeping, the owl
+  heading from the dock to the bench; at night an empty village with the owl reading under the
+  string lights; console clean.
+
 ### 2026-11-22 — A game-style clock (user request)
 
 - Top right: a parchment plaque like the message box, with a pixel-art sun, sunrise, sunset, moon

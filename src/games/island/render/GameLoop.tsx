@@ -4,10 +4,12 @@ import { ISLAND_CONFIG } from '../core/config';
 import {
   advanceGame,
   closePortfolioPanel,
+  setHeldTime,
   setOverlayOpen,
   type GameState,
 } from '../core/game/gameState';
 import { STUDIO_MAP } from '../core/game/mapTravel';
+import { MIDNIGHT, NOON } from '../core/systems/dayNight';
 import { useIslandUiStore, type CalmMode } from '../state';
 
 /** Runs before the camera and sprites each frame (lowest priority first). */
@@ -26,6 +28,7 @@ export function GameLoop({ state }: GameLoopProps): null {
   const shownPanel = useRef(false);
   const shownOverlay = useRef(false);
   const shownCalm = useRef<CalmMode>(null);
+  const shownHeld = useRef<number | null>(null);
   useFrame((_, deltaSeconds) => {
     advanceGame(state, deltaSeconds, ISLAND_CONFIG);
     // Tell the UI once (not every frame) that the player has started walking.
@@ -58,6 +61,12 @@ export function GameLoop({ state }: GameLoopProps): null {
     if (dark !== shownDark.current) {
       shownDark.current = dark;
       useIslandUiStore.getState().setScreenDark(dark);
+    }
+    // The day/night button holding day or night: the village keeps that time too.
+    const held = ui.dayNightMode === 'day' ? NOON : ui.dayNightMode === 'night' ? MIDNIGHT : null;
+    if (held !== shownHeld.current) {
+      shownHeld.current = held;
+      setHeldTime(state, held);
     }
     // Quiet moments: the HUD fades and the music softens (UI and audio react).
     const calm: CalmMode = state.tour ? 'touring' : state.player.sitting ? 'resting' : null;

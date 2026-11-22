@@ -1,5 +1,27 @@
 import type { TilePoint } from '@/shared/engine/grid';
-import { createPlayer, hitboxAt, type Box, type HitboxSize, type Player } from './player';
+import type { WorldObject } from '../world/world';
+import {
+  createPlayer,
+  hitboxAt,
+  type Box,
+  type Direction,
+  type HitboxSize,
+  type Player,
+} from './player';
+
+/** What a villager is up to (their day follows the clock: see `systems/routine.ts`). */
+export type Activity =
+  'wander' | 'bake' | 'water' | 'sweep' | 'fish' | 'read' | 'gather' | 'owl' | 'home';
+
+/** Somewhere to be for an activity, and how to be there. */
+export interface Errand {
+  readonly goal: TilePoint;
+  readonly facing: Direction;
+  /** Sit on this bench on arrival. */
+  readonly bench: WorldObject | null;
+  /** Go indoors on arrival (home for the night). */
+  readonly goInside: boolean;
+}
 
 /**
  * A villager walks and animates exactly like the player (same body, same
@@ -25,7 +47,22 @@ export interface Villager extends Player {
   talking: boolean;
   /** How many times the player has talked to them (their conversations take turns). */
   timesTalked: number;
+  /** Who they are in the village's day (which schedule they follow). */
+  readonly role: VillagerRole;
+  /** Where they can walk on errands (any open path on the island, not just the village). */
+  readonly roam: ReadonlySet<number>;
+  /** Their front door (the tile in front of it): home at night. */
+  readonly door: TilePoint;
+  activity: Activity;
+  /** Where the current activity happens (null: wandering the village). */
+  errand: Errand | null;
+  /** Arrived and doing it (sweeping, fishing, sitting...). */
+  atErrand: boolean;
+  /** Indoors for the night: not drawn, not solid, not talking. */
+  hidden: boolean;
 }
+
+export type VillagerRole = 'baker' | 'keeper' | 'owl';
 
 export function createVillager(
   id: number,
@@ -33,6 +70,8 @@ export function createVillager(
   spawn: TilePoint,
   homeTiles: readonly number[],
   tileSizePx: number,
+  role: VillagerRole = 'keeper',
+  roam: ReadonlySet<number> = new Set(homeTiles),
 ): Villager {
   return {
     ...createPlayer(spawn, tileSizePx),
@@ -46,6 +85,13 @@ export function createVillager(
     pauseTime: 0,
     talking: false,
     timesTalked: 0,
+    role,
+    roam,
+    door: spawn,
+    activity: 'wander',
+    errand: null,
+    atErrand: false,
+    hidden: false,
   };
 }
 

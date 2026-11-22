@@ -1,4 +1,6 @@
-import { useMemo, type JSX } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useMemo, useRef, type JSX } from 'react';
+import type { Group } from 'three';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { villagerSpriteKey } from '../assets/paintPlayer';
 import type { Direction } from '../core/entities/player';
@@ -21,7 +23,16 @@ function VillagerSprite({
     () => (facing: Direction) => villagerSpriteKey(villager.look, facing),
     [villager.look],
   );
-  return <CharacterSprite body={villager} spriteKeyFor={keyFor} {...props} />;
+  const groupRef = useRef<Group>(null);
+  // Indoors for the night: not drawn (nor their shadow).
+  useFrame(() => {
+    if (groupRef.current) groupRef.current.visible = !villager.hidden;
+  });
+  return (
+    <group ref={groupRef}>
+      <CharacterSprite body={villager} spriteKeyFor={keyFor} {...props} />
+    </group>
+  );
 }
 
 /** Every villager, each in their own outfit. */

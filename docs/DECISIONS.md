@@ -843,3 +843,18 @@ alternatives → consequences.
     swallowed so it only wakes the camera.
 - **Consequences:** `GameState` gains `weather`, `idleSeconds`, `tour`, `tourReturn`,
   `tourStops`; long idle simulations in tests now include a tour (the player doesn't move).
+
+## D68 — Village routines by the clock
+
+- **Context:** the user wants slow village living: people with daily rhythms, not decoration.
+- **Decision:** each villager gets a role from their outfit (farmer = keeper, girl = night owl,
+  baker = baker, who moves into the bakery when there is one) and a schedule of
+  `[start, activity]` in the config. A routine step (`updateRoutine`) runs before the existing
+  wander step: it switches activity on the clock, gives the villager an errand (a tile, a facing,
+  maybe a bench or "go inside"), and the wander code walks the route (errand routes may use any
+  open tile; wandering stays in the village). Indoors at night means hidden: skipped for
+  drawing, collisions, taps and talking. One night owl stays out (user choice) so guidance never
+  disappears. The held day/night mode also holds the village's time.
+- **Consequences:** `Villager` gains role, roam, door, activity, errand, atErrand, hidden;
+  `sitOn`/`standUp` moved to `core/systems/seat.ts`. Greetings are prepended to conversations,
+  so the first-conversation workspace hint still holds.

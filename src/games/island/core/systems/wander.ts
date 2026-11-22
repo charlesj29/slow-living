@@ -25,7 +25,9 @@ export interface WanderSettings {
 const ARRIVE_PX = 0.75;
 const TRIES_PER_PICK = 8;
 
-const inHome = (villager: Villager, index: number): boolean => villager.home.has(index);
+/** Wandering keeps to the village; an errand (the dock, home...) may use any open path. */
+const canWalk = (villager: Villager, index: number): boolean =>
+  villager.errand ? villager.roam.has(index) : villager.home.has(index);
 
 /** Who else is about: the player (who may block) and the other villagers (who are avoided). */
 export interface Crowd {
@@ -81,7 +83,7 @@ function planRoute(
   const occupied = occupiedTiles(villager, crowd, world, tileSizePx);
   const target = goal ? toIndex(world, goal.x, goal.y) : -1;
   const stepCost = (index: number): number => {
-    if (!inHome(villager, index) || world.blocked[index] !== 0) return Infinity;
+    if (!canWalk(villager, index) || world.blocked[index] !== 0) return Infinity;
     return occupied.has(index) && index !== target ? Infinity : 1;
   };
   const taken = heldGoals(villager, crowd, world);
@@ -96,6 +98,19 @@ function planRoute(
     if (route) return route.slice(1).map((index) => toPoint(world, index));
   }
   return [];
+}
+
+/** A route to the villager's errand (empty if there's no way right now). */
+export function planErrandRoute(
+  villager: Villager,
+  world: World,
+  crowd: Crowd,
+  rng: Rng,
+  tileSizePx: number,
+): TilePoint[] {
+  return villager.errand
+    ? planRoute(villager, world, crowd, rng, tileSizePx, villager.errand.goal)
+    : [];
 }
 
 /** A short pause before trying again when the way is blocked by another villager. */
@@ -164,6 +179,8 @@ export function updateVillager(
   }
 
   if (villager.route.length === 0) {
+    // On an errand the routine decides what happens next (no wandering off).
+    if (villager.errand) return;
     villager.restTime -= stepSeconds;
     if (villager.restTime <= 0) {
       villager.route = planRoute(villager, world, crowd, rng, tileSizePx);
@@ -184,7 +201,10 @@ export function updateVillager(
     villager.x = target.x;
     villager.y = target.y;
     villager.route.shift();
-    if (villager.route.length === 0) rest(villager, rng, settings);
+    if (villager.route.length === 0) {
+      if (villager.errand) villager.stuckTime = 0;
+      else rest(villager, rng, settings);
+    }
     return;
   }
 

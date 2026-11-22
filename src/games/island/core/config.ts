@@ -293,6 +293,14 @@ export interface IslandConfig {
     /** Give up on a walk after being blocked this long. */
     readonly giveUpSeconds: number;
   };
+  /**
+   * Each villager's day: from each start time (fraction of a day: 0.25 = 6 AM,
+   * 0.5 = noon) they do that activity until the next one; the last runs past
+   * midnight into the first. The night owl stays out on the plaza bench.
+   */
+  readonly villagerDay: Readonly<
+    Record<'baker' | 'keeper' | 'owl', readonly (readonly [start: number, activity: string])[]>
+  >;
   /** Clear spells and gentle rain showers (seconds of real time). */
   readonly weather: {
     readonly minClearSeconds: number;
@@ -587,6 +595,27 @@ export const ISLAND_CONFIG: IslandConfig = {
     minRestSeconds: 2,
     maxRestSeconds: 6,
     giveUpSeconds: 1.5,
+  },
+  villagerDay: {
+    baker: [
+      [0.22, 'wander'],
+      [0.27, 'bake'],
+      [0.55, 'wander'],
+      [0.72, 'gather'],
+      [0.85, 'home'],
+    ],
+    keeper: [
+      [0.22, 'water'],
+      [0.36, 'sweep'],
+      [0.5, 'wander'],
+      [0.72, 'gather'],
+      [0.85, 'home'],
+    ],
+    owl: [
+      [0.22, 'fish'],
+      [0.48, 'read'],
+      [0.72, 'owl'],
+    ],
   },
   weather: {
     minClearSeconds: 600,

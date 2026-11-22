@@ -1,7 +1,15 @@
 // Guidance towards the studio: villager hints and signpost texts, filled in
 // with directions for this island. Pure: positions in, pages out.
 import type { TilePoint } from '@/shared/engine/grid';
-import { SIGN_LABELS, VILLAGER_TALKS, type SignPlace } from '../content/guidance';
+import {
+  ACTIVITY_GREETINGS,
+  SIGN_LABELS,
+  TIME_GREETINGS,
+  VILLAGER_TALKS,
+  type SignPlace,
+} from '../content/guidance';
+import type { Activity } from '../entities/villager';
+import type { DayPhase } from './dayNight';
 import { getDoorFrontTile, type World } from '../world/world';
 import { arrowToken, headingTo } from './compass';
 
@@ -26,11 +34,22 @@ export function villagerTalk(
   timesTalked: number,
   at: TilePoint,
   studio: TilePoint | null,
+  greeting?: string,
 ): readonly string[] {
   const talks = VILLAGER_TALKS[look % VILLAGER_TALKS.length] ?? [];
   const pages = talks[timesTalked % Math.max(1, talks.length)] ?? ['Hi!'];
   const direction = studio ? headingTo(at, studio) : 'nearby';
-  return pages.map((page) => page.replaceAll('{studio}', direction));
+  const said = pages.map((page) => page.replaceAll('{studio}', direction));
+  return greeting ? [greeting, ...said] : said;
+}
+
+/**
+ * How a villager says hello: about what they're doing (baking, fishing...),
+ * else for the time of day. The night owl greets the evening, then the night.
+ */
+export function villagerGreeting(activity: Activity, phase: DayPhase): string {
+  const forActivity = activity === 'owl' ? undefined : ACTIVITY_GREETINGS[activity];
+  return forActivity ?? TIME_GREETINGS[phase] ?? 'Hi!';
 }
 
 /** A signpost's message: one line per place it points to, with an arrow showing the way. */
