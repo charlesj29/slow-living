@@ -330,6 +330,14 @@ export interface IslandConfig {
   readonly ambience: {
     /** 0..1 volume of the whole layer. */
     readonly volume: number;
+    /** Each sound at full strength, 0..1 (balance them here; e.g. lower `rain` for softer rain). */
+    readonly layerVolumes: {
+      readonly waves: number;
+      readonly birds: number;
+      readonly crickets: number;
+      readonly rain: number;
+      readonly fire: number;
+    };
     /** Waves are loudest within `nearTiles` of the sea and fade out by `farTiles`. */
     readonly waves: {
       readonly nearTiles: number;
@@ -358,6 +366,8 @@ export interface IslandConfig {
     readonly fpsSmoothingSharpness: number;
     /** How often the F3 overlay refreshes its text. */
     readonly overlayRefreshMs: number;
+    /** true: the F3 box (top right) shows only the FPS; false: also tile, time and camera. */
+    readonly fpsOnly: boolean;
   };
   readonly render: {
     /** Handheld-like framing: pick the whole-number scale that shows about this many tiles across. */
@@ -593,6 +603,7 @@ export const ISLAND_CONFIG: IslandConfig = {
   tour: { idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {
     volume: 0.5,
+    layerVolumes: { waves: 0.5, birds: 0.35, crickets: 0.16, rain: 0.2, fire: 0.5 },
     waves: { nearTiles: 2, farTiles: 16, floor: 0.06 },
     indoorDamping: 0.3,
     fireNearTiles: 3,
@@ -606,7 +617,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     mellowVolume: 0.7,
     mellowSeconds: 2.5,
   },
-  debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250 },
+  debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250, fpsOnly: true },
   render: {
     targetTilesAcross: 20,
     minTilesTall: 11,

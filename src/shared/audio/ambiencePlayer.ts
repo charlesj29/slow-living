@@ -32,6 +32,8 @@ export interface AmbiencePlayerOptions {
   readonly volume: number;
   readonly fadeSeconds: number;
   readonly fadeInSeconds: number;
+  /** Each layer at full level, balanced against the others (0..1). */
+  readonly layerVolumes: AmbienceLevels;
 }
 
 export interface AmbiencePlayer {
@@ -41,14 +43,6 @@ export interface AmbiencePlayer {
   dispose: () => void;
 }
 
-/** Each layer at full level, balanced against the others. */
-const LAYER_GAIN: AmbienceLevels = {
-  waves: 0.5,
-  birds: 0.35,
-  crickets: 0.16,
-  rain: 0.45,
-  fire: 0.5,
-};
 /** How quickly a layer follows a new level (seconds, time constant). */
 const GLIDE_SECONDS = 0.8;
 /** Below this a layer counts as silent, and its short sounds aren't queued. */
@@ -142,7 +136,7 @@ export function createAmbiencePlayer(options: AmbiencePlayerOptions): AmbiencePl
     if (!graph) return;
     const now = graph.context.currentTime;
     for (const layer of AMBIENCE_LAYERS) {
-      const target = Math.max(0, Math.min(1, levels[layer])) * LAYER_GAIN[layer];
+      const target = Math.max(0, Math.min(1, levels[layer])) * options.layerVolumes[layer];
       graph.layers[layer].gain.setTargetAtTime(target, now, GLIDE_SECONDS);
     }
   };

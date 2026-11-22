@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-22 — Softer rain sound, an FPS-only F3 box (user request)
+
+- Rain sounds softer: a gentle hush (highs rolled off) over a quieter patter, and a lower level.
+  Every nature sound's strength is now in the config (`ambience.layerVolumes`).
+- `debug.fpsOnly` (on): F3 shows just the FPS, top right; off brings back tile, time and camera.
+- **Verified:** typecheck, lint, tests, build; browser: F3 shows only "FPS"; console clean. The
+  rain's sound is for the user to judge by ear.
+
 ### 2026-11-22 — A slower, calmer island: sounds, rain, a resting cat, the ambient tour (user request)
 
 - **Nature sounds** (`shared/audio/ambiencePlayer.ts`, `ambienceSounds.ts`; made in code like the

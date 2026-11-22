@@ -30,7 +30,7 @@ function readStats(game: GameState): Readout {
 
 /**
  * F3 toggles a small readout (top-right) of FPS, the player's tile, the time of day and the
- * camera (zoom level, zoom step, tiles on screen). While visible it
+ * camera (zoom level, zoom step, tiles on screen), or just the FPS (`debug.fpsOnly`). While visible it
  * samples the game state a few times per second (never every frame), so React
  * stays out of the render loop.
  */
@@ -58,6 +58,13 @@ export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
   }, [isVisible, game]);
 
   if (!isVisible) return null;
+  if (ISLAND_CONFIG.debug.fpsOnly) {
+    return (
+      <div className="island-hud-panel island-debug-overlay" role="status">
+        FPS {readout.fps}
+      </div>
+    );
+  }
   return (
     <div className="island-hud-panel island-debug-overlay" role="status">
       <div>FPS {readout.fps}</div>

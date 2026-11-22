@@ -74,16 +74,16 @@ export function surf(context: BaseAudioContext, noise: AudioBuffer, out: AudioNo
     .connect(out);
 }
 
-/** Soft rain: a hiss of fine drops over a low patter. */
+/** Soft rain: a gentle hush of fine drops (highs rolled off, no sharp hiss) over a low patter. */
 export function rainfall(context: BaseAudioContext, noise: AudioBuffer, out: AudioNode): void {
   loopNoise(context, noise, 0.4)
-    .connect(filter(context, 'highpass', 1400))
-    .connect(filter(context, 'lowpass', 6500))
-    .connect(gain(context, 0.5))
+    .connect(filter(context, 'highpass', 600))
+    .connect(filter(context, 'lowpass', 2600))
+    .connect(gain(context, 0.4))
     .connect(out);
   loopNoise(context, noise, 2.2)
-    .connect(filter(context, 'bandpass', 420, 0.6))
-    .connect(gain(context, 0.35))
+    .connect(filter(context, 'bandpass', 360, 0.6))
+    .connect(gain(context, 0.25))
     .connect(out);
 }
 

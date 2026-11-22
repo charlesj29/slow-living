@@ -26,6 +26,7 @@ export function AmbientSound({ game }: { readonly game: GameState }): null {
         volume: ISLAND_CONFIG.ambience.volume,
         fadeSeconds: ISLAND_CONFIG.music.fadeSeconds,
         fadeInSeconds: ISLAND_CONFIG.music.fadeInSeconds,
+        layerVolumes: ISLAND_CONFIG.ambience.layerVolumes,
       }),
     [],
   );
