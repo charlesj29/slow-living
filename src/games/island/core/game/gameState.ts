@@ -436,14 +436,20 @@ export function closePortfolioPanel(state: GameState): void {
 /**
  * A tap (or click) at a map point: turns the page of an open message, or walks
  * to the spot (and interacts with what's there). Ignored during a door fade or
- * while a panel or page is open.
+ * while a panel or page is open. With `canWalk` false (clicking to walk is
+ * switched off) it only turns message pages.
  */
 export function tapAt(
   state: GameState,
   point: { readonly x: number; readonly y: number },
   config: IslandConfig,
+  canWalk = true,
 ): void {
   if (state.transition || state.panel || state.overlayOpen) return;
+  if (!canWalk) {
+    if (state.dialog) turnPage(state, state.dialog);
+    return;
+  }
   if (state.player.sitting) {
     standUp(state.player);
     return;

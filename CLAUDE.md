@@ -63,7 +63,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
   mutated by fixed 1/60 s steps (`advanceGame` from `render/GameLoop`). Systems in
   `core/systems/` are pure functions taking `stepSeconds`; never read wall-clock time in core.
 - Input: key codes → actions in `core/systems/controls.ts`; DOM listeners only in
-  `render/useKeyboardInput.ts`. Taps/clicks: `render/TapToWalk` → `tapAt` → `core/systems/tapToWalk.ts`.
+  `render/useKeyboardInput.ts`. Taps/clicks: `render/TapToWalk` → `tapAt` → `core/systems/tapToWalk.ts`. Mouse clicks walk only with
+  `pointer.clickToWalk`; touch always does.
   Phones (`device.ts`, `isTouchFirst`) get their own camera framing and zoom buttons. Render reads interpolated positions and draws at whole pixels.
 
 ## Content

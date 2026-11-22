@@ -110,3 +110,35 @@ describe('tap to open the portfolio', () => {
     expect(state.panel).toEqual({ id: 'projects', page: 3 });
   });
 });
+
+describe('clicking to walk switched off', () => {
+  const click = (state: GameState, tileX: number, tileY: number): void => {
+    tapAt(
+      state,
+      { x: (tileX + 0.5) * TEST_TILE, y: (tileY + 0.5) * TEST_TILE },
+      ISLAND_CONFIG,
+      false,
+    );
+  };
+
+  it('does not walk or use things', () => {
+    const state = stateAt(5, 5);
+    click(state, 8, 8);
+    click(state, 8, 2); // the mailbox
+    run(state, 3);
+    expect(tileOf(state)).toEqual([5, 5]);
+    expect(state.dialog).toBeNull();
+  });
+
+  it('still turns the pages of an open message', () => {
+    const state = stateAt(8, 3);
+    state.player.facing = 'up';
+    pressKey(state.input, ISLAND_KEY_BINDINGS, 'Space');
+    run(state, 0.1);
+    releaseKey(state.input, ISLAND_KEY_BINDINGS, 'Space');
+    expect(state.dialog).not.toBeNull();
+    const pages = state.dialog?.pages.length ?? 0;
+    for (let i = 0; i < pages; i++) click(state, 1, 1);
+    expect(state.dialog).toBeNull();
+  });
+});

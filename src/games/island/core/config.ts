@@ -398,6 +398,14 @@ export interface IslandConfig {
     readonly mellowVolume: number;
     readonly mellowSeconds: number;
   };
+  /** Clicking the screen to walk there (and on things, to walk up and use them). */
+  readonly pointer: {
+    /**
+     * Mouse and pen clicks walk the player (false: walk with the keys only;
+     * clicks still turn message pages). Phones always tap to walk: they have no keys.
+     */
+    readonly clickToWalk: boolean;
+  };
   readonly debug: {
     /** How quickly the FPS readout follows frame-time changes (higher = jumpier). */
     readonly fpsSmoothingSharpness: number;
@@ -700,6 +708,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     mellowVolume: 0.7,
     mellowSeconds: 2.5,
   },
+  pointer: { clickToWalk: true },
   debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250, showClock: true, fpsOnly: true },
   render: {
     targetTilesAcross: 20,

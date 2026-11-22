@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-22 — A switch for clicking to walk (user request)
+
+- `pointer.clickToWalk` in `core/config.ts`: false = mouse and pen clicks no longer walk the player
+  or walk up to things (walk with the keys); clicks still turn message pages and wake the camera
+  from the tour. Touch taps always walk (phones have no keys). `tapAt(..., canWalk)`.
+- **Verified:** typecheck, lint, tests (switched off: no walking or using things, pages still
+  turn), build.
+
 ### 2026-11-22 — Sharing the dock, a proper sweeping broom (user request)
 
 - **The dock stays one plank wide** (a two-plank dock was tried and dropped: it looked silly). The
