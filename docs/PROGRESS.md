@@ -94,6 +94,7 @@
 - The phone interact button acted on touch-down, so the panel opened under the finger and the
   tap's own click then landed on the panel's backdrop and closed it (a long press worked: no
   click). The button now acts on the click (finger lifted), so nothing is left to close it.
+- Belt and braces: the panel also ignores backdrop taps for 0.4 s after it opens (`OPEN_GRACE_MS`).
 - **Verified:** phone emulation: a quick tap opens the mailbox message and it stays open.
 
 ### 2026-11-23 — Ready for a custom domain (user request)

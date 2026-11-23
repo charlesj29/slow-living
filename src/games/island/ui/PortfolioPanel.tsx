@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type JSX, type MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, type JSX, type MouseEvent } from 'react';
 import { PORTFOLIO } from '../core/content/portfolio';
 import { useIslandUiStore } from '../state';
 import { PortfolioPageView } from './PortfolioPageView';
@@ -8,6 +8,11 @@ const PREVIOUS_KEYS = new Set(['ArrowLeft', 'KeyA']);
 const NEXT_KEYS = new Set(['ArrowRight', 'KeyD']);
 /** Next page, or close after the last one (like the message box). */
 const ADVANCE_KEYS = new Set(['Space', 'Enter']);
+/**
+ * Just after opening, a tap on the backdrop is ignored: on phones the tap that
+ * opened the panel can finish (its click) on the backdrop now under the finger.
+ */
+const OPEN_GRACE_MS = 400;
 
 /**
  * The portfolio card a studio piece opens: one part of the portfolio, page by
@@ -23,6 +28,13 @@ export function PortfolioPanel(): JSX.Element | null {
   const close = useCallback(() => {
     useIslandUiStore.getState().closePanel();
   }, []);
+
+  // When the panel last opened (not on page turns), for the backdrop's grace period.
+  const isOpen = open !== null;
+  const openedAt = useRef(0);
+  useEffect(() => {
+    if (isOpen) openedAt.current = performance.now();
+  }, [isOpen]);
   const goTo = useCallback(
     (next: number) => {
       if (next >= 0 && next < count) useIslandUiStore.getState().setPanelPage(next);
@@ -61,7 +73,9 @@ export function PortfolioPanel(): JSX.Element | null {
     <div
       className="portfolio-backdrop"
       onClick={(event) => {
-        if (event.target === event.currentTarget) close();
+        if (event.target !== event.currentTarget) return;
+        if (performance.now() - openedAt.current < OPEN_GRACE_MS) return;
+        close();
       }}
     >
       <section
