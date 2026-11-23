@@ -89,6 +89,13 @@
 
 ## Session log
 
+### 2026-11-23 — Calmer phone controls (user request)
+
+- The slide-stick and the interact button are quieter: see-through, thin soft borders, light
+  shadows. The stick rests faded (65%) and brightens only while touched; its knob is a bit smaller
+  (2.5rem; the stick stays 7rem). The interact button is smaller (3.1rem) with softer text.
+- The "Slide the stick to walk" hint is gone.
+
 ### 2026-11-23 — Phone controls: slide-stick, a small interact button, a settings gear (user request)
 
 - **Slide-stick** (`ui/SlideStick`, bottom left): a round base whose knob follows the thumb;

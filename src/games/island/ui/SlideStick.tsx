@@ -19,10 +19,12 @@ interface SlideStickProps {
 /**
  * The slide-stick (phones): put a thumb on it and slide the knob to walk. The
  * knob follows the thumb freely; walking goes the way it leans most (four
- * ways, like the keyboard). Letting go springs it back. It presses the same
+ * ways, like the keyboard). Letting go springs it back. It rests faded and
+ * brightens while touched, so it never takes over the screen. It presses the same
  * input the arrow keys do. The knob is moved directly (no React render per move).
  */
 export function SlideStick({ game, hidden }: SlideStickProps): JSX.Element {
+  const baseRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLSpanElement>(null);
   const held = useRef<Direction | null>(null);
 
@@ -50,6 +52,7 @@ export function SlideStick({ game, hidden }: SlideStickProps): JSX.Element {
 
   const release = useCallback((): void => {
     letGo();
+    baseRef.current?.classList.remove('is-active');
     const knob = knobRef.current;
     if (knob) {
       knob.classList.add('is-springing');
@@ -78,6 +81,7 @@ export function SlideStick({ game, hidden }: SlideStickProps): JSX.Element {
   const onDown = (event: PointerEvent<HTMLDivElement>): void => {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.classList.add('is-active');
     // During the ambient tour the first touch only brings the camera back.
     if (noteActivity(game, ISLAND_CONFIG)) return;
     follow(event);
@@ -88,6 +92,7 @@ export function SlideStick({ game, hidden }: SlideStickProps): JSX.Element {
 
   return (
     <div
+      ref={baseRef}
       className={`island-stick${hidden ? ' is-hidden' : ''}`}
       role="group"
       aria-label="Slide to walk"
