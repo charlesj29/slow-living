@@ -85,6 +85,8 @@ Deploy: pushing `master` runs `.github/workflows/deploy.yml` (check, then GitHub
 - UI overlays live in `games/island/ui/` and read the shared `GameState` (sampled on a timer,
   never per frame) or the zustand store (`state.ts`, UI flags only). Top right: the clock plaque (`ui/GameClock`, `debug.showClock`); F3 (dev server only) adds the FPS
   under it (`debug.fpsOnly` off: also tile and camera); `debug.alwaysShowFps` shows it always.
+- Short game text uses `var(--game-font)` (M PLUS Rounded 1c, `app/global.css`); paragraphs keep
+  the system font; the pixel font is for the loading line only.
 - Dev-only features check `import.meta.env.DEV` (the "Dev preview · seed" badge,
   `window.__islandRenderer`).
 

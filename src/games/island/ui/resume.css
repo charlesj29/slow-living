@@ -35,6 +35,7 @@
   font-size: 1.75rem;
   line-height: 1;
   cursor: pointer;
+  font-family: var(--game-font);
 }
 
 .resume-close:hover,
@@ -58,6 +59,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #8a5a32;
+  font-family: var(--game-font);
 }
 
 .resume-section .portfolio-page + .portfolio-page {

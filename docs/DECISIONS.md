@@ -892,3 +892,13 @@ alternatives → consequences.
   `font-display: swap`. Self-hosting keeps visitors' browsers from contacting Google and works
   under any address prefix (Vite adds the base to the CSS and preload URLs).
 - **Consequences:** only the loading line uses it; the in-game HUD keeps the system font.
+
+## D72 — A rounded font for short game text
+
+- **Context:** the user found the text plain, but the pixel font too much for dialog.
+- **Decision:** M PLUS Rounded 1c (weights 500/700, Latin subset, self-hosted with its OFL licence)
+  via one variable, `--game-font`, applied only to short text (messages, clock, buttons, titles,
+  labels). Paragraphs stay in the system font for reading. Pixelify Sans remains for the loading
+  line (D71).
+- **Consequences:** about 45 KB of fonts, loaded on demand with `font-display: swap`; the
+  arrow → falls back to the system font (outside the Latin subset).

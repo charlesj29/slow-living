@@ -74,6 +74,7 @@
   transition:
     opacity 0.25s ease,
     transform 0.25s ease;
+  font-family: var(--game-font);
 }
 
 .island-action:active {

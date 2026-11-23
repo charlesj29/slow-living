@@ -53,7 +53,32 @@ a {
   background: #1f4e79;
 }
 
-/* A soft pixel font for the loading screen (Pixelify Sans, SIL Open Font License; public/fonts). */
+/*
+ * Fonts (SIL Open Font License, self-hosted in public/fonts with their licences):
+ * - M PLUS Rounded 1c for the short game text: the message box, the clock, buttons, titles and
+ *   labels. Rounded and gently game-like; long paragraphs keep the clean system font.
+ * - Pixelify Sans, a soft pixel font, for the loading line only.
+ */
+:root {
+  --game-font: 'M PLUS Rounded 1c', ui-rounded, system-ui, sans-serif;
+}
+
+@font-face {
+  font-family: 'M PLUS Rounded 1c';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/mplus-rounded-1c-500-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'M PLUS Rounded 1c';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/mplus-rounded-1c-700-latin.woff2') format('woff2');
+}
+
 @font-face {
   font-family: 'Pixelify Sans';
   font-style: normal;

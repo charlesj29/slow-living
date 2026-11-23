@@ -89,6 +89,17 @@
 
 ## Session log
 
+### 2026-11-23 — A gently game-like font for the short text (user request)
+
+- **M PLUS Rounded 1c** (SIL OFL, self-hosted Latin subset: 500 and 700, 22 KB each) for the short
+  game text through one CSS variable, `--game-font`: the message box, the clock, the F3 readout,
+  the phone interact button, the controls list, the portfolio panel's titles, buttons, tags and
+  notices, the Résumé headings. Long paragraphs keep the system font. The pixel font (Pixelify
+  Sans) stays on the loading line only: on dialog it was too much. The user compared Nunito,
+  Fredoka, Quicksand, M PLUS Rounded 1c and Pixelify in a mock of the UI before choosing.
+- **Verified:** typecheck, lint, tests, build; browser: the message box and clock in the new font;
+  console clean.
+
 ### 2026-11-23 — Fix: a tap on "Look" opened and closed the workspace panel (user report)
 
 - The phone interact button acted on touch-down, so the panel opened under the finger and the
