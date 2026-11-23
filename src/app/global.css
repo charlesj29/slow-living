@@ -53,6 +53,15 @@ a {
   background: #1f4e79;
 }
 
+/* A soft pixel font for the loading screen (Pixelify Sans, SIL Open Font License; public/fonts). */
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/pixelify-sans-500-latin.woff2') format('woff2');
+}
+
 /* The loading screen: the pixel cottage on a soft morning sky, smoke curling up. */
 .loading-screen {
   display: flex;
@@ -68,7 +77,10 @@ a {
 
 .loading-screen__message {
   margin: 0;
-  font-size: 1rem;
+  font-family: 'Pixelify Sans', ui-monospace, monospace;
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
   animation: loading-fade-in 0.8s ease both;
 }
 

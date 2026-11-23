@@ -883,3 +883,12 @@ alternatives → consequences.
   preview tags needed it.
 - **Consequences:** the repo must be public; link previews point at the Pages address until a
   custom domain replaces it (the workflow's `SITE_URL` then changes in one place).
+
+## D71 — A self-hosted pixel font for the loading screen
+
+- **Context:** the user wanted the loading text to feel more like a game.
+- **Decision:** Pixelify Sans (weight 500, Latin subset, 8 KB woff2) under the SIL Open Font
+  License, served from `public/fonts/` with its licence file, preloaded from `index.html`, with
+  `font-display: swap`. Self-hosting keeps visitors' browsers from contacting Google and works
+  under any address prefix (Vite adds the base to the CSS and preload URLs).
+- **Consequences:** only the loading line uses it; the in-game HUD keeps the system font.

@@ -89,6 +89,13 @@
 
 ## Session log
 
+### 2026-11-23 — New island screenshot, a pixel font on the loading screen (user request)
+
+- `public/portfolio/island.webp` (the workspace's "This island" project) is a fresh 800×525 shot of
+  today's island: village with washing lines, villagers at work, cottage, workspace, lake and ducks.
+- The loading line uses **Pixelify Sans** (SIL Open Font License), self-hosted in `public/fonts/`
+  (8 KB, licence alongside) and preloaded, so no request goes to Google.
+
 ### 2026-11-23 — A cosy loading screen (user request)
 
 - While the island downloads: the pixel cottage from the tab icon on a cream-to-peach morning sky,
