@@ -26,6 +26,9 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 `npm run dev` · `npm run check` (typecheck + lint + test + build) · `npm run typecheck` ·
 `npm run lint` · `npm test` · `npm run build` · `npm run format` · `npm run bake:island`
 
+Deploy: pushing `master` runs `.github/workflows/deploy.yml` (check, then GitHub Pages under
+`/<repo>/`). Keep asset paths relative (or use `import.meta.env.BASE_URL`), never root `/...`.
+
 ## Architecture rules (enforced by ESLint `no-restricted-imports`, see `eslint.config.js`)
 
 - Layers: **app/pages → ui / render → core**. ui and render don't import each other.

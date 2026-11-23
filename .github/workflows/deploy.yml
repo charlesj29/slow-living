@@ -1,0 +1,68 @@
+# Builds and publishes the site to GitHub Pages on every push to master (and on demand).
+# The full check (typecheck, lint, tests, build) must pass, or nothing is deployed.
+# One-time setup in the repo: Settings -> Pages -> Source: "GitHub Actions".
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer push waits for the running one instead of cancelling it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # The site's address: https://<owner>.github.io/<repo>/ (or the root for a <owner>.github.io repo).
+      - name: Work out the site address
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          REPO="${{ github.event.repository.name }}"
+          OWNER_LOWER="${OWNER,,}"
+          if [ "${REPO,,}" = "${OWNER_LOWER}.github.io" ]; then
+            echo "BASE_PATH=/" >> "$GITHUB_ENV"
+            echo "SITE_URL=https://${OWNER_LOWER}.github.io/" >> "$GITHUB_ENV"
+          else
+            echo "BASE_PATH=/${REPO}/" >> "$GITHUB_ENV"
+            echo "SITE_URL=https://${OWNER_LOWER}.github.io/${REPO}/" >> "$GITHUB_ENV"
+          fi
+
+      - name: Check and build
+        run: npm run check
+
+      # GitHub Pages serves 404.html for unknown addresses: the same page, which sends you to the island.
+      - run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

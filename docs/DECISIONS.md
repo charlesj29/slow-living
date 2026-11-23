@@ -871,3 +871,15 @@ alternatives → consequences.
   direction changes touch the input. Taps on the canvas no longer walk on phones while the stick
   is there (`touch.tapToWalk`), but still continue messages.
 - **Consequences:** `touch` settings in the config; `debug.alwaysShowFps`; F3 is dev-only.
+
+## D70 — Hosting on GitHub Pages with an Actions deploy
+
+- **Context:** the user wants free hosting that redeploys on every push to `master`.
+- **Decision:** GitHub Pages (free for public repos) fed by the official Pages actions
+  (configure-pages, upload-pages-artifact, deploy-pages). The full `npm run check` gates every
+  deploy. The address prefix comes from the repo name at build time (`BASE_PATH`, `SITE_URL`),
+  not from code, so the repo can be renamed (or moved to `<owner>.github.io`, served at the root)
+  freely. Portfolio files already used relative paths, so only the router, Vite's `base` and the
+  preview tags needed it.
+- **Consequences:** the repo must be public; link previews point at the Pages address until a
+  custom domain replaces it (the workflow's `SITE_URL` then changes in one place).

@@ -1,4 +1,4 @@
-# Slow Days · Charles
+# Slow Living · Charles
 
 A small browser game built with React, TypeScript and Three.js (via React Three Fiber). Opening
 the site drops you straight onto **Island**: a hand-picked, pixel-art 2D top-down world to stroll
@@ -81,3 +81,17 @@ output. Options (environment variables): `CHROME_ANGLE=d3d11` renders on the GPU
 `CHROME_WINDOW=1920,1040` sets the window size, `PHONE=1` emulates a touch phone,
 `CHECK_EXPR="..."` evaluates an expression in the page (e.g.
 `window.__islandRenderer.info.memory` in dev), `CHROME_PATH` points at Chrome.
+
+## Deploying (GitHub Pages)
+
+Every push to `master` runs `.github/workflows/deploy.yml`: install, `npm run check`
+(typecheck, lint, tests, build) and, only if all of it passes, publish to GitHub Pages at
+`https://<owner>.github.io/<repo>/`. The workflow works out that address from the repo name, so
+renaming the repo needs no code change. You can also run it by hand from the **Actions** tab.
+
+One-time setup on GitHub: the repo must be public (free plan), and **Settings → Pages → Build
+and deployment → Source** must be set to **GitHub Actions**.
+
+To try a deploy-style build locally (Git Bash: keep it from rewriting the path):
+`MSYS_NO_PATHCONV=1 BASE_PATH=/slow-living/ npm run build`, then
+`MSYS_NO_PATHCONV=1 npx vite preview --base /slow-living/`.

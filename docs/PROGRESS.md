@@ -3,7 +3,7 @@
 ## Current status
 
 - **Milestone:** M4 — Polish & handover ✅ complete. **All milestones (M0–M4) delivered.**
-- **What works:** opening the site (`/`, tab title "Slow Days · Charles" with a cottage icon) shows a "Cooking…" loading
+- **What works:** opening the site (`/`, tab title "Slow Living · Charles" with a cottage icon) shows a "Cooking…" loading
   screen, then drops you in front of the cabin on the baked 96×96 island, full screen with
   no site chrome. Walk with WASD/arrows, run with Shift, zoom with +/− (starts three steps out,
   the user's preferred view). The controls hint fades after your first steps. F3 shows FPS and
@@ -89,6 +89,23 @@
 
 ## Session log
 
+### 2026-11-23 — Deploying to GitHub Pages (user request)
+
+- `.github/workflows/deploy.yml`: on every push to `master` (or by hand): `npm ci`,
+  `npm run check`, then publish `dist` to GitHub Pages. Nothing deploys if a check fails.
+- The site lives under the repo's name (the user chose **slow-living**:
+  `https://charlesj29.github.io/slow-living/`). The workflow sets `BASE_PATH` and `SITE_URL`
+  from the repo name; Vite uses them for the address prefix (`base`), the router for its
+  `basename`, and the link-preview image becomes a full address (plus `og:url`). Locally both
+  default to `/`, so dev and builds are unchanged. `404.html` is a copy of the page, so wrong
+  addresses still open the island.
+- Tests get a 30 s time limit (ESLint-driven layer tests were close to the 5 s default).
+- **Verified:** typecheck, lint, tests, build; a `/slow-living/` build served locally: page,
+  icons, screenshots, CV and preview image all load under the prefix, a wrong address opens the
+  island, console clean.
+- **Next (user, on GitHub):** make the repo public, rename it to `slow-living`, set Pages source
+  to GitHub Actions, push `master`.
+
 ### 2026-11-23 — Calmer phone controls (user request)
 
 - The slide-stick and the interact button are quieter: see-through, thin soft borders, light
@@ -120,7 +137,7 @@
 
 ### 2026-11-22 — Tab title and icon (user request)
 
-- The tab reads **Slow Days · Charles** (user choice from four suggestions) and shows a 16×16
+- The tab reads **Slow Living · Charles** (user choice from four suggestions) and shows a 16×16
   pixel-art cottage with chimney smoke: `public/favicon.svg` (crisp vector pixels), a 32 px PNG
   fallback and a 180 px `apple-touch-icon.png` (on a soft sky) for phone home screens. Link
   previews keep their professional title.
