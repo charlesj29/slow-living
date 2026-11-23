@@ -53,38 +53,103 @@ a {
   background: #1f4e79;
 }
 
+/* The loading screen: the pixel cottage on a soft morning sky, smoke curling up. */
 .loading-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.25rem;
   height: 100%;
-  background: radial-gradient(circle at 50% 45%, #2b6a9e 0%, #1f4e79 45%, #14304b 100%);
-  color: #e8f1f8;
+  background: linear-gradient(180deg, #fbeedd 0%, #f8dcc4 60%, #f3cfb4 100%);
+  color: #5a3a24;
   letter-spacing: 0.02em;
 }
 
-.loading-screen__mark {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 60%, #6aa84f 0 45%, #e3d29b 46% 60%, transparent 61%);
-  animation: loading-bob 1.4s ease-in-out infinite;
+.loading-screen__message {
+  margin: 0;
+  font-size: 1rem;
+  animation: loading-fade-in 0.8s ease both;
 }
 
-@keyframes loading-bob {
+.loading-cottage {
+  position: relative;
+  width: 8rem;
+  height: 8rem;
+}
+
+.loading-cottage__house {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+/* The window glows softly, like lamplight. */
+.loading-cottage__window {
+  animation: loading-glow 3s ease-in-out infinite;
+}
+
+/* Smoke puffs leave the chimney (pixel 10, row 3 of 16), rise, spread and fade, one after another. */
+.loading-cottage__puff {
+  position: absolute;
+  left: calc(10 / 16 * 100%);
+  top: calc(2 / 16 * 100%);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: #b9b6b0;
+  opacity: 0;
+  animation: loading-smoke 3.6s ease-out infinite;
+}
+
+.loading-cottage__puff:nth-of-type(2) {
+  animation-delay: 1.2s;
+}
+
+.loading-cottage__puff:nth-of-type(3) {
+  animation-delay: 2.4s;
+}
+
+@keyframes loading-smoke {
+  0% {
+    transform: translate(0, 0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(0.9rem, -2.6rem) scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes loading-glow {
   0%,
   100% {
-    transform: translateY(0);
+    opacity: 1;
   }
   50% {
-    transform: translateY(-6px);
+    opacity: 0.75;
+  }
+}
+
+@keyframes loading-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading-screen__mark {
+  .loading-screen__message,
+  .loading-cottage__window,
+  .loading-cottage__puff {
     animation: none;
   }
 }

@@ -89,6 +89,16 @@
 
 ## Session log
 
+### 2026-11-23 — A cosy loading screen (user request)
+
+- While the island downloads: the pixel cottage from the tab icon on a cream-to-peach morning sky,
+  three smoke puffs rising one after another from the chimney, the window glowing softly, and a
+  line that changes every 2.2 s ("Putting the kettle on…", "Lighting the lanterns…", "Waking the
+  ducks…", "Sweeping the doorstep…"). Plain HTML/SVG/CSS (`pages/LoadingCottage`), so it shows at
+  once; no motion with reduced-motion settings. The very first paint is cream too (`index.html`).
+- **Verified:** typecheck, lint, tests, build; production build on a throttled connection: the
+  cottage, smoke, glowing window and message; console clean.
+
 ### 2026-11-23 — Deploying to GitHub Pages (user request)
 
 - `.github/workflows/deploy.yml`: on every push to `master` (or by hand): `npm ci`,
