@@ -20,6 +20,9 @@ import { ScreenFade } from './ui/ScreenFade';
 import { StudioVisitMemory } from './ui/StudioVisitMemory';
 import { WorldErrorPanel } from './ui/WorldErrorPanel';
 import { ZoomButtons } from './ui/ZoomButtons';
+import { HudMenu } from './ui/HudMenu';
+import { TouchControls } from './ui/TouchControls';
+import { isTouchFirst } from './device';
 
 export interface IslandGameProps {
   /** A generated island for this seed; undefined = the baked home island. */
@@ -39,6 +42,7 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
   // Resting on a bench or touring: the buttons fade or hide.
   const calmMode = useIslandUiStore((state) => state.calmMode);
   const calmClass = calmMode ? ` is-${calmMode}` : '';
+  const showTouchControls = isTouchFirst() && ISLAND_CONFIG.touch.controls;
   const game = useMemo(
     () => (result.ok ? createGameState(result.world, ISLAND_CONFIG) : null),
     [result],
@@ -86,16 +90,23 @@ export function IslandGame({ seed, onNewIsland, onHome }: IslandGameProps): JSX.
       <ScreenFade />
       <StudioVisitMemory />
       <DialogBox />
-      <div className={`island-bottom-right${calmClass}`}>
-        <ZoomButtons />
-        <ControlsHint />
-      </div>
-      {/* The top-left buttons, in one column. */}
+      {/* Phones get the D-pad and interact button; otherwise the controls list. */}
+      {showTouchControls ? (
+        <TouchControls game={game} />
+      ) : (
+        <div className={`island-bottom-right${calmClass}`}>
+          <ControlsHint />
+        </div>
+      )}
+      {/* The top-left buttons, in one column (folded into a gear on phones). */}
       <div className={`island-hud-stack${calmClass}`}>
-        <DayNightToggle />
-        <MusicToggle song={CHILL_TUNE} />
-        <ResumeButton />
-        {switcher}
+        <HudMenu>
+          <DayNightToggle />
+          <MusicToggle song={CHILL_TUNE} />
+          <ResumeButton />
+          {switcher}
+          <ZoomButtons />
+        </HudMenu>
         {import.meta.env.DEV && seed !== undefined && <DevSeedBadge seed={seed} />}
       </div>
       <ResumeView />

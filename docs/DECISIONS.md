@@ -858,3 +858,16 @@ alternatives → consequences.
 - **Consequences:** `Villager` gains role, roam, door, activity, errand, atErrand, hidden;
   `sitOn`/`standUp` moved to `core/systems/seat.ts`. Greetings are prepended to conversations,
   so the first-conversation workspace hint still holds.
+
+## D69 — Phone controls press virtual keys
+
+- **Context:** phones moved by tapping where to walk; the user wanted a slide-stick and a simple
+  interact button instead (a D-pad was tried first and dropped), messages continuing with a tap,
+  and the top-left buttons folded into a gear.
+- **Decision:** the touch controls are UI components that press and release virtual key codes
+  (`TOUCH_KEYS`: TouchUp, TouchInteract, ...) bound in `ISLAND_KEY_BINDINGS`. The game sees the
+  same actions as from a keyboard, so movement, collisions, sitting, talking and the tour's wake-up
+  need no new core code. The stick's knob moves through a ref (no React render per move); only
+  direction changes touch the input. Taps on the canvas no longer walk on phones while the stick
+  is there (`touch.tapToWalk`), but still continue messages.
+- **Consequences:** `touch` settings in the config; `debug.alwaysShowFps`; F3 is dev-only.

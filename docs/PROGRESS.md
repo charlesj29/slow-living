@@ -89,6 +89,28 @@
 
 ## Session log
 
+### 2026-11-23 — Phone controls: slide-stick, a small interact button, a settings gear (user request)
+
+- **Slide-stick** (`ui/SlideStick`, bottom left): a round base whose knob follows the thumb;
+  walking goes the way it leans most (four ways, no diagonals, no running on phones), and it
+  springs back when let go. A D-pad was built first and replaced at the user's request.
+- **Interact** (`ui/ActionButton`): a small round button with just the word inside (Talk, Read,
+  Look, Sit, Stand), shown only when something is in reach or you're sitting. Messages continue
+  with a tap on the screen. Both press virtual keys (`TOUCH_KEYS` in `controls.ts`), so walking,
+  collisions and interacting are exactly the keyboard's.
+- On phones taps no longer walk (`touch.tapToWalk`, off); without the stick (`touch.controls`
+  off) taps walk as before.
+- **Settings gear** (`ui/HudMenu`, phones only): the top-left buttons fold into one gear; every
+  button in it is the gear's size (44 px). They stay mounted while folded (the music keeps
+  playing). The zoom buttons moved in there too.
+- A smaller clock on phones. **FPS:** `debug.alwaysShowFps` shows it always (live site too); F3
+  now works on the dev server only.
+- Also: the controls list hid "Zoom" by its old lowercase name; fixed for the capitalised list.
+  The rabbit test now follows the configured counts.
+- **Verified:** typecheck, lint, tests (stick direction, button labels), build; phone emulation
+  (390×844, touch): the stick turns the player towards the mailbox and **Read** pops up, the gear
+  opens with all buttons 44×44, the clock is smaller; console clean.
+
 ### 2026-11-22 — Tab title and icon (user request)
 
 - The tab reads **Slow Days · Charles** (user choice from four suggestions) and shows a 16×16

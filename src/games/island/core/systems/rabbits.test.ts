@@ -21,8 +21,11 @@ function simulate(seconds: number): ReturnType<typeof createGameState> {
 describe('wild rabbits', () => {
   const state = simulate(30);
 
-  it('are one white and one brown', () => {
-    expect(state.rabbits.map((r) => r.color).sort()).toEqual(['brown', 'white']);
+  it('come in the configured numbers of white and brown', () => {
+    const { white, brown } = ISLAND_CONFIG.rabbits;
+    const colors = state.rabbits.map((r) => r.color);
+    expect(colors.filter((c) => c === 'white')).toHaveLength(white);
+    expect(colors.filter((c) => c === 'brown')).toHaveLength(brown);
   });
 
   it('keep away from every building (cottage, studio, houses)', () => {

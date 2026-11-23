@@ -35,7 +35,7 @@ export function ControlsHint(): JSX.Element {
   // No zoom line when zoom is switched off.
   const controls = ISLAND_CONFIG.render.zoomEnabled
     ? all
-    : all.filter((control) => control.action !== 'zoom');
+    : all.filter((control) => control.action !== 'Zoom');
   return (
     <ul
       className={`island-hud-panel island-controls-hint${hasStartedWalking ? ' is-dimmed' : ''}${isMessageOpen ? ' is-hidden' : ''}`}

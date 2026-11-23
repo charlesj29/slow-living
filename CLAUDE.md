@@ -65,7 +65,9 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 - Input: key codes → actions in `core/systems/controls.ts`; DOM listeners only in
   `render/useKeyboardInput.ts`. Taps/clicks: `render/TapToWalk` → `tapAt` → `core/systems/tapToWalk.ts`. Mouse clicks walk only with
   `pointer.clickToWalk`; touch always does.
-  Phones (`device.ts`, `isTouchFirst`) get their own camera framing and zoom buttons. Render reads interpolated positions and draws at whole pixels.
+  Phones (`device.ts`, `isTouchFirst`) get their own camera framing, a slide-stick and a small
+  interact button (`ui/TouchControls`; they press virtual `TOUCH_KEYS`, so input stays one path;
+  taps continue messages) and a settings gear (`ui/HudMenu`). Render reads interpolated positions and draws at whole pixels.
 
 ## Content
 
@@ -78,8 +80,8 @@ User decisions that override `PROJECT_BRIEF.md` are listed in `docs/PROGRESS.md`
 ## UI conventions
 
 - UI overlays live in `games/island/ui/` and read the shared `GameState` (sampled on a timer,
-  never per frame) or the zustand store (`state.ts`, UI flags only). Top right: the clock plaque (`ui/GameClock`, `debug.showClock`); F3 adds the FPS under it
-  (`debug.fpsOnly` off: also tile and camera).
+  never per frame) or the zustand store (`state.ts`, UI flags only). Top right: the clock plaque (`ui/GameClock`, `debug.showClock`); F3 (dev server only) adds the FPS
+  under it (`debug.fpsOnly` off: also tile and camera); `debug.alwaysShowFps` shows it always.
 - Dev-only features check `import.meta.env.DEV` (the "Dev preview · seed" badge,
   `window.__islandRenderer`).
 

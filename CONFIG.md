@@ -8,15 +8,18 @@ Change a value, save, and the page updates (`npm run dev`).
 
 ## Quick switches
 
-| Setting                             | What it does                                                |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `render.zoomEnabled`                | Allow zooming with + / − (and the phone zoom buttons).      |
-| `pointer.clickToWalk`               | Click the screen to walk there (phones always tap to walk). |
-| `tour.enabled`                      | The slow camera tour after a minute without input.          |
-| `debug.showClock`                   | The clock at the top right.                                 |
-| `debug.fpsOnly`                     | F3 shows only the FPS (`false`: also tile and camera).      |
-| `rabbits.enabled` / `ducks.enabled` | The rabbits near the village / the ducks on the lake.       |
-| `animals.enabled`                   | The village chickens and cat (off).                         |
+| Setting                             | What it does                                                     |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| `render.zoomEnabled`                | Allow zooming with + / − (and the phone zoom buttons).           |
+| `touch.controls`                    | Phones: the slide-stick (walk) and the small interact button.    |
+| `touch.tapToWalk`                   | Phones: tapping the screen walks there too (off: stick only).    |
+| `pointer.clickToWalk`               | Click the screen to walk there (phones always tap to walk).      |
+| `tour.enabled`                      | The slow camera tour after a minute without input.               |
+| `debug.showClock`                   | The clock at the top right.                                      |
+| `debug.alwaysShowFps`               | Always show the FPS, on the live site too (F3: dev server only). |
+| `debug.fpsOnly`                     | F3 shows only the FPS (`false`: also tile and camera).           |
+| `rabbits.enabled` / `ducks.enabled` | The rabbits near the village / the ducks on the lake.            |
+| `animals.enabled`                   | The village chickens and cat (off).                              |
 
 ## Time, light and weather
 

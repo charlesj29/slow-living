@@ -43,9 +43,12 @@ export function TapToWalk({ state }: TapToWalkProps): null {
         -((event.clientY - rect.top) / rect.height) * 2 + 1,
         0,
       ).unproject(camera);
-      // World y is map y flipped (the same flip both ways). Touch always walks (phones have
-      // no keys); mouse and pen clicks only if clicking to walk is switched on.
-      const canWalk = event.pointerType === 'touch' || ISLAND_CONFIG.pointer.clickToWalk;
+      // World y is map y flipped (the same flip both ways). Taps walk unless the D-pad is
+      // there instead (phones without it have no other way to move); mouse and pen clicks
+      // only if clicking to walk is switched on.
+      const { touch, pointer } = ISLAND_CONFIG;
+      const canWalk =
+        event.pointerType === 'touch' ? !touch.controls || touch.tapToWalk : pointer.clickToWalk;
       tapAt(state, { x: ndc.x, y: worldYFromMapPx(ndc.y) }, ISLAND_CONFIG, canWalk);
     };
     const onCancel = (): void => {

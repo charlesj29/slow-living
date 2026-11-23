@@ -3,7 +3,16 @@ import type { Direction } from '../entities/player';
 
 export type IslandAction = Direction | 'run' | 'interact';
 
-/** Arrow keys or WASD to walk; either Shift to run; Space to interact. */
+/** Key codes the touch controls press (no real keyboard sends these). */
+export const TOUCH_KEYS = {
+  up: 'TouchUp',
+  down: 'TouchDown',
+  left: 'TouchLeft',
+  right: 'TouchRight',
+  interact: 'TouchInteract',
+} as const;
+
+/** Arrow keys or WASD to walk; either Shift to run; Space to interact; the touch keys likewise. */
 export const ISLAND_KEY_BINDINGS: KeyBindings<IslandAction> = {
   ArrowUp: 'up',
   KeyW: 'up',
@@ -16,6 +25,12 @@ export const ISLAND_KEY_BINDINGS: KeyBindings<IslandAction> = {
   ShiftLeft: 'run',
   ShiftRight: 'run',
   Space: 'interact',
+  // The on-screen D-pad and interact button (phones) press these virtual keys.
+  [TOUCH_KEYS.up]: 'up',
+  [TOUCH_KEYS.down]: 'down',
+  [TOUCH_KEYS.left]: 'left',
+  [TOUCH_KEYS.right]: 'right',
+  [TOUCH_KEYS.interact]: 'interact',
 };
 
 const DIRECTION_ACTIONS: readonly Direction[] = ['up', 'down', 'left', 'right'];

@@ -334,3 +334,25 @@
 .island-bottom-right.is-touring > * {
   pointer-events: none;
 }
+
+/* ── Phones: a smaller clock, so it doesn't crowd the top of the screen. ── */
+@media (hover: none) and (pointer: coarse) {
+  .island-clock {
+    gap: 0.4rem;
+    padding: 0.2rem 0.5rem 0.2rem 0.35rem;
+    border-width: 2px;
+  }
+
+  .island-clock-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .island-clock-time {
+    font-size: 0.9rem;
+  }
+
+  .island-clock-half {
+    font-size: 0.6rem;
+  }
+}

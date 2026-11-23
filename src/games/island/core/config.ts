@@ -400,6 +400,15 @@ export interface IslandConfig {
     readonly mellowVolume: number;
     readonly mellowSeconds: number;
   };
+  /** Phones and tablets (touch first, no keys). */
+  readonly touch: {
+    /** The on-screen slide-stick (walk) and interact button. */
+    readonly controls: boolean;
+    /** Tapping the screen walks there too. Without the stick, taps always walk (there are no keys). */
+    readonly tapToWalk: boolean;
+    /** A thumb this close to the slide-stick's middle (share of its reach) points nowhere: no walking. */
+    readonly deadZone: number;
+  };
   /** Clicking the screen to walk there (and on things, to walk up and use them). */
   readonly pointer: {
     /**
@@ -417,6 +426,8 @@ export interface IslandConfig {
     readonly showClock: boolean;
     /** true: F3 adds only the FPS; false: also the tile and camera. */
     readonly fpsOnly: boolean;
+    /** Always show the FPS under the clock, on the live site too (F3 works on the dev server only). */
+    readonly alwaysShowFps: boolean;
   };
   readonly render: {
     /** Handheld-like framing: pick the whole-number scale that shows about this many tiles across. */
@@ -710,8 +721,15 @@ export const ISLAND_CONFIG: IslandConfig = {
     mellowVolume: 0.7,
     mellowSeconds: 2.5,
   },
+  touch: { controls: true, tapToWalk: false, deadZone: 0.25 },
   pointer: { clickToWalk: false },
-  debug: { fpsSmoothingSharpness: 3, overlayRefreshMs: 250, showClock: true, fpsOnly: true },
+  debug: {
+    fpsSmoothingSharpness: 3,
+    overlayRefreshMs: 250,
+    showClock: true,
+    fpsOnly: true,
+    alwaysShowFps: false,
+  },
   render: {
     targetTilesAcross: 20,
     minTilesTall: 11,

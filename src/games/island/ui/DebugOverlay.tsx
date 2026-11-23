@@ -22,9 +22,10 @@ function readStats(game: GameState): Readout {
 }
 
 /**
- * F3 toggles a small readout under the clock (top right): the FPS, and with
+ * A small readout under the clock (top right): the FPS, and with
  * `debug.fpsOnly` off also the player's tile and the camera (zoom level, zoom
- * step, tiles on screen). While visible it samples the game state a few times
+ * step, tiles on screen). Always there with `debug.alwaysShowFps`; otherwise
+ * F3 toggles it, on the dev server only. While visible it samples the game state a few times
  * per second (never every frame), so React stays out of the render loop.
  */
 export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
@@ -32,7 +33,10 @@ export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
   const camera = useIslandUiStore((state) => state.camera);
   const [readout, setReadout] = useState<Readout>(() => readStats(game));
 
+  const isShown = ISLAND_CONFIG.debug.alwaysShowFps || (import.meta.env.DEV && isVisible);
+
   useEffect(() => {
+    if (!import.meta.env.DEV) return; // F3 is a dev-server tool
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.code !== TOGGLE_KEY) return;
       event.preventDefault(); // F3 would otherwise open the browser's find bar
@@ -43,14 +47,14 @@ export function DebugOverlay({ game }: DebugOverlayProps): JSX.Element | null {
   }, []);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isShown) return;
     const timer = window.setInterval(() => {
       setReadout(readStats(game));
     }, ISLAND_CONFIG.debug.overlayRefreshMs);
     return () => window.clearInterval(timer);
-  }, [isVisible, game]);
+  }, [isShown, game]);
 
-  if (!isVisible) return null;
+  if (!isShown) return null;
   return (
     <div className="island-hud-panel island-debug-overlay" role="status">
       <div>FPS {readout.fps}</div>
