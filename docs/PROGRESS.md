@@ -89,6 +89,13 @@
 
 ## Session log
 
+### 2026-11-23 — Fix: a tap on "Look" opened and closed the workspace panel (user report)
+
+- The phone interact button acted on touch-down, so the panel opened under the finger and the
+  tap's own click then landed on the panel's backdrop and closed it (a long press worked: no
+  click). The button now acts on the click (finger lifted), so nothing is left to close it.
+- **Verified:** phone emulation: a quick tap opens the mailbox message and it stays open.
+
 ### 2026-11-23 — Ready for a custom domain (user request)
 
 - The deploy workflow builds for the repo variable `PAGES_DOMAIN` (e.g. `charlesj.town`) when it is

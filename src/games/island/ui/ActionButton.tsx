@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSX, type PointerEvent } from 'react';
+import { useEffect, useState, type JSX, type MouseEvent } from 'react';
 import { pressKey, releaseKey } from '@/shared/engine/input';
 import { ISLAND_CONFIG } from '../core/config';
 import { noteActivity } from '../core/game/idleTour';
@@ -31,8 +31,11 @@ export function ActionButton({
     return () => window.clearInterval(timer);
   }, [game]);
 
-  const onDown = (event: PointerEvent<HTMLButtonElement>): void => {
-    event.preventDefault();
+  // On the click (finger lifted), not on touch-down: acting on touch-down opened the
+  // workspace panel under the finger, and the tap's own click then landed on the panel's
+  // backdrop and closed it again at once.
+  const onPress = (event: MouseEvent<HTMLButtonElement>): void => {
+    event.currentTarget.blur();
     if (noteActivity(game, ISLAND_CONFIG)) return;
     // A press, like tapping Space: the next game step picks it up.
     pressKey(game.input, ISLAND_KEY_BINDINGS, TOUCH_KEYS.interact);
@@ -44,7 +47,7 @@ export function ActionButton({
     <button
       type="button"
       className={`island-action${isShown ? '' : ' is-hidden'}`}
-      onPointerDown={onDown}
+      onClick={onPress}
       aria-hidden={!isShown}
       tabIndex={isShown ? 0 : -1}
     >
