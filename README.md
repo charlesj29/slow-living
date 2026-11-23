@@ -92,6 +92,12 @@ renaming the repo needs no code change. You can also run it by hand from the **A
 One-time setup on GitHub: the repo must be public (free plan), and **Settings → Pages → Build
 and deployment → Source** must be set to **GitHub Actions**.
 
+Your own domain: buy it, point its DNS at GitHub Pages (four A records for the bare domain:
+`185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; a CNAME `www` → `<owner>.github.io`), enter it
+under **Settings → Pages → Custom domain**, and add the repo variable **`PAGES_DOMAIN`** (e.g.
+`charlesj.town`, under **Settings → Secrets and variables → Actions → Variables**) so the build
+targets the domain's root. Without the variable, builds keep the `/<repo>/` address.
+
 To try a deploy-style build locally (Git Bash: keep it from rewriting the path):
 `MSYS_NO_PATHCONV=1 BASE_PATH=/slow-living/ npm run build`, then
 `MSYS_NO_PATHCONV=1 npx vite preview --base /slow-living/`.

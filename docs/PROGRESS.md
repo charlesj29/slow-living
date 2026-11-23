@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-23 — Ready for a custom domain (user request)
+
+- The deploy workflow builds for the repo variable `PAGES_DOMAIN` (e.g. `charlesj.town`) when it is
+  set: address prefix `/` and full address `https://<domain>/`; unset, it keeps `/<repo>/`.
+- `charlesj.town` did not exist in DNS yet ("name does not exist" from the .town registry), which is
+  why GitHub reported InvalidDNSError: the domain must be registered and point at GitHub Pages
+  (README: four A records + `www` CNAME) before GitHub can verify it.
+
 ### 2026-11-23 — New island screenshot, a pixel font on the loading screen (user request)
 
 - `public/portfolio/island.webp` (the workspace's "This island" project) is a fresh 800×525 shot of

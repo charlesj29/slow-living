@@ -31,13 +31,20 @@ jobs:
 
       - run: npm ci
 
-      # The site's address: https://<owner>.github.io/<repo>/ (or the root for a <owner>.github.io repo).
+      # The site's address: your own domain when the repo variable PAGES_DOMAIN is set (e.g.
+      # charlesj.town; Settings -> Secrets and variables -> Actions -> Variables), otherwise
+      # https://<owner>.github.io/<repo>/ (or the root for a <owner>.github.io repo).
       - name: Work out the site address
+        env:
+          PAGES_DOMAIN: ${{ vars.PAGES_DOMAIN }}
         run: |
           OWNER="${{ github.repository_owner }}"
           REPO="${{ github.event.repository.name }}"
           OWNER_LOWER="${OWNER,,}"
-          if [ "${REPO,,}" = "${OWNER_LOWER}.github.io" ]; then
+          if [ -n "$PAGES_DOMAIN" ]; then
+            echo "BASE_PATH=/" >> "$GITHUB_ENV"
+            echo "SITE_URL=https://${PAGES_DOMAIN}/" >> "$GITHUB_ENV"
+          elif [ "${REPO,,}" = "${OWNER_LOWER}.github.io" ]; then
             echo "BASE_PATH=/" >> "$GITHUB_ENV"
             echo "SITE_URL=https://${OWNER_LOWER}.github.io/" >> "$GITHUB_ENV"
           else
