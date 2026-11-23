@@ -692,7 +692,7 @@ export const ISLAND_CONFIG: IslandConfig = {
   },
   lanterns: { first: 0.5, last: 0.95 },
   clouds: { count: 5, speedPx: 4 },
-  tour: { enabled: false, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
+  tour: { enabled: true, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {
     volume: 0.5,
     layerVolumes: {
@@ -728,7 +728,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     overlayRefreshMs: 250,
     showClock: true,
     fpsOnly: true,
-    alwaysShowFps: false,
+    alwaysShowFps: true,
   },
   render: {
     targetTilesAcross: 20,

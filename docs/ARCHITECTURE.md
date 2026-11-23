@@ -24,7 +24,7 @@ imports a game. All of this is enforced by `no-restricted-imports` blocks in
 | `/`           | **The island**, full screen, no site chrome (lazy; full-screen "Cooking…" loading screen on first load). `?seed=N`: a generated island (R / dice button; Home goes back to `/`) |
 | anything else | Redirects to `/`, keeping the query string                                                                                                                                      |
 
-The browser tab title is "Slow Days · Charles", with a pixel-art cottage icon (`index.html`;
+The browser tab title is "Slow Living · Charles", with a pixel-art cottage icon (`index.html`;
 `public/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`).
 
 ## Folder map
