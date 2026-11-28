@@ -87,17 +87,17 @@ const ICONS: Readonly<Record<BubbleKind, readonly string[]>> = {
     '..ii....ii..',
     '............',
   ],
-  // An open hand, waving: four fingers, a thumb, a little motion mark.
+  // A small waving hand: a rounded palm, three fingers and a thumb, two motion marks.
   wave: [
-    '...i.i.i.i..',
-    'r.isisisisi.',
-    '..isisisisi.',
-    'i.isisisisi.',
-    'isisssssssi.',
-    'isssssssssir',
-    '.isssssssSi.',
-    '..isssssSi..',
-    '...iiiiii...',
+    '............',
+    '....i.i.i...',
+    '...isisisi.r',
+    '.i.isisisi..',
+    '.isisssssi.r',
+    '.isssssssi..',
+    '..isssssi...',
+    '...iiiii....',
+    '............',
   ],
   // A little caught fish, nose to the left.
   fish: [
