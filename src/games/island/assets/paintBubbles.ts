@@ -94,9 +94,9 @@ function smile(): SoftGrid {
   const g = softGrid(ICON, ICON);
   // A little smaller than the balloon's inside, so the face floats with room round it.
   ellipse(g, 4, 4.5, 3.1, 3.1, 'y'); // flat yellow: a shaded edge would weigh down the smile
-  put(g, 2, 3, 'w'); // shine
-  put(g, 3, 4, 'k'); // eyes
-  put(g, 5, 4, 'k');
+  put(g, 2, 2.6, 'w'); // shine
+  put(g, 3, 3, 'k'); // eyes (a row clear of the smile)
+  put(g, 5, 3, 'k');
   put(g, 3, 5, 'k'); // a small smile: the corners up, the middle down
   put(g, 4, 6, 'k');
   put(g, 5, 5, 'k');
@@ -143,14 +143,24 @@ function fish(): SoftGrid {
   return g;
 }
 
+/** A classic pixel heart (two round lobes with a dip between, a point below), placed in the middle. */
+// prettier-ignore
+const HEART = [
+  '.rr.rr.',
+  'rwrrrrr',
+  'rrrrrrR',
+  '.rrrrR.',
+  '..rRR..',
+  '...R...',
+];
+
 function heart(): SoftGrid {
   const g = softGrid(ICON, ICON);
-  ellipse(g, 2.7, 3, 1.7, 1.6, 'r', 'R');
-  ellipse(g, 5.3, 3, 1.7, 1.6, 'r', 'R');
-  capsule(g, 1.6, 3.8, 4, 6.6, 1, 'r');
-  capsule(g, 6.4, 3.8, 4, 6.6, 1, 'R');
-  ellipse(g, 4, 4.4, 2, 1.6, 'r');
-  put(g, 2, 2.4, 'w'); // shine
+  HEART.forEach((row, y) => {
+    [...row].forEach((letter, x) => {
+      if (letter !== '.') put(g, x + 1, y + 1.5, letter);
+    });
+  });
   outline(g);
   return g;
 }

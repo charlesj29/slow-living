@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-28 — A proper heart in the balloon (user report)
+
+- The heart looked like a diamond (its round lobes blended into a point). It is now drawn pixel by
+  pixel from the classic heart shape: two lobes with a dip between, a pointed bottom, shading on
+  the lower right and a shine. The smiley's eyes moved up a row so they no longer join the smile
+  into bars.
+- **Verified:** typecheck, lint, tests, build; the balloons previewed as a sprite sheet.
+
 ### 2026-11-28 — After the rain (user request)
 
 - Puddles: a few fixed spots on the village paths and in the kid's field fill while it rains and
