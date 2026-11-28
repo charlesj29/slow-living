@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-28 — Rounded emote balloons (user follow-up)
+
+- The square cards became small rounded balloons (user: best shape, game-like, cute, not
+  overwhelming): 13×12 with well-rounded corners, a soft shade and a tiny tail (13×14 in all,
+  narrower than a character). Icons are 9×9 with outlines: chat dots, a flat yellow smiley with
+  rosy cheeks and a curved smile, a musical note, a three-finger waving hand, a fish, a heart.
+- **Verified:** typecheck, lint, tests, build; every balloon previewed as a sprite sheet.
+
 ### 2026-11-28 — Square, game-style emote bubbles (user request)
 
 - Bubbles are now square cards in a classic game style: 15×15 (odd, so icons have a true middle;

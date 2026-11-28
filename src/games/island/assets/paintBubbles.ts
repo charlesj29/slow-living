@@ -1,14 +1,12 @@
-// Little emote bubbles over villagers' (and the kid's and the puppy's) heads,
-// in a classic game style: a square cream card with a dark outline, rounded
-// corners, a soft shade along the bottom and right, and a small tail pointing
-// down at the speaker. The icons are drawn from soft round shapes with their
-// own outline and a shine (like the animals): chat dots, a smiley face, a
-// musical note, a waving hand, a caught fish and a heart.
+// Little emote balloons over villagers' (and the kid's and the puppy's) heads,
+// in a cosy game style: a small rounded cream balloon with a dark outline, a
+// soft shade along the bottom and right, and a tiny tail pointing down at the
+// speaker. The icons are drawn from soft round shapes with their own outline
+// (like the animals): chat dots, a smiley, a musical note, a waving hand, a
+// caught fish and a heart.
 //
-// Size: a 15×15 card (an odd size, so icons have a true middle) leaves an
-// 11×11 icon inside a one-pixel margin: big enough for an outlined, shaded
-// icon, and about as wide as a character (16), so it sits over a head without
-// crowding it. The tail adds two rows below.
+// Size: a 13×12 balloon (narrower than a character, 16, so it sits lightly over
+// a head) with well-rounded corners, holding a 9×9 icon; the tail adds two rows.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
   createPixelCanvas,
@@ -22,20 +20,20 @@ import { capsule, ellipse, outline, put, softGrid, type SoftGrid } from './softS
 
 export const bubbleKey = (kind: BubbleKind): string => `bubble_${kind}`;
 
-const CARD = 15;
+const BALLOON = { width: 13, height: 12 } as const;
 const TAIL_ROWS = 2;
-export const BUBBLE_SPRITE = { width: CARD, height: CARD + TAIL_ROWS } as const;
-/** The icon's size and where it goes on the card (inside the outline and a one-pixel margin). */
-const ICON = 11;
-const ICON_AT = 2;
-/** The tail sits under the card's left third, pointing down at the speaker. */
+export const BUBBLE_SPRITE = { width: BALLOON.width, height: BALLOON.height + TAIL_ROWS } as const;
+/** The icon's size and where it goes in the balloon. */
+const ICON = 9;
+const ICON_AT = { x: 2, y: 1 } as const;
+/** The tail sits under the balloon's left third, pointing down at the speaker. */
 const TAIL_X = 4;
 
 const COLORS: Readonly<Record<string, Rgba>> = {
-  // The card.
+  // The balloon.
   O: hexToRgba('#3a2416'),
   c: hexToRgba('#fff8e6'),
-  C: hexToRgba('#ead8b4'),
+  C: hexToRgba('#ecdcbc'),
   // Icon outline, shine and ink.
   o: hexToRgba('#3a2416'),
   w: hexToRgba('#ffffff'),
@@ -50,30 +48,42 @@ const COLORS: Readonly<Record<string, Rgba>> = {
   // Fish.
   f: hexToRgba('#f59a42'),
   F: hexToRgba('#d0682a'),
-  // Heart and motion marks.
+  // Heart.
   r: hexToRgba('#e8505a'),
   R: hexToRgba('#b8343e'),
 };
 
-/** The card: rounded corners, outline, cream, a shade along the bottom and right, and the tail. */
-function card(canvas: PixelCanvas): void {
-  const last = CARD - 1;
+/** How far each row's ends are pulled in, for the balloon's round corners. */
+const INSET = [2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2] as const;
+
+function balloon(canvas: PixelCanvas): void {
   const paint = (x: number, y: number, letter: string): void => {
     const color = COLORS[letter];
     if (color) setPixel(canvas, x, y, color);
   };
-  for (let y = 0; y < CARD; y++) {
-    for (let x = 0; x < CARD; x++) {
-      const corner = (x === 0 || x === last) && (y === 0 || y === last);
-      if (corner) continue;
-      const edge = x === 0 || y === 0 || x === last || y === last;
-      const shade = x === last - 1 || y === last - 1;
+  const last = BALLOON.height - 1;
+  const right = (inset: number): number => BALLOON.width - 1 - inset;
+  for (let y = 0; y < BALLOON.height; y++) {
+    const inset = INSET[y] ?? 0;
+    // A step in the round corner: this row reaches further out than the row above or below.
+    const above = INSET[y - 1] ?? BALLOON.width;
+    const below = INSET[y + 1] ?? BALLOON.width;
+    for (let x = inset; x <= right(inset); x++) {
+      const edge =
+        y === 0 ||
+        y === last ||
+        x === inset ||
+        x === right(inset) ||
+        x < above ||
+        x > right(above) ||
+        x < below ||
+        x > right(below);
+      const shade = y === last - 1 || x === right(inset) - 1;
       paint(x, y, edge ? 'O' : shade ? 'C' : 'c');
     }
   }
   // The tail: an opening in the bottom edge, then a little point.
   paint(TAIL_X, last, 'C');
-  paint(TAIL_X + 1, last, 'C');
   paint(TAIL_X - 1, last + 1, 'O');
   paint(TAIL_X, last + 1, 'C');
   paint(TAIL_X + 1, last + 1, 'O');
@@ -82,89 +92,74 @@ function card(canvas: PixelCanvas): void {
 
 function smile(): SoftGrid {
   const g = softGrid(ICON, ICON);
-  ellipse(g, 5, 5, 4.6, 4.6, 'y', 'Y');
-  put(g, 2.8, 2.6, 'w'); // shine
-  put(g, 3.6, 2, 'w');
-  put(g, 3.6, 4.2, 'k'); // eyes
-  put(g, 6.6, 4.2, 'k');
-  for (const [x, y] of [
-    [3, 6],
-    [4, 7],
-    [5, 7.2],
-    [6, 7],
-    [7, 6],
-  ] as const)
-    put(g, x, y, 'k');
-  put(g, 2.2, 6, 'p'); // rosy cheeks
-  put(g, 8, 6, 'p');
+  // A little smaller than the balloon's inside, so the face floats with room round it.
+  ellipse(g, 4, 4.5, 3.1, 3.1, 'y'); // flat yellow: a shaded edge would weigh down the smile
+  put(g, 2, 3, 'w'); // shine
+  put(g, 3, 4, 'k'); // eyes
+  put(g, 5, 4, 'k');
+  put(g, 3, 5, 'k'); // a small smile: the corners up, the middle down
+  put(g, 4, 6, 'k');
+  put(g, 5, 5, 'k');
+  put(g, 2, 5.4, 'p'); // rosy cheeks
+  put(g, 6, 5.4, 'p');
   outline(g);
   return g;
 }
 
 function note(): SoftGrid {
   const g = softGrid(ICON, ICON);
-  ellipse(g, 3.8, 8, 2.2, 1.6, 'k');
-  capsule(g, 5.6, 8, 5.6, 1, 0.55, 'k'); // stem
-  capsule(g, 5.6, 1, 8.6, 3.2, 0.7, 'k'); // flag
-  capsule(g, 8.6, 3.2, 8.2, 5, 0.6, 'k');
-  put(g, 3, 7.4, 'w'); // shine on the head
+  ellipse(g, 3, 6.4, 1.7, 1.3, 'k');
+  capsule(g, 4.4, 6.4, 4.4, 0.8, 0.5, 'k'); // stem
+  capsule(g, 4.4, 0.8, 6.8, 2.4, 0.6, 'k'); // flag
+  capsule(g, 6.8, 2.4, 6.6, 3.8, 0.5, 'k');
+  put(g, 2.4, 6, 'w'); // shine on the head
   return g;
 }
 
 function hand(): SoftGrid {
   const g = softGrid(ICON, ICON);
-  // Four fingers spread apart (a gap between each, so they read as fingers) and a thumb,
-  // then the palm over their roots.
+  // Three fingers, a gap between each so they read as fingers, a thumb, then the palm.
   for (const [x, top] of [
-    [1.8, 2.2],
-    [4, 0.8],
-    [6.2, 0.8],
-    [8.4, 2],
+    [2, 1.5],
+    [4, 1],
+    [6, 1.5],
   ] as const) {
-    capsule(g, x, 5.6, x, top, 0.6, 's');
+    capsule(g, x, 4.4, x, top, 0.45, 's');
   }
-  capsule(g, 2.2, 8, 0.6, 6.4, 0.7, 's'); // thumb
-  ellipse(g, 5.2, 7.6, 3.4, 2.3, 's', 'S');
+  capsule(g, 2, 6, 1, 4.6, 0.45, 's'); // thumb
+  ellipse(g, 4.2, 5.6, 2.6, 1.8, 's', 'S');
   outline(g);
   return g;
 }
 
 function fish(): SoftGrid {
   const g = softGrid(ICON, ICON);
-  capsule(g, 7.6, 5.5, 9.6, 3.6, 0.9, 'f'); // tail
-  capsule(g, 7.6, 5.5, 9.6, 7.4, 0.9, 'f');
-  ellipse(g, 4.6, 5.5, 3.8, 2.6, 'f', 'F');
-  put(g, 4.6, 3.2, 'F'); // fin
-  put(g, 2.6, 4.8, 'k'); // eye
-  put(g, 3.4, 4.4, 'w'); // shine
+  capsule(g, 5.8, 4.5, 7, 3.2, 0.6, 'f'); // tail
+  capsule(g, 5.8, 4.5, 7, 5.8, 0.6, 'f');
+  ellipse(g, 3.6, 4.5, 2.6, 1.7, 'f', 'F');
+  put(g, 3.6, 2.6, 'F'); // fin
+  put(g, 2, 4, 'k'); // eye
   outline(g);
   return g;
 }
 
 function heart(): SoftGrid {
   const g = softGrid(ICON, ICON);
-  ellipse(g, 3.4, 3.8, 2.6, 2.4, 'r', 'R');
-  ellipse(g, 6.8, 3.8, 2.6, 2.4, 'r', 'R');
-  capsule(g, 2, 5, 5.1, 8.4, 1.4, 'r');
-  capsule(g, 8.2, 5, 5.1, 8.4, 1.4, 'R');
-  ellipse(g, 5.1, 5.6, 2.6, 2, 'r');
-  put(g, 2.6, 2.8, 'w'); // shine
-  put(g, 3.4, 2.4, 'w');
+  ellipse(g, 2.7, 3, 1.7, 1.6, 'r', 'R');
+  ellipse(g, 5.3, 3, 1.7, 1.6, 'r', 'R');
+  capsule(g, 1.6, 3.8, 4, 6.6, 1, 'r');
+  capsule(g, 6.4, 3.8, 4, 6.6, 1, 'R');
+  ellipse(g, 4, 4.4, 2, 1.6, 'r');
+  put(g, 2, 2.4, 'w'); // shine
   outline(g);
   return g;
 }
 
 function dots(): SoftGrid {
   const g = softGrid(ICON, ICON);
-  // Three square dots, two pixels each (the card's shaded right edge balances the extra gap).
-  for (const left of [2, 5, 8]) {
-    for (const [dx, dy] of [
-      [0, 0],
-      [1, 0],
-      [0, 1],
-      [1, 1],
-    ] as const)
-      put(g, left + dx, 5 + dy, 'k');
+  for (const x of [1, 4, 7]) {
+    put(g, x, 4, 'k');
+    put(g, x, 5, 'k');
   }
   return g;
 }
@@ -180,12 +175,12 @@ const ICONS: Readonly<Record<BubbleKind, () => SoftGrid>> = {
 
 function bubble(kind: BubbleKind): PixelCanvas {
   const canvas = createPixelCanvas(BUBBLE_SPRITE.width, BUBBLE_SPRITE.height);
-  card(canvas);
+  balloon(canvas);
   const icon = ICONS[kind]();
   icon.cells.forEach((row, y) => {
     row.forEach((letter, x) => {
       const color = COLORS[letter];
-      if (letter !== '.' && color) setPixel(canvas, ICON_AT + x, ICON_AT + y, color);
+      if (letter !== '.' && color) setPixel(canvas, ICON_AT.x + x, ICON_AT.y + y, color);
     });
   });
   return canvas;
