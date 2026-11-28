@@ -93,9 +93,10 @@
 
 - The drifting leaves moved with the player: they wrapped round the camera. Now each leaf drifts
   through the world (the pattern repeats every screenful, anchored to the island), so walking
-  leaves them behind. They are bigger (7×7, outlined, a vein and a stem) in green, gold and
-  orange, each flat or turning; there are more of them (16), a little faster, and the trees and
-  grass sway a bit more (`breeze`: swayPx 3, base 0.7, leaves 16, leafSpeedPx 20).
+  leaves them behind. Then (user follow-up) back to 4×4, made easier to see instead: sunny
+  yellow-green, gold and orange with a dark edge and a tiny stem, flat or turning; 10 of them, a
+  little faster, and the trees and
+  grass sway a bit more (`breeze`: swayPx 3, base 0.7, leaves 10, leafSpeedPx 20).
 - **Verified:** typecheck, lint, tests, build; the leaves previewed as a sprite sheet.
 
 ### 2026-11-28 — Bigger, clearer speech bubbles (user request)

@@ -128,39 +128,23 @@ function mistBank(width: number, height: number, puffs: readonly Puff[]): PixelC
 }
 
 /**
- * Drifting leaves, big enough to notice against the grass: green, gold and
- * orange, each seen flat and turned edge-on (pairs: colour × 2 + turn), with a
- * dark outline, a light vein and a little stem.
+ * Drifting leaves, 4×4, in sunny colours that show against the grass (a yellow-green, gold and
+ * orange), each seen flat and turned edge-on (pairs: colour × 2 + turn), with a dark edge on
+ * the shaded side and a tiny stem.
  */
 export const LEAF_KEYS = ['leaf_0', 'leaf_1', 'leaf_2', 'leaf_3', 'leaf_4', 'leaf_5'] as const;
 /** How many leaf colours there are (each has a flat and a turned shape). */
 export const LEAF_COLOURS = 3;
 const LEAF_TINTS: readonly Readonly<Record<string, Rgba>>[] = [
-  { g: hexToRgba('#8cc65a'), G: hexToRgba('#4f8f38'), v: hexToRgba('#d2ec96') },
-  { g: hexToRgba('#f0c24a'), G: hexToRgba('#c08a2e'), v: hexToRgba('#fbe6a2') },
-  { g: hexToRgba('#f09a4a'), G: hexToRgba('#c2602e'), v: hexToRgba('#fcd4a2') },
+  { g: hexToRgba('#b4dc5c'), G: hexToRgba('#7ca83a'), v: hexToRgba('#e2f4a0') },
+  { g: hexToRgba('#f4c64a'), G: hexToRgba('#c88e2e'), v: hexToRgba('#fbe8a8') },
+  { g: hexToRgba('#f29848'), G: hexToRgba('#c4622e'), v: hexToRgba('#fdd4a4') },
 ];
-const LEAF_LINE = { o: hexToRgba('#3c3a1e'), s: hexToRgba('#7a5a30') } as const;
+const LEAF_LINE = { o: hexToRgba('#4a4226'), s: hexToRgba('#7a5a30') } as const;
 // prettier-ignore
 const LEAF_SHAPES: readonly (readonly string[])[] = [
-  [
-    '....oo.',
-    '..oogvo',
-    '.oggvGo',
-    'oggvGo.',
-    'oGvGo..',
-    '.ooo...',
-    's......',
-  ],
-  [
-    '.......',
-    '.....oo',
-    '...oovo',
-    '.oogvo.',
-    'oGvoo..',
-    'soo....',
-    '.......',
-  ],
+  ['.vg.', 'vgGo', '.Go.', 's...'],
+  ['..vo', '.vGo', 'vGo.', 's...'],
 ];
 const LEAF_ROWS: readonly (readonly string[])[] = LEAF_TINTS.flatMap(() => LEAF_SHAPES);
 const leafColors = (i: number): Readonly<Record<string, Rgba>> => ({

@@ -905,7 +905,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     shootingStarEverySeconds: 50,
     shootingStarSeconds: 1.2,
   },
-  breeze: { swayPx: 3, base: 0.7, rainBoost: 0.5, nightCalm: 0.5, leaves: 16, leafSpeedPx: 20 },
+  breeze: { swayPx: 3, base: 0.7, rainBoost: 0.5, nightCalm: 0.5, leaves: 10, leafSpeedPx: 20 },
   clouds: { count: 5, speedPx: 4 },
   tour: { enabled: true, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {
