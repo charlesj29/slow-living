@@ -89,6 +89,17 @@
 
 ## Session log
 
+### 2026-11-28 — A better umbrella (user request)
+
+- The umbrella is drawn in two matching layers: the canopy just behind the villager (so it rises
+  over the head) and the handle just in front (so the hand visibly holds it), at the villager's
+  own depth. Standing or walking it is held upright at the side; sitting on the bench it rests on
+  the shoulder like a parasol, leaning back and out, so the face stays clear. The canopy is a
+  little bigger. Tilted layers are turned about the hand (`rotateAbout`, now shared in
+  `assets/softShapes.ts`), so the grip never moves.
+- **Verified:** typecheck, lint, tests, build; browser with rain forced on: the night owl on the
+  bench and fishing on the dock.
+
 ### 2026-11-28 — A prettier, better-timed fish splash (user request)
 
 - The splash is now a crown of foam and droplets that bursts up, spreads and falls back, then

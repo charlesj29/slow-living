@@ -4,7 +4,16 @@
 // frames, the arms spreading). Facing left; mirrored for right.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { hexToRgba, type Rgba } from '@/shared/render/pixelCanvas';
-import { capsule, ellipse, outline, put, softCanvas, softGrid, type SoftGrid } from './softShapes';
+import {
+  capsule,
+  ellipse,
+  outline,
+  put,
+  rotateAbout,
+  softCanvas,
+  softGrid,
+  type SoftGrid,
+} from './softShapes';
 
 export const FISH_KEYS = { up: 'fish_up', level: 'fish_level', down: 'fish_down' } as const;
 export const WAKE_KEYS = ['duck_wake_0', 'duck_wake_1'] as const;
@@ -30,26 +39,10 @@ function levelFish(): SoftGrid {
   return g;
 }
 
-/** Turns a grid about its middle (nearest pixel), so a tilted fish keeps hard pixels. */
-function rotated(source: SoftGrid, radians: number): SoftGrid {
-  const g = softGrid(source.width, source.height);
-  const cx = (source.width - 1) / 2;
-  const cy = (source.height - 1) / 2;
-  const cos = Math.cos(radians);
-  const sin = Math.sin(radians);
-  for (let y = 0; y < g.height; y++) {
-    for (let x = 0; x < g.width; x++) {
-      const sx = Math.round(cx + (x - cx) * cos + (y - cy) * sin);
-      const sy = Math.round(cy - (x - cx) * sin + (y - cy) * cos);
-      const letter = source.cells[sy]?.[sx];
-      if (letter && letter !== '.') put(g, x, y, letter);
-    }
-  }
-  return g;
-}
-
 function fish(tilt: number): SoftGrid {
-  const g = rotated(levelFish(), tilt);
+  const level = levelFish();
+  // Turned about its middle (nearest pixel), so a tilted fish keeps hard pixels.
+  const g = rotateAbout(level, tilt, (level.width - 1) / 2, (level.height - 1) / 2);
   outline(g);
   return g;
 }

@@ -83,6 +83,25 @@ export function outline(g: SoftGrid): void {
   }
 }
 
+/**
+ * The grid turned about a pivot (nearest pixel, so it keeps hard pixels); positive turns it
+ * clockwise on screen. Outline after turning, so the outline stays one pixel thick.
+ */
+export function rotateAbout(source: SoftGrid, radians: number, px: number, py: number): SoftGrid {
+  const g = softGrid(source.width, source.height);
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  for (let y = 0; y < g.height; y++) {
+    for (let x = 0; x < g.width; x++) {
+      const sx = Math.round(px + (x - px) * cos + (y - py) * sin);
+      const sy = Math.round(py - (x - px) * sin + (y - py) * cos);
+      const letter = source.cells[sy]?.[sx];
+      if (letter && letter !== '.') put(g, x, y, letter);
+    }
+  }
+  return g;
+}
+
 export function softCanvas(g: SoftGrid, colors: Readonly<Record<string, Rgba>>): PixelCanvas {
   const canvas = createPixelCanvas(g.width, g.height);
   g.cells.forEach((row, y) => {
