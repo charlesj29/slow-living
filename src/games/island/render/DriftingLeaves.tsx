@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, type JSX } from 'react';
 import type { Group, Mesh } from 'three';
 import { createRng } from '@/shared/engine/random';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
-import { LEAF_KEYS } from '../assets/paintWeather';
+import { LEAF_COLOURS, LEAF_KEYS } from '../assets/paintWeather';
 import { ISLAND_CONFIG } from '../core/config';
 import type { LightingUniforms } from './lighting';
 import { createSpriteGeometry } from './spriteGeometry';
@@ -26,8 +26,10 @@ interface DriftingLeavesProps {
 }
 
 /**
- * A few leaves carried across the view by the breeze, tumbling and bobbing
- * as they go: more when it's windy, none at night. Purely drawn.
+ * Leaves carried across the island by the breeze, tumbling and bobbing as
+ * they go: more when it's windy, none at night. Each leaf drifts through the
+ * world (its pattern repeats every screenful), so walking past them leaves
+ * them behind instead of carrying them along. Purely drawn.
  */
 export function DriftingLeaves({
   atlas,
@@ -47,7 +49,7 @@ export function DriftingLeaves({
       fy: rng.next(),
       speed: rng.range(0.7, 1.3),
       bob: rng.range(0, Math.PI * 2),
-      shape: rng.int(0, LEAF_KEYS.length - 1),
+      colour: rng.int(0, LEAF_COLOURS - 1),
     }));
   }, [settings.leaves]);
   const geometries = useMemo(
@@ -68,6 +70,9 @@ export function DriftingLeaves({
     const height = size.height / camera.zoom + 2 * VIEW_MARGIN_PX;
     const left = camera.position.x - width / 2;
     const top = -camera.position.y - height / 2;
+    // The pattern repeats every screenful, anchored to the world (not to the camera).
+    const wrap = (value: number, start: number, period: number): number =>
+      start + ((((value - start) % period) + period) % period);
     const shown = Math.round(settings.leaves * windStrength());
     leaves.forEach((leaf, i) => {
       const mesh = meshes.current[i];
@@ -76,12 +81,16 @@ export function DriftingLeaves({
       if (!mesh.visible) return;
       // Blown left with the wind (like the rain), sinking slowly and bobbing as it goes.
       const travel = t * settings.leafSpeedPx * leaf.speed;
-      const x = (((leaf.fx * width - travel) % width) + width) % width;
-      const y = (leaf.fy * height + travel * 0.25 + Math.sin(t * 1.3 + leaf.bob) * 6) % height;
+      const x = wrap(leaf.fx * width - travel, left, width);
+      const y = wrap(
+        leaf.fy * height + travel * 0.25 + Math.sin(t * 1.3 + leaf.bob) * 6,
+        top,
+        height,
+      );
       const flip = Math.floor(t / FLUTTER_SECONDS + leaf.bob) % 2;
-      const geometry = geometries[(leaf.shape + flip) % geometries.length];
+      const geometry = geometries[leaf.colour * 2 + flip];
       if (geometry && mesh.geometry !== geometry) mesh.geometry = geometry;
-      mesh.position.set(Math.round(left + x), worldYFromMapPx(Math.round(top + y)), RAIN_Z);
+      mesh.position.set(Math.round(x), worldYFromMapPx(Math.round(y)), RAIN_Z);
     });
   });
 
