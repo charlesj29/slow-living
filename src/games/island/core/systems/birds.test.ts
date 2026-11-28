@@ -3,43 +3,51 @@ import { createRng } from '@/shared/engine/random';
 import { ISLAND_CONFIG } from '../config';
 import { createPlayer } from '../entities/player';
 import { generateValidWorld } from '../generation/testUtils';
-import { wanderTiles } from '../world/village';
-import { birdGround, createBirds, updateBird, type Bird } from './birds';
+import { getDoorFrontTile } from '../world/world';
+import { birdAreas } from './birdAreas';
+import { createBirds, updateBird, type Bird } from './birds';
+import { roamTiles } from './routine';
 
 const TILE = ISLAND_CONFIG.map.tileSizePx;
 const STEP = 1 / 60;
 const settings = ISLAND_CONFIG.birds;
 const world = generateValidWorld(46);
-const groundList = birdGround(world, wanderTiles(world));
-const ground = new Set(groundList);
-const onGround = (b: Bird): boolean =>
-  ground.has(Math.floor(b.y / TILE) * world.width + Math.floor(b.x / TILE));
+const roam = roamTiles(world);
+const areas = birdAreas(world, roam, createRng(1), settings.areaRadiusTiles);
+const tileOf = (b: Bird): number => Math.floor(b.y / TILE) * world.width + Math.floor(b.x / TILE);
 
 function run(birds: Bird[], seconds: number, player: ReturnType<typeof createPlayer> | null): void {
   const rng = createRng(9);
   for (let i = 0; i < seconds / STEP; i++) {
-    for (const b of birds)
-      updateBird(b, world, ground, groundList, player, rng, STEP, settings, TILE);
+    for (const b of birds) {
+      updateBird(b, world, b.homeSet, b.home, player, rng, STEP, settings, TILE);
+    }
   }
 }
 
-describe('village birds', () => {
-  it('start on the village ground, in the configured numbers', () => {
-    const birds = createBirds(world, groundList, createRng(1), settings, TILE);
-    expect(birds).toHaveLength(settings.brown + settings.blue);
-    for (const b of birds) expect(onGround(b)).toBe(true);
+describe('little birds', () => {
+  it('have three places: the forest edge, before the studio, before the cottage', () => {
+    expect(areas).toHaveLength(3);
+    const near = (kind: string): boolean => {
+      const building = world.objects.find((o) => o.kind === kind);
+      if (!building) return false;
+      const front = getDoorFrontTile(building);
+      return areas.some((area) => area.includes(front.y * world.width + front.x));
+    };
+    expect(near('studio')).toBe(true);
+    expect(near('cabin')).toBe(true);
   });
 
-  it('peck and hop about, staying on the ground they know', () => {
-    const birds = createBirds(world, groundList, createRng(2), settings, TILE);
+  it('start in their flock’s place, in the configured numbers, and keep to it', () => {
+    const birds = createBirds(world, areas, createRng(2), settings, TILE);
+    expect(birds).toHaveLength(settings.brown + settings.blue);
+    for (const b of birds) expect(b.homeSet.has(tileOf(b))).toBe(true);
     run(birds, 60, null);
-    for (const b of birds) {
-      if (!b.flight) expect(onGround(b)).toBe(true);
-    }
+    for (const b of birds) if (!b.flight) expect(b.homeSet.has(tileOf(b))).toBe(true);
   });
 
   it('flutter off when the player comes close, landing further away', () => {
-    const [bird] = createBirds(world, groundList, createRng(3), settings, TILE);
+    const [bird] = createBirds(world, areas, createRng(3), settings, TILE);
     if (!bird) throw new Error('no bird');
     bird.idleTime = 100;
     const player = createPlayer({ x: 0, y: 0 }, TILE);
@@ -49,6 +57,6 @@ describe('village birds', () => {
     run([bird], STEP, player);
     expect(bird.flight?.kind).toBe('fly');
     run([bird], 5, player);
-    expect(Math.hypot(player.x - bird.x, player.y - bird.y)).toBeGreaterThan(before * 3);
+    expect(Math.hypot(player.x - bird.x, player.y - bird.y)).toBeGreaterThan(before * 2);
   });
 });

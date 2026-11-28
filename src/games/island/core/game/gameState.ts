@@ -42,7 +42,8 @@ import {
   type Rabbit,
 } from '../systems/rabbits';
 import { createPlaymates, updatePlaymates, type Playmates } from '../systems/playmates';
-import { birdGround, createBirds, updateBird, type Bird } from '../systems/birds';
+import { birdAreas } from '../systems/birdAreas';
+import { createBirds, updateBird, type Bird } from '../systems/birds';
 import { createDuckFamily, duckWater, updateDuckFamily, type DuckFamily } from '../systems/ducks';
 import { movePlayer } from '../systems/movement';
 import { followWalk, planTap, type AutoWalk } from '../systems/tapToWalk';
@@ -120,10 +121,8 @@ export interface GameState {
   /** A mother duck and her ducklings on the lake (island only), and the water they keep to. */
   readonly ducks: DuckFamily | null;
   readonly duckWater: ReadonlySet<number>;
-  /** Little birds round the village (island only), the ground they land on, and their own rng. */
+  /** Little birds in their places round the island (island only), with their own rng. */
   readonly birds: readonly Bird[];
-  readonly birdGround: ReadonlySet<number>;
-  readonly birdGroundList: readonly number[];
   readonly birdRng: Rng;
   /** The village kid and their puppy (island only, null without a village), with their own rng. */
   readonly playmates: Playmates | null;
@@ -188,7 +187,6 @@ export function createGameState(world: World, config: IslandConfig): GameState {
   const home = wanderTiles(world);
   const meadow = rabbitMeadow(world, config.rabbits);
   const water = duckWater(world);
-  const ground = birdGround(world, home);
   const birdRng = createRng(world.generationSeed ^ BIRD_SEED_SALT);
   const maps = new Map<string, World>([[ISLAND_MAP, world]]);
   for (const definition of Object.values(INTERIORS)) {
@@ -221,9 +219,13 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     rabbitMeadow: meadow,
     ducks: createDuckFamily(world, water, wanderRng, config.ducks, config.map.tileSizePx),
     duckWater: water,
-    birds: createBirds(world, ground, birdRng, config.birds, config.map.tileSizePx),
-    birdGround: new Set(ground),
-    birdGroundList: ground,
+    birds: createBirds(
+      world,
+      birdAreas(world, roam, birdRng, config.birds.areaRadiusTiles),
+      birdRng,
+      config.birds,
+      config.map.tileSizePx,
+    ),
     birdRng,
     playmates: createPlaymates(world, roam, config.playmates, config.map.tileSizePx),
     playRng: createRng(world.generationSeed ^ PLAY_SEED_SALT),
@@ -355,8 +357,8 @@ function stepBirds(state: GameState, stepSeconds: number, config: IslandConfig):
     updateBird(
       bird,
       island,
-      state.birdGround,
-      state.birdGroundList,
+      bird.homeSet,
+      bird.home,
       player,
       state.birdRng,
       stepSeconds,

@@ -1,7 +1,7 @@
-// Little birds round the village. A bird pecks at the ground or looks about,
+// Little birds at the forest's edge, before the studio and before the cottage. A bird pecks at the ground or looks about,
 // now and then hops a few pixels or flits a short way; when the player comes
 // close it flutters off to land a few tiles further on, away from them. They
-// start in two small flocks. Pure: positions and timers advance by the fixed
+// live in two small flocks, each keeping to its own place (see `birdAreas`). Pure: positions and timers advance by the fixed
 // step; randomness comes from the rng passed in.
 import type { Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
@@ -37,6 +37,9 @@ export interface Bird {
   flight: Flight | null;
   idle: BirdIdle;
   idleTime: number;
+  /** The flock's place: the ground it lands on. */
+  readonly home: readonly number[];
+  readonly homeSet: ReadonlySet<number>;
 }
 
 type BirdSettings = IslandConfig['birds'];
@@ -51,11 +54,6 @@ const LANDING_TRIES = 12;
 const FLOCK_SPREAD_TILES = 2;
 const FLOCKS = 2;
 
-/** Where birds may land: the village's open ground. */
-export function birdGround(world: World, villageTiles: Iterable<number>): number[] {
-  return [...villageTiles].filter((tile) => world.blocked[tile] === 0);
-}
-
 const tileCentre = (tile: number, world: World, tileSizePx: number): [number, number] => [
   ((tile % world.width) + 0.5) * tileSizePx,
   (Math.floor(tile / world.width) + 0.5) * tileSizePx,
@@ -69,22 +67,27 @@ function startIdle(bird: Bird, rng: Rng, settings: BirdSettings): void {
 
 export function createBirds(
   world: World,
-  ground: readonly number[],
+  areas: readonly (readonly number[])[],
   rng: Rng,
   settings: BirdSettings,
   tileSizePx: number,
 ): Bird[] {
-  if (!settings.enabled || ground.length === 0) return [];
+  if (!settings.enabled || areas.length === 0) return [];
   const colors: BirdColor[] = [
     ...Array.from({ length: settings.brown }, (): BirdColor => 'brown'),
     ...Array.from({ length: settings.blue }, (): BirdColor => 'blue'),
   ];
-  const flocks = Array.from({ length: FLOCKS }, () =>
-    tileCentre(rng.pick(ground), world, tileSizePx),
-  );
+  // Each flock settles in one of the places, picked at random.
+  const flocks = Array.from({ length: FLOCKS }, () => {
+    const home = rng.pick(areas);
+    return { home, homeSet: new Set(home), middle: tileCentre(rng.pick(home), world, tileSizePx) };
+  });
   const spread = FLOCK_SPREAD_TILES * tileSizePx;
   return colors.map((color, id) => {
-    const [fx, fy] = flocks[id % FLOCKS] ?? [0, 0];
+    const flock = flocks[id % FLOCKS] ?? flocks[0];
+    if (!flock) throw new Error('no flock');
+    const [fx, fy] = flock.middle;
+    const ground = flock.home;
     const near = ground.filter((tile) => {
       const [x, y] = tileCentre(tile, world, tileSizePx);
       return Math.abs(x - fx) <= spread && Math.abs(y - fy) <= spread;
@@ -105,6 +108,8 @@ export function createBirds(
       flight: null,
       idle: 'peck',
       idleTime: 0,
+      home: flock.home,
+      homeSet: flock.homeSet,
     };
     startIdle(bird, rng, settings);
     return bird;

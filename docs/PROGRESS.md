@@ -89,6 +89,15 @@
 
 ## Session log
 
+### 2026-11-28 — Birds at the forest edge, the studio and the cottage (user request)
+
+- The two bird flocks no longer live in the village: each picks, at random, one of three places
+  and keeps to it: open ground at the forest's edge, before the studio, or before the cottage.
+  `core/systems/birdAreas.ts`; each bird keeps its flock's place (`home`). Setting
+  `birds.areaRadiusTiles`.
+- **Verified:** typecheck, lint, tests (three places, birds start in and keep to theirs, still
+  flutter off from the player), build.
+
 ### 2026-11-28 — A better umbrella (user request)
 
 - The umbrella is drawn in two matching layers: the canopy just behind the villager (so it rises
