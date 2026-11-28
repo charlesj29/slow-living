@@ -170,10 +170,10 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         subtitle: 'PT Tokoplas Ecommerce Indonesia',
         period: 'Dec 2022 – Present',
         bullets: [
-          'Designed and developed Poly, an LLM-based assistant within the Tokoplas app that handles FAQs, order tracking, reward enquiries, product recommendations, market summaries and quotation requests.',
-          'Develop and maintain the Tokoplas e-commerce app for resin products, including the payment flow and customer loyalty programme (Android, iOS).',
-          'Developed two internal apps: a Seller app for inventory management and customer purchase history, and a Driver app for delivery assignments, procedural guidance and order-tracking updates.',
-          'Work closely with product, backend and design teams from feature planning through to release.',
+          'Designed and built Poly, an LLM-powered customer assistant in the Tokoplas app that answers FAQs, tracks orders, handles reward enquiries, recommends products, summarises market prices and takes quotation requests.',
+          'Develop and maintain the Tokoplas e-commerce app for resin products in Flutter, covering the checkout and payment flow and the customer loyalty programme (Android, iOS).',
+          'Built two internal Flutter apps: a Seller app for inventory management and customer purchase history, and a Driver app for delivery assignments, step-by-step delivery procedures and order status updates.',
+          'Integrate RESTful APIs with the backend team and take features from planning and design through to release on both app stores.',
         ],
       },
       {
@@ -181,8 +181,8 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         subtitle: 'PT Pinjaman Kemakmuran Rakyat',
         period: 'May 2022 – Dec 2022',
         bullets: [
-          'Developed klikUMKM, a peer-to-peer lending app giving small and medium enterprises mobile access to financing.',
-          'Contributed to the development of the SCBD mobile app as part of the engineering team.',
+          'Developed klikUMKM, a peer-to-peer (P2P) lending app that gives small and medium enterprises (SMEs) access to financing from their phones.',
+          'Contributed to feature development of the SCBD mobile app as part of the engineering team.',
         ],
       },
     ],

@@ -928,9 +928,9 @@ export const ISLAND_CONFIG: IslandConfig = {
     shootingStarSeconds: 1.2,
   },
   afterRain: {
-    villagePuddles: 7,
-    fieldPuddles: 3,
-    drySeconds: 80,
+    villagePuddles: 4,
+    fieldPuddles: 2,
+    drySeconds: 40,
   },
   breeze: { swayPx: 3, base: 0.7, rainBoost: 0.5, nightCalm: 0.5, leaves: 10, leafSpeedPx: 20 },
   clouds: { count: 5, speedPx: 4 },

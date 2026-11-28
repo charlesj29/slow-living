@@ -89,6 +89,18 @@
 
 ## Session log
 
+### 2026-11-28 — New CV, smaller phones, fresh screenshot (user request)
+
+- The CV PDF (`public/portfolio/charles-jonathan-cv.pdf`) is replaced with the new one, and the
+  Experience bullets in `portfolio.ts` follow its wording (Poly, Flutter apps, RESTful APIs,
+  klikUMKM, SCBD).
+- The phones on the studio's top shelf are a bit smaller (7×12 instead of the larger frame),
+  same design: dark body, island screen, home bar.
+- New `public/portfolio/island.webp` (800×525) from the current island (seed 3068120830:
+  the coop, the dock, the cottage, the studio).
+- Puddles after rain use the user's values: `afterRain` 4 village / 2 field puddles, dry in 40 s.
+- **Verified:** typecheck, lint, tests, build; the shelf sprite preview and the screenshot checked.
+
 ### 2026-11-28 — Follow your finger on phones (user request)
 
 - The fixed slide-stick is gone (feedback: a fixed spot is awkward). Now there are two kinds of

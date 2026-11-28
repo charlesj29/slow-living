@@ -45,9 +45,9 @@ function deskLaptop(): PixelCanvas {
   return c;
 }
 
-const PHONE = { width: 8, height: 14 } as const;
+const PHONE = { width: 7, height: 12 } as const;
 /** The screen inside a phone, relative to its top-left. */
-const SCREEN = { x: 1, y: 2, width: 6, height: 10 } as const;
+const SCREEN = { x: 1, y: 2, width: 5, height: 8 } as const;
 /** Where the shelf's top is, and how far apart the phones stand (one per tile). */
 const SHELF_TOP = 25;
 const PHONE_SLOT = 16;
@@ -70,8 +70,8 @@ function appScreen(c: PixelCanvas, x: number, y: number, brand: Rgba): void {
 function islandScreen(c: PixelCanvas, x: number, y: number): void {
   const { width, height } = SCREEN;
   fillRect(c, x, y, width, height, PALETTE.shallowSea.base);
-  fillRect(c, x + 1, y + 2, width - 2, 6, PALETTE.sand.base);
-  fillRect(c, x + 2, y + 3, width - 4, 4, PALETTE.grass.base);
+  fillRect(c, x + 1, y + 2, width - 2, height - 4, PALETTE.sand.base);
+  fillRect(c, x + 1, y + 3, width - 2, height - 6, PALETTE.grass.base);
   setPixel(c, x + 2, y + 4, PALETTE.roof.base);
   setPixel(c, x + 3, y + 5, PALETTE.oak.dark);
   setPixel(c, x, y, PALETTE.foam.bright);
@@ -90,7 +90,7 @@ function phone(
   fillRect(c, x + 1, y + 1, width - 2, height - 2, PALETTE.screen.body);
   paint(x + SCREEN.x, y + SCREEN.y);
   setPixel(c, x + Math.floor(width / 2), y + 1, PALETTE.screen.dark); // camera dot
-  fillRect(c, x + 3, y + height - 2, 2, 1, PALETTE.screen.base); // home bar
+  fillRect(c, x + Math.floor(width / 2) - 1, y + height - 2, 2, 1, PALETTE.screen.base); // home bar
 }
 
 /** 96×32 over 6×1 (wall): six phones on a display shelf, one per project (each opens it). */
