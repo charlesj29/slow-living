@@ -127,6 +127,22 @@ function mistBank(width: number, height: number, puffs: readonly Puff[]): PixelC
   return canvas;
 }
 
+/** Drifting leaves: a green one and a yellowed one, seen flat and turned. */
+export const LEAF_KEYS = ['leaf_0', 'leaf_1', 'leaf_2', 'leaf_3'] as const;
+const LEAF_COLORS = {
+  g: hexToRgba('#6fb04e'),
+  G: hexToRgba('#4a8a36'),
+  y: hexToRgba('#e0b84a'),
+  Y: hexToRgba('#b88a2e'),
+} as const;
+// prettier-ignore
+const LEAF_ROWS: readonly (readonly string[])[] = [
+  ['.gg.', 'gGgg', '.gG.', '....'],
+  ['.g..', 'gGg.', '.gG.', '..g.'],
+  ['.yy.', 'yYyy', '.yY.', '....'],
+  ['.y..', 'yYy.', '.yY.', '..y.'],
+];
+
 export function paintWeatherSprites(): SpriteSource[] {
   return [
     { key: RAIN_DROP_KEY, frames: [fromRows(DROP_ROWS, { h: DROP.head, t: DROP.tail })] },
@@ -138,6 +154,7 @@ export function paintWeatherSprites(): SpriteSource[] {
       key: CLOUD_SHADOW_KEYS[i] ?? 'shadow_cloud_0',
       frames: [cloudShadow(shape.width, shape.height, shape.puffs)],
     })),
+    ...LEAF_KEYS.map((key, i) => ({ key, frames: [fromRows(LEAF_ROWS[i] ?? [], LEAF_COLORS)] })),
     ...MIST_SHAPES.map((shape, i) => ({
       key: MIST_KEYS[i] ?? 'mist_0',
       frames: [mistBank(shape.width, shape.height, shape.puffs)],

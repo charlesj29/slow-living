@@ -23,6 +23,8 @@ import { Fireflies } from './Fireflies';
 import { CloudShadows } from './CloudShadows';
 import { Rain } from './Rain';
 import { MorningMist } from './MorningMist';
+import { DriftingLeaves } from './DriftingLeaves';
+import { windStrength } from './breeze';
 import { StudioMarker } from './StudioMarker';
 import { TapToWalk } from './TapToWalk';
 import { createLightingUniforms } from './lighting';
@@ -93,6 +95,11 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
   );
   // The washing hangs still in the rain.
   const isBreezy = useCallback(() => game.weather.intensity < WET_WASHING, [game]);
+  // The breeze: a little stronger as a shower comes on, calmer at night.
+  const wind = useCallback(
+    () => windStrength(game.weather.intensity, lighting.uLightsOn.value, ISLAND_CONFIG.breeze),
+    [game, lighting],
+  );
   const followTarget = useCallback(() => {
     const { x, y } = interpolatedPlayerPosition(game);
     const lookAhead = game.player.sitting ? SIT_LOOK_AHEAD_PX : 0;
@@ -137,6 +144,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         flowerFrameSeconds={ISLAND_CONFIG.render.flowerFrameSeconds}
         lighting={lighting}
         isBreezy={isBreezy}
+        windStrength={wind}
       />
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
       {mapId === ISLAND_MAP && <VillagerSprites state={game} atlas={atlas} lighting={lighting} />}
@@ -152,6 +160,9 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       {mapId === ISLAND_MAP && <Fireflies world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && (
         <CloudShadows world={world} state={game} atlas={atlas} lighting={lighting} />
+      )}
+      {mapId === ISLAND_MAP && (
+        <DriftingLeaves atlas={atlas} lighting={lighting} windStrength={wind} />
       )}
       {mapId === ISLAND_MAP && (
         <MorningMist world={world} state={game} atlas={atlas} lighting={lighting} />

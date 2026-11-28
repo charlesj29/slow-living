@@ -12,6 +12,7 @@ import { ISLAND_CONFIG } from '../core/config';
 import type { World } from '../core/world/world';
 import type { LightingUniforms } from './lighting';
 import { LanternLights } from './LanternLights';
+import { createSwayMaterial, isSwayingSprite, setBreeze } from './swayMaterial';
 import { placeObjectShadows } from './objectShadows';
 import { placeObjectSprites, type SpriteInstance } from './objectSprites';
 import { objectSpriteKey } from './objectSpriteKeys';
@@ -81,6 +82,8 @@ interface WorldObjectsProps {
   readonly lighting: LightingUniforms;
   /** False in the rain: the washing hangs still (wet). */
   readonly isBreezy?: () => boolean;
+  /** How strong the breeze is now (trees, bushes and grass sway with it). */
+  readonly windStrength?: () => number;
 }
 
 /**
@@ -94,6 +97,7 @@ export function WorldObjects({
   flowerFrameSeconds,
   lighting,
   isBreezy,
+  windStrength,
 }: WorldObjectsProps): JSX.Element {
   const material = useMemo(() => createSpriteMaterial(atlas.texture, lighting), [atlas, lighting]);
   const shadowMaterial = useMemo(
@@ -124,6 +128,11 @@ export function WorldObjects({
     [atlas, lighting],
   );
   useEffect(() => () => laundryMaterial.dispose(), [laundryMaterial]);
+  const swayMaterial = useMemo(
+    () => createSwayMaterial(atlas.texture, lighting, ISLAND_CONFIG.breeze.swayPx),
+    [atlas, lighting],
+  );
+  useEffect(() => () => swayMaterial.dispose(), [swayMaterial]);
   useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
   useEffect(() => () => lightsMaterial.dispose(), [lightsMaterial]);
   useEffect(() => () => fireMaterial.dispose(), [fireMaterial]);
@@ -134,6 +143,7 @@ export function WorldObjects({
     const fireSeconds = ISLAND_CONFIG.render.fireFrameSeconds;
     showAnimationFrameAt(fireMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
     showAnimationFrameAt(fireLightsMaterial, clock.elapsedTime, fireSeconds, FIRE_FRAME_COUNT);
+    setBreeze(swayMaterial, clock.elapsedTime, windStrength?.() ?? 0);
     if (isBreezy?.() ?? true) {
       showAnimationFrameAt(
         laundryMaterial,
@@ -200,7 +210,9 @@ export function WorldObjects({
                 ? catMaterial
                 : key === LAUNDRY_KEY
                   ? laundryMaterial
-                  : material
+                  : isSwayingSprite(key)
+                    ? swayMaterial
+                    : material
           }
           instances={instances}
         />

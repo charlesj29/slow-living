@@ -89,6 +89,16 @@
 
 ## Session log
 
+### 2026-11-28 — A breeze through the island (user request)
+
+- Trees, bushes and grass tufts sway: `render/swayMaterial.ts` shears each sprite (its top edge
+  leans with the wind, its base stays rooted), each plant in its own rhythm from where it stands,
+  with slow gusts. The wind (`render/breeze.ts`) is a light breeze by day, stronger as a shower
+  comes on, calmer at night. A few leaves (green and yellowed) tumble across the view by day,
+  more when it's windy (`render/DriftingLeaves`). Settings: `breeze` in the config.
+- **Verified:** typecheck, lint, tests (wind strength), build; browser: the crown's top rows
+  shift between two moments while the trunk stays put; console clean.
+
 ### 2026-11-23 — A gently game-like font for the short text (user request)
 
 - **M PLUS Rounded 1c** (SIL OFL, self-hosted Latin subset: 500 and 700, 22 KB each) for the short

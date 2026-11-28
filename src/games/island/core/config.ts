@@ -340,6 +340,18 @@ export interface IslandConfig {
    * (0.5 = when lamps start coming on, 1 = full night).
    */
   readonly lanterns: { readonly first: number; readonly last: number };
+  /** A breeze through the island: trees, bushes and grass sway; a few leaves drift by day. */
+  readonly breeze: {
+    /** How far the top of a tree leans at full wind (map pixels); the base stays rooted. */
+    readonly swayPx: number;
+    /** Usual wind strength (0..1), how much a shower adds, and how much calmer night is. */
+    readonly base: number;
+    readonly rainBoost: number;
+    readonly nightCalm: number;
+    /** Leaves drifting across the view at full wind, and their speed (map pixels per second). */
+    readonly leaves: number;
+    readonly leafSpeedPx: number;
+  };
   /** Soft cloud shadows drifting over the island by day. */
   readonly clouds: {
     readonly count: number;
@@ -691,6 +703,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     driftPx: 2.5,
   },
   lanterns: { first: 0.5, last: 0.95 },
+  breeze: { swayPx: 2.4, base: 0.55, rainBoost: 0.6, nightCalm: 0.5, leaves: 6, leafSpeedPx: 16 },
   clouds: { count: 5, speedPx: 4 },
   tour: { enabled: true, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
   ambience: {
