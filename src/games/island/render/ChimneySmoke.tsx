@@ -11,6 +11,7 @@ import type { World } from '../core/world/world';
 import type { LightingUniforms } from './lighting';
 import { createSpriteGeometry } from './spriteGeometry';
 import { createSpriteMaterial } from './spriteMaterial';
+import { smokePuffs } from './villageNight';
 import { standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
 /** Where smoke leaves each chimney, in sprite pixels from the sprite's top-left. */
@@ -34,12 +35,16 @@ interface Puff {
   readonly z: number;
   /** 0..1: where in its life this puff starts, so puffs follow each other. */
   readonly phase: number;
+  /** Which of its chimney's puffs this is (fewer show between meals and at night). */
+  readonly index: number;
 }
 
 interface ChimneySmokeProps {
   readonly world: World;
   readonly atlas: SpriteAtlas;
   readonly lighting: LightingUniforms;
+  /** The time of day the scene shows: chimneys smoke most at breakfast and dinner. */
+  readonly sceneTime?: () => number;
 }
 
 /** Chimney tops of every building that has one (map pixels), with the building's depth. */
@@ -62,6 +67,7 @@ function chimneyPuffs(world: World, atlas: SpriteAtlas): Puff[] {
       y,
       z,
       phase: (offset + i / PUFFS_PER_CHIMNEY) % 1,
+      index: i,
     }));
   });
 }
@@ -71,7 +77,12 @@ function chimneyPuffs(world: World, atlas: SpriteAtlas): Puff[] {
  * the studio: each puff grows as it rises and drifts with the wind, then
  * starts again. Tinted with the day/night light like everything else.
  */
-export function ChimneySmoke({ world, atlas, lighting }: ChimneySmokeProps): JSX.Element {
+export function ChimneySmoke({
+  world,
+  atlas,
+  lighting,
+  sceneTime,
+}: ChimneySmokeProps): JSX.Element {
   const puffs = useMemo(() => chimneyPuffs(world, atlas), [world, atlas]);
   const geometries = useMemo(
     () => SMOKE_KEYS.map((key) => createSpriteGeometry(atlas.frame(key))),
@@ -84,9 +95,14 @@ export function ChimneySmoke({ world, atlas, lighting }: ChimneySmokeProps): JSX
 
   useFrame(({ clock }) => {
     const life = ISLAND_CONFIG.render.smokePuffSeconds;
+    const shown = sceneTime
+      ? smokePuffs(sceneTime(), ISLAND_CONFIG.villageNight)
+      : PUFFS_PER_CHIMNEY;
     puffs.forEach((puff, i) => {
       const mesh = meshes.current[i];
       if (!mesh) return;
+      mesh.visible = puff.index < shown;
+      if (!mesh.visible) return;
       const age = (clock.elapsedTime / life + puff.phase) % 1;
       const size = Math.min(geometries.length - 1, Math.floor(age * geometries.length));
       const geometry = geometries[size];

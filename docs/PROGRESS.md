@@ -89,6 +89,17 @@
 
 ## Session log
 
+### 2026-11-28 — The village goes to sleep (user request)
+
+- Village house windows go dark one house after another (left to right) between about 9:35 PM
+  and 11:15 PM and stay dark until dawn (`render/VillageNightObjects` `HouseLights`); the cottage
+  and the workspace stay lit. The market stall closes in the evening and opens in the morning: a
+  closed sprite with the awning rolled up and the crates under a cloth (`market_stall_closed`).
+  Chimneys send three puffs at breakfast and dinner, two by day, one after bedtime. Timings in
+  `villageNight` (pure helpers in `render/villageNight.ts`), following the held day/night too.
+- **Verified:** typecheck, lint, tests (bedtimes in turn, stall hours, smoke by mealtime), build;
+  browser at 10:20 PM: two houses dark, one lit, the stall closed; console clean.
+
 ### 2026-11-28 — Villagers being social (user request)
 
 - `core/systems/villagerSocial.ts`: two strolling villagers who meet (2 tiles; 5 when gathered

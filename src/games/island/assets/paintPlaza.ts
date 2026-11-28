@@ -85,6 +85,44 @@ function marketStall(): PixelCanvas {
   return c;
 }
 
+/** The stall's closed look (night): same size, so it swaps in place. */
+export const MARKET_STALL_CLOSED_KEY = 'market_stall_closed';
+const CLOTH = {
+  base: hexToRgba('#8c9ab0'),
+  shade: hexToRgba('#6f7c93'),
+  light: hexToRgba('#a9b5c8'),
+};
+
+/**
+ * The stall closed for the night: the awning rolled up under the sign, the
+ * crates under a tied-down cloth, and the loaves taken in.
+ */
+function marketStallClosed(): PixelCanvas {
+  const c = createPixelCanvas(48, 44);
+  for (const x of [3, 43]) fillRect(c, x, 8, 2, 36, O);
+  // The awning, rolled up into a striped bar.
+  fillRect(c, 0, 5, 48, 5, O);
+  for (let x = 1; x < 47; x++) {
+    const stripe = Math.floor((x - 1) / 6) % 2 === 0 ? PALETTE.quilt.base : PALETTE.paper.base;
+    fillRect(c, x, 6, 1, 3, stripe);
+  }
+  fillRect(c, 1, 6, 46, 1, PALETTE.quilt.light);
+  fillRect(c, 22, 1, 4, 5, O); // the sign stays up
+  fillRect(c, 23, 2, 2, 3, PALETTE.gold.light);
+  // The counter.
+  fillRect(c, 1, 30, 46, 14, O);
+  fillRect(c, 2, 31, 44, 12, WOOD.base);
+  fillRect(c, 2, 31, 44, 2, WOOD.light);
+  for (let x = 8; x < 46; x += 8) fillRect(c, x, 33, 1, 10, WOOD.dark);
+  // A cloth over the crates, with a couple of folds, tied down at the corners.
+  fillRect(c, 3, 20, 42, 11, O);
+  fillRect(c, 4, 21, 40, 9, CLOTH.base);
+  fillRect(c, 4, 21, 40, 2, CLOTH.light);
+  for (const x of [17, 31]) fillRect(c, x, 23, 1, 7, CLOTH.shade);
+  for (const x of [4, 43]) fillRect(c, x, 28, 1, 3, O);
+  return c;
+}
+
 /** 48×40 over 3×1: two thin posts with a sagging string of coloured bulbs. */
 function stringLights(): PixelCanvas {
   const c = createPixelCanvas(48, 40);
@@ -112,6 +150,7 @@ export function paintPlazaSprites(): SpriteSource[] {
   return [
     { key: 'bench', frames: [bench()] },
     { key: 'market_stall', frames: [marketStall()] },
+    { key: MARKET_STALL_CLOSED_KEY, frames: [marketStallClosed()] },
     { key: 'string_lights', frames: [stringLights()] },
   ];
 }

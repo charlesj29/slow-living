@@ -12,6 +12,8 @@ import { ISLAND_CONFIG } from '../core/config';
 import type { World } from '../core/world/world';
 import type { LightingUniforms } from './lighting';
 import { LanternLights } from './LanternLights';
+import { HouseLights, MarketStall } from './VillageNightObjects';
+import { HOUSE_LIGHT_KEYS, MARKET_STALL_KEY } from './villageNight';
 import { createSwayMaterial, isSwayingSprite, setBreeze } from './swayMaterial';
 import { placeObjectShadows } from './objectShadows';
 import { placeObjectSprites, type SpriteInstance } from './objectSprites';
@@ -84,6 +86,8 @@ interface WorldObjectsProps {
   readonly isBreezy?: () => boolean;
   /** How strong the breeze is now (trees, bushes and grass sway with it). */
   readonly windStrength?: () => number;
+  /** The time of day the scene shows (houses go to bed, the stall closes at night). */
+  readonly sceneTime?: () => number;
 }
 
 /**
@@ -98,6 +102,7 @@ export function WorldObjects({
   lighting,
   isBreezy,
   windStrength,
+  sceneTime,
 }: WorldObjectsProps): JSX.Element {
   const material = useMemo(() => createSpriteMaterial(atlas.texture, lighting), [atlas, lighting]);
   const shadowMaterial = useMemo(
@@ -199,24 +204,38 @@ export function WorldObjects({
           instances={instances}
         />
       ))}
-      {batches.map(([key, instances]) => (
-        <SpriteBatch
-          key={`${key}:${String(instances.length)}`}
-          frame={atlas.frame(key)}
-          material={
-            FIRE_SPRITE_KEYS.has(key)
-              ? fireMaterial
-              : key === SLEEPING_CAT_KEY
-                ? catMaterial
-                : key === LAUNDRY_KEY
-                  ? laundryMaterial
-                  : isSwayingSprite(key)
-                    ? swayMaterial
-                    : material
-          }
-          instances={instances}
-        />
-      ))}
+      {sceneTime &&
+        batches
+          .filter(([key]) => key === MARKET_STALL_KEY)
+          .map(([key, instances]) => (
+            <MarketStall
+              key={`stall:${key}:${String(instances.length)}`}
+              atlas={atlas}
+              instances={instances}
+              material={material}
+              sceneTime={sceneTime}
+            />
+          ))}
+      {batches
+        .filter(([key]) => !(sceneTime && key === MARKET_STALL_KEY))
+        .map(([key, instances]) => (
+          <SpriteBatch
+            key={`${key}:${String(instances.length)}`}
+            frame={atlas.frame(key)}
+            material={
+              FIRE_SPRITE_KEYS.has(key)
+                ? fireMaterial
+                : key === SLEEPING_CAT_KEY
+                  ? catMaterial
+                  : key === LAUNDRY_KEY
+                    ? laundryMaterial
+                    : isSwayingSprite(key)
+                      ? swayMaterial
+                      : material
+            }
+            instances={instances}
+          />
+        ))}
       {lightsBatches
         .filter(([key]) => key === LANTERN_LIGHTS_KEY)
         .map(([key, instances]) => (
@@ -229,8 +248,17 @@ export function WorldObjects({
             lighting={lighting}
           />
         ))}
+      {sceneTime && (
+        <HouseLights
+          atlas={atlas}
+          batches={lightsBatches.filter(([key]) => HOUSE_LIGHT_KEYS.has(key))}
+          material={lightsMaterial}
+          sceneTime={sceneTime}
+        />
+      )}
       {lightsBatches
         .filter(([key]) => key !== LANTERN_LIGHTS_KEY)
+        .filter(([key]) => !(sceneTime && HOUSE_LIGHT_KEYS.has(key)))
         .map(([key, instances]) => (
           <SpriteBatch
             key={`lights:${key}:${String(instances.length)}`}

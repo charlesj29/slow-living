@@ -26,6 +26,7 @@ import { Rain } from './Rain';
 import { MorningMist } from './MorningMist';
 import { DriftingLeaves } from './DriftingLeaves';
 import { windStrength } from './breeze';
+import { shownTime } from '../core/systems/dayNight';
 import { StudioMarker } from './StudioMarker';
 import { TapToWalk } from './TapToWalk';
 import { createLightingUniforms } from './lighting';
@@ -101,6 +102,11 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
     () => windStrength(game.weather.intensity, lighting.uLightsOn.value, ISLAND_CONFIG.breeze),
     [game, lighting],
   );
+  // The time of day the scene shows (the clock, or the held noon or midnight).
+  const sceneTime = useCallback(
+    () => shownTime(useIslandUiStore.getState().dayNightMode, game.timeOfDay),
+    [game],
+  );
   const followTarget = useCallback(() => {
     const { x, y } = interpolatedPlayerPosition(game);
     const lookAhead = game.player.sitting ? SIT_LOOK_AHEAD_PX : 0;
@@ -146,6 +152,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
         lighting={lighting}
         isBreezy={isBreezy}
         windStrength={wind}
+        sceneTime={sceneTime}
       />
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
       {mapId === ISLAND_MAP && <VillagerSprites state={game} atlas={atlas} lighting={lighting} />}
@@ -172,7 +179,9 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       {mapId === ISLAND_MAP && (
         <Rain world={world} state={game} atlas={atlas} lighting={lighting} />
       )}
-      {mapId === ISLAND_MAP && <ChimneySmoke world={world} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && (
+        <ChimneySmoke world={world} atlas={atlas} lighting={lighting} sceneTime={sceneTime} />
+      )}
       {mapId === ISLAND_MAP && <StudioMarker world={world} atlas={atlas} />}
     </Canvas>
   );

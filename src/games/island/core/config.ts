@@ -359,6 +359,21 @@ export interface IslandConfig {
    * (0.5 = when lamps start coming on, 1 = full night).
    */
   readonly lanterns: { readonly first: number; readonly last: number };
+  /**
+   * The village going to sleep (times of day: 0.25 = 6 AM, 0.5 = noon, 0.75 = 6 PM):
+   * house windows go dark one by one between `lightsOutFrom` and `lightsOutTo` (until dawn,
+   * `wakeAt`); the market stall is open from `stallOpens` to `stallCloses`; chimneys smoke
+   * most at breakfast and dinner.
+   */
+  readonly villageNight: {
+    readonly lightsOutFrom: number;
+    readonly lightsOutTo: number;
+    readonly wakeAt: number;
+    readonly stallOpens: number;
+    readonly stallCloses: number;
+    readonly breakfast: readonly [from: number, to: number];
+    readonly dinner: readonly [from: number, to: number];
+  };
   /** A breeze through the island: trees, bushes and grass sway; a few leaves drift by day. */
   readonly breeze: {
     /** How far the top of a tree leans at full wind (map pixels); the base stays rooted. */
@@ -735,6 +750,15 @@ export const ISLAND_CONFIG: IslandConfig = {
     driftPx: 2.5,
   },
   lanterns: { first: 0.5, last: 0.95 },
+  villageNight: {
+    lightsOutFrom: 0.9,
+    lightsOutTo: 0.97,
+    wakeAt: 0.22,
+    stallOpens: 0.26,
+    stallCloses: 0.8,
+    breakfast: [0.26, 0.34],
+    dinner: [0.72, 0.8],
+  },
   breeze: { swayPx: 2.4, base: 0.55, rainBoost: 0.6, nightCalm: 0.5, leaves: 6, leafSpeedPx: 16 },
   clouds: { count: 5, speedPx: 4 },
   tour: { enabled: true, idleSeconds: 60, speedPx: 14, holdSeconds: 7, returnSeconds: 2.5 },
