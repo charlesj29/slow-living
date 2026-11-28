@@ -43,6 +43,10 @@ export interface Animal {
   pose: 'idle' | 'huddle' | 'sleep';
   /** Its sheltered spot (map pixels): where it waits out the rain (and the cat sleeps). */
   readonly shelter: { readonly x: number; readonly y: number };
+  /** Every sheltered spot it may huddle on in the rain (a chicken takes any free one by the hen house). */
+  readonly shelters: ReadonlySet<number>;
+  /** Seconds spent waiting for someone in the way on the way home (then it goes round them). */
+  waited: number;
   /** The ground it keeps to: the chicken run, or the village. */
   readonly home: ReadonlySet<number>;
   /** The tile before the hen house door (chickens): in there for the night. Null for the cat. */
@@ -59,6 +63,8 @@ type AnimalSettings = IslandConfig['animals'];
 /** Close enough to the target to stop (map pixels). */
 const ARRIVE_PX = 0.75;
 const FLEE_TRIES = 10;
+/** On the way home, wait this long for someone in the way before going round them (seconds). */
+const GO_ROUND_SECONDS = 1;
 /** Shelter spots are this close to a door (tiles). */
 const SHELTER_REACH_TILES = 3;
 
@@ -172,6 +178,8 @@ export function createAnimals(
       fleeing: false,
       pose: 'idle',
       shelter: centre(world, shelterTile, tileSizePx),
+      shelters: new Set(chicken && run ? coop.slice(0, settings.chickens + 2) : [shelterTile]),
+      waited: 0,
       home: chicken ? runSet : villageSet,
       den: chicken && run ? centre(world, run.door, tileSizePx) : null,
       hidden: false,
@@ -215,9 +223,17 @@ function pickTarget(
 }
 
 /** A path over open, walkable ground (doorsteps too) from one tile to another (the tiles after the first). */
-function wayHome(world: World, from: number, to: number): number[] {
+function wayHome(
+  world: World,
+  from: number,
+  to: number,
+  avoid: ReadonlySet<number> = new Set(),
+): number[] {
   const cost = (i: number): number =>
-    i === from || (world.blocked[i] === 0 && isWalkableTile(world.terrain[i] ?? 0)) ? 1 : Infinity;
+    i === from ||
+    (world.blocked[i] === 0 && isWalkableTile(world.terrain[i] ?? 0) && (i === to || !avoid.has(i)))
+      ? 1
+      : Infinity;
   return findPath(world, from, to, cost)?.slice(1) ?? [];
 }
 
@@ -289,13 +305,22 @@ export function updateAnimal(
     }
   }
   if (!animal.fleeing && rest !== 'free') {
+    // Already huddled down for this shower (on a spot, or where it got stuck): it stays put.
+    if (rest === 'shelter' && animal.pose === 'huddle') {
+      animal.target = null;
+      return;
+    }
     // Night: chickens go into the hen house; otherwise to the sheltered spot.
     const goal = rest === 'sleep' && animal.den ? animal.den : animal.shelter;
     const here = indexOf(world, animal.x, animal.y, tileSizePx);
     const spot = indexOf(world, goal.x, goal.y, tileSizePx);
-    if (here === spot) {
+    // Settled: in the hen house for the night, or on any free sheltered spot in the rain (so two
+    // chickens never wait for ever to swap places).
+    const sheltered = rest !== 'sleep' || !animal.den ? animal.shelters.has(here) : false;
+    if (here === spot || sheltered) {
       animal.target = null;
       animal.route = [];
+      animal.waited = 0;
       if (rest === 'sleep' && animal.den) animal.hidden = true;
       animal.pose = rest === 'sleep' ? 'sleep' : 'huddle';
       return;
@@ -351,9 +376,25 @@ export function updateAnimal(
     if (rest === 'free' || animal.fleeing) {
       animal.target = null;
       animal.fleeing = false;
+      return;
+    }
+    // On the way home and somebody's in the way: in the rain, after a moment it huddles where it
+    // is (it's only rain); at night it finds a way round them (it must reach the hen house).
+    animal.waited += stepSeconds;
+    if (animal.waited >= GO_ROUND_SECONDS) {
+      animal.waited = 0;
+      if (rest === 'shelter') {
+        animal.target = null;
+        animal.route = [];
+        animal.pose = 'huddle';
+      } else {
+        const round = wayHome(world, here, animal.routeGoal, occupied);
+        if (round.length > 0) animal.route = round;
+      }
     }
     return;
   }
+  animal.waited = 0;
   // Solid things (and, wandering, the edge of its ground) stop it: rest here instead.
   const homeward = rest !== 'free' && !animal.fleeing;
   if (world.blocked[tile] !== 0 || (!homeward && !home.has(tile))) {

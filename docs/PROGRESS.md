@@ -89,6 +89,16 @@
 
 ## Session log
 
+### 2026-11-28 — Fix: chickens stuck when rain starts (user report)
+
+- Two ways the chickens could freeze heading for shelter: two of them standing on each other's
+  sheltered spot, each waiting for the other to move; or one waiting behind another already
+  huddled on its way. Now a chicken may huddle on any free sheltered spot by the hen house; and if
+  someone is in its way for a second, in the rain it simply huddles where it is (and stays put
+  until the shower ends), while at night it finds a way round them to the hen house.
+- **Verified:** typecheck, lint, tests (new `chickensInRain.test.ts`: on four islands every chicken
+  huddles down when a shower starts; it failed on the old code), build.
+
 ### 2026-11-28 — Music at the evening gathering (user request)
 
 - The first villager settled in round the well in the evening (the old man, on the default island)
