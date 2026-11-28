@@ -89,6 +89,16 @@
 
 ## Session log
 
+### 2026-11-28 — Studio: smaller phones, a tidier CV (user request)
+
+- The project phones on the studio shelf are smaller and more phone-like (8×14 instead of 11×21),
+  each standing in the middle of the tile that opens its project.
+- Experience: the Laboratory Assistant role is gone (the panel and the Résumé page both read
+  `portfolio.ts`). Wording: "4+ years of experience building Flutter apps…" in About and
+  Highlights. The downloadable CV PDF (`public/portfolio/charles-jonathan-cv.pdf`) is the user's
+  file and still has the old content until replaced.
+- **Verified:** typecheck, lint, tests, build; the phone shelf previewed as a sprite sheet.
+
 ### 2026-11-28 — A village kid and a puppy (user request)
 
 - A chibi kid (brown bob, yellow dress, red shoes) and a chubby tan puppy, both in the rabbits'

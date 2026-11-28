@@ -45,35 +45,36 @@ function deskLaptop(): PixelCanvas {
   return c;
 }
 
-const PHONE = { width: 11, height: 21 } as const;
+const PHONE = { width: 8, height: 14 } as const;
 /** The screen inside a phone, relative to its top-left. */
-const SCREEN = { x: 2, y: 2, width: 7, height: 16 } as const;
+const SCREEN = { x: 1, y: 2, width: 6, height: 10 } as const;
+/** Where the shelf's top is, and how far apart the phones stand (one per tile). */
+const SHELF_TOP = 25;
+const PHONE_SLOT = 16;
 
 /** An app on a phone screen: a coloured header, two cards and a tab bar. */
 function appScreen(c: PixelCanvas, x: number, y: number, brand: Rgba): void {
   const { width, height } = SCREEN;
   fillRect(c, x, y, width, height, PALETTE.paper.base);
-  fillRect(c, x, y, width, 4, brand); // header
-  setPixel(c, x + 1, y + 2, PALETTE.paper.base); // a title in the header
-  setPixel(c, x + 2, y + 2, PALETTE.paper.base);
-  for (const top of [y + 6, y + 10]) {
-    fillRect(c, x + 1, top, width - 2, 3, PALETTE.paper.line); // cards
-    setPixel(c, x + 1, top + 1, brand);
+  fillRect(c, x, y, width, 3, brand); // header
+  fillRect(c, x + 1, y + 1, 2, 1, PALETTE.paper.base); // a title in the header
+  for (const top of [y + 4, y + 6]) {
+    fillRect(c, x + 1, top, width - 2, 1, PALETTE.paper.line); // cards
+    setPixel(c, x + 1, top, brand);
   }
-  fillRect(c, x, y + height - 2, width, 2, PALETTE.paper.line); // tab bar
-  setPixel(c, x + 3, y + height - 1, brand);
+  fillRect(c, x, y + height - 1, width, 1, PALETTE.paper.line); // tab bar
+  setPixel(c, x + 2, y + height - 1, brand);
 }
 
 /** This island on a phone: sea, a sandy shore and a green island with a red roof. */
 function islandScreen(c: PixelCanvas, x: number, y: number): void {
   const { width, height } = SCREEN;
   fillRect(c, x, y, width, height, PALETTE.shallowSea.base);
-  fillRect(c, x + 1, y + 5, width - 2, 7, PALETTE.sand.base);
-  fillRect(c, x + 2, y + 4, width - 4, 9, PALETTE.sand.base);
-  fillRect(c, x + 2, y + 6, width - 4, 5, PALETTE.grass.base);
-  setPixel(c, x + 3, y + 7, PALETTE.roof.base);
-  setPixel(c, x + 4, y + 9, PALETTE.oak.dark);
-  setPixel(c, x + 1, y + 1, PALETTE.foam.bright);
+  fillRect(c, x + 1, y + 2, width - 2, 6, PALETTE.sand.base);
+  fillRect(c, x + 2, y + 3, width - 4, 4, PALETTE.grass.base);
+  setPixel(c, x + 2, y + 4, PALETTE.roof.base);
+  setPixel(c, x + 3, y + 5, PALETTE.oak.dark);
+  setPixel(c, x, y, PALETTE.foam.bright);
 }
 
 /** A smartphone standing on the shelf: rounded body, camera dot, screen, home bar. */
@@ -88,9 +89,8 @@ function phone(
   fillRect(c, x, y + 1, width, height - 2, O);
   fillRect(c, x + 1, y + 1, width - 2, height - 2, PALETTE.screen.body);
   paint(x + SCREEN.x, y + SCREEN.y);
-  setPixel(c, x + Math.floor(width / 2), y + SCREEN.y, PALETTE.screen.dark); // camera dot
-  fillRect(c, x + 4, y + height - 2, 3, 1, PALETTE.screen.base); // home bar
-  setPixel(c, x + width - 1, y + 5, PALETTE.screen.base); // side button
+  setPixel(c, x + Math.floor(width / 2), y + 1, PALETTE.screen.dark); // camera dot
+  fillRect(c, x + 3, y + height - 2, 2, 1, PALETTE.screen.base); // home bar
 }
 
 /** 96×32 over 6×1 (wall): six phones on a display shelf, one per project (each opens it). */
@@ -104,13 +104,16 @@ function phoneWall(): PixelCanvas {
     PALETTE.fire.mid,
     PALETTE.moss.light,
   ];
-  brands.forEach((brand, i) => phone(c, 2 + i * 16, 4, (sx, sy) => appScreen(c, sx, sy, brand)));
-  phone(c, 2 + brands.length * 16, 4, (sx, sy) => islandScreen(c, sx, sy));
+  // Each phone stands in the middle of its tile (the tile that opens its project).
+  const left = (i: number): number => i * PHONE_SLOT + (PHONE_SLOT - PHONE.width) / 2;
+  const top = SHELF_TOP - PHONE.height;
+  brands.forEach((brand, i) => phone(c, left(i), top, (sx, sy) => appScreen(c, sx, sy, brand)));
+  phone(c, left(brands.length), top, (sx, sy) => islandScreen(c, sx, sy));
   // The wooden shelf they stand on, with a bracket under each end.
-  fillRect(c, 0, 25, 96, 3, O);
-  fillRect(c, 1, 25, 94, 1, WOOD.light);
-  fillRect(c, 1, 26, 94, 1, WOOD.base);
-  for (const x of [6, 88]) fillRect(c, x, 28, 2, 3, O);
+  fillRect(c, 0, SHELF_TOP, 96, 3, O);
+  fillRect(c, 1, SHELF_TOP, 94, 1, WOOD.light);
+  fillRect(c, 1, SHELF_TOP + 1, 94, 1, WOOD.base);
+  for (const x of [6, 88]) fillRect(c, x, SHELF_TOP + 3, 2, 3, O);
   return c;
 }
 

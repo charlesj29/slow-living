@@ -57,7 +57,7 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
         title: 'Charles Jonathan',
         subtitle: 'Software Engineer · Flutter',
         body:
-          'Software engineer building Flutter apps for e-commerce, logistics and fintech with 4+ years of experience. ' +
+          'Software engineer with 4+ years of experience building Flutter apps for e-commerce, logistics and fintech. ' +
           'Currently responsible for the Tokoplas apps and Poly, their AI assistant. ' +
           'Background in mathematics (ITB), with a published paper on numerical modelling.',
       },
@@ -185,12 +185,6 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
           'Contributed to the development of the SCBD mobile app as part of the engineering team.',
         ],
       },
-      {
-        title: 'Laboratory Assistant',
-        subtitle: 'Institut Teknologi Bandung',
-        period: '2019',
-        bullets: ['Conducted laboratory sessions and evaluated student performance.'],
-      },
     ],
   },
   highlights: {
@@ -199,7 +193,7 @@ export const PORTFOLIO: Readonly<Record<PanelId, PortfolioPanel>> = {
       {
         title: 'Highlights',
         bullets: [
-          'Four years building Flutter apps for e-commerce, logistics and fintech',
+          '4+ years of experience building Flutter apps for e-commerce, logistics and fintech',
           'Designed and built Poly, an LLM-based assistant inside the Tokoplas app',
           'Responsible for a customer app and two internal apps at Tokoplas',
           'Honours graduate of the Hacktiv8 Full-Stack JavaScript Program',
