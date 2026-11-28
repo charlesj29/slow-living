@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createRng } from '@/shared/engine/random';
 import { ISLAND_CONFIG } from '../config';
-import { createWeather, rainyTint, updateWeather } from './weather';
+import { createWeather, NO_RAIN_YET, rainyTint, updateWeather } from './weather';
 
 const settings = ISLAND_CONFIG.weather;
 const STEP = 1 / 10;
@@ -51,5 +51,16 @@ describe('weather', () => {
   it('greys the light by the shower', () => {
     expect(rainyTint([1, 1, 1], 0, settings)).toEqual([1, 1, 1]);
     expect(rainyTint([1, 1, 1], 1, settings)).toEqual([...settings.rainTint]);
+  });
+
+  it('counts the seconds since the last shower stopped', () => {
+    const weather = createWeather(createRng(3), settings);
+    expect(weather.sinceRain).toBe(NO_RAIN_YET);
+    Object.assign(weather, { raining: true, timeLeft: 0.5 });
+    updateWeather(weather, createRng(4), 0.1, settings);
+    expect(weather.sinceRain).toBe(0);
+    for (let i = 0; i < 20; i++) updateWeather(weather, createRng(5), 0.1, settings);
+    expect(weather.raining).toBe(false);
+    expect(weather.sinceRain).toBeGreaterThan(1);
   });
 });

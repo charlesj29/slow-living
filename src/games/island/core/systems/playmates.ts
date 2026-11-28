@@ -25,12 +25,13 @@ import {
 } from './playmateMotion';
 import { tileUnder, type Spot } from './bodies';
 import { playField } from './playField';
+import { pickPuddles } from './puddles';
 
 type PlaySettings = IslandConfig['playmates'];
 
 export type KidPose = 'stand' | 'throw' | 'cheer';
 export type DogPose = 'sit' | 'wag' | 'sniff' | 'sleep';
-export type PlayMode = 'rest' | 'fetch' | 'chase' | 'greet' | 'home';
+export type PlayMode = 'rest' | 'fetch' | 'chase' | 'greet' | 'home' | 'splash';
 type FetchPhase = 'aim' | 'run' | 'bring' | 'cheer';
 
 export interface Ball {
@@ -64,6 +65,10 @@ export interface Playmates {
   readonly bed: number;
   /** Where they play: open ground round the well. */
   readonly playground: readonly number[];
+  /** Where puddles form in the field after rain; the one the kid is splashing in; how wet it is. */
+  readonly puddles: readonly number[];
+  splashAt: number | null;
+  wet: number;
   readonly ground: Ground;
 }
 
@@ -82,6 +87,10 @@ const CHASE_PACE = 1.4;
 /** A greeting is given up if the player walks this far off (tiles). */
 const GREET_GIVE_UP_TILES = 7;
 const THROW_TRIES = 16;
+/** Puddles this full tempt the kid out to splash; a jump lasts this long. */
+const SPLASH_WET = 0.3;
+const SPLASH_JUMP_SECONDS = 0.35;
+const PUDDLE_SALT = 0x5b1a;
 
 const dayFraction = (time: number): number => time - Math.floor(time);
 const within = (time: number, [from, to]: readonly [number, number]): boolean => {
@@ -109,6 +118,7 @@ export function createPlaymates(
   walkable: ReadonlySet<number>,
   settings: PlaySettings,
   tileSizePx: number,
+  fieldPuddles = 0,
 ): Playmates | null {
   if (!settings.enabled || !world.village) return null;
   // The village doors: passed through, never sat on (whoever lives there comes and goes).
@@ -160,6 +170,9 @@ export function createPlaymates(
     door,
     bed,
     playground,
+    puddles: pickPuddles(world, playground, fieldPuddles, PUDDLE_SALT),
+    splashAt: null,
+    wet: 0,
     ground,
   };
 }
@@ -199,6 +212,18 @@ function startMode(p: Playmates, mode: PlayMode, rng: Rng, settings: PlaySetting
     p.throwsLeft = rng.int(settings.throwsPerGame.min, settings.throwsPerGame.max);
   }
   if (mode === 'greet') p.timer = 0;
+  if (mode === 'splash') {
+    p.timer = settings.splashSeconds;
+    const here = tileOf(p.kid, p.ground);
+    p.splashAt = p.puddles.reduce<number | null>(
+      (best, t) =>
+        best === null || tileDistance(t, here, p.ground) < tileDistance(best, here, p.ground)
+          ? t
+          : best,
+      null,
+    );
+    if (p.splashAt !== null) routeTo(p.kid, p.splashAt, p.ground);
+  }
 }
 
 /** Somewhere to throw the ball: playground a few tiles off that the puppy can reach. */
@@ -294,10 +319,18 @@ function updateRest(p: Playmates, rng: Rng, stepSeconds: number, settings: PlayS
     }
   }
   stepAlong(p.kid, stepSeconds, p.ground);
+  // While the kid walks, the puppy waits (trotting alongside it kept stepping into the kid's way);
+  // once the kid is there, it comes to sit beside them.
+  if (p.kid.route.length > 0) {
+    stepAlong(p.dog, stepSeconds, p.ground);
+    return;
+  }
   if (dogToKid(p, stepSeconds)) p.dog.pose = Math.floor(p.timer * 2) % 3 === 0 ? 'wag' : 'sit';
-  if (p.kid.route.length > 0) return;
   p.timer -= stepSeconds;
-  if (p.timer <= 0) startMode(p, rng.chance(0.65) ? 'fetch' : 'chase', rng, settings);
+  if (p.timer > 0) return;
+  // After a shower, off to splash in a puddle; otherwise fetch or chase.
+  const splashy = p.wet > SPLASH_WET && p.puddles.length > 0 && rng.chance(0.7);
+  startMode(p, splashy ? 'splash' : rng.chance(0.65) ? 'fetch' : 'chase', rng, settings);
 }
 
 function updateChase(p: Playmates, rng: Rng, stepSeconds: number, settings: PlaySettings): void {
@@ -357,6 +390,29 @@ function updateGreet(
   if (p.timer <= 0) startMode(p, 'rest', rng, settings);
 }
 
+/** After a shower: to the puddle, then jumping about in it (the puppy wagging nearby). */
+function updateSplash(p: Playmates, rng: Rng, stepSeconds: number, settings: PlaySettings): void {
+  const done = (): void => {
+    p.kid.pose = 'stand';
+    p.splashAt = null;
+    startMode(p, 'rest', rng, settings);
+  };
+  if (p.splashAt === null || p.wet <= 0) {
+    done();
+    return;
+  }
+  if (!stepAlong(p.kid, stepSeconds, p.ground)) return;
+  if (tileOf(p.kid, p.ground) !== p.splashAt && p.kid.route.length === 0) {
+    // Couldn't get into the puddle (someone's there): splash another time.
+    done();
+    return;
+  }
+  if (dogToKid(p, stepSeconds)) p.dog.pose = 'wag';
+  p.timer -= stepSeconds;
+  p.kid.pose = Math.floor(p.timer / SPLASH_JUMP_SECONDS) % 2 === 0 ? 'cheer' : 'stand';
+  if (p.timer <= 0) done();
+}
+
 function updateHome(p: Playmates, stepSeconds: number, night: boolean): void {
   const { kid, dog } = p;
   if (!kid.hidden) {
@@ -383,7 +439,9 @@ export function updatePlaymates(
   settings: PlaySettings,
   raining = false,
   others: readonly Spot[] = [],
+  wet = 0,
 ): void {
+  p.wet = wet;
   for (const mate of [p.kid, p.dog]) {
     mate.previousX = mate.x;
     mate.previousY = mate.y;
@@ -450,6 +508,9 @@ export function updatePlaymates(
       break;
     case 'home':
       updateHome(p, stepSeconds, night);
+      break;
+    case 'splash':
+      updateSplash(p, rng, stepSeconds, settings);
       break;
   }
 }

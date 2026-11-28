@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, type JSX } from 'react';
 import type { Mesh } from 'three';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { BIRD_FRAMES, birdKey, GULL_KEYS } from '../assets/paintBirds';
+import { bubbleKey } from '../assets/paintBubbles';
 import { SHADOW_KEYS } from '../assets/paintShadows';
 import { ISLAND_CONFIG } from '../core/config';
 import type { GameState } from '../core/game/gameState';
@@ -19,6 +20,10 @@ const FLYING_Z = 42;
 const GULL_Z = 45;
 /** Seagulls fly high: their shadow falls this far below them on the water. */
 const GULL_SHADOW_DROP_PX = 22;
+/** A song balloon floats this far above and beside a bird, over everything else. */
+const SONG_ABOVE_PX = 16;
+const SONG_BESIDE_PX = 4;
+const SONG_Z = 40;
 /** Wing beats while flying; pecks and blinks while idling. */
 const FLAP_SECONDS = 0.09;
 const PECK_SECONDS = 0.28;
@@ -68,14 +73,21 @@ function BirdSprite({ bird, state, atlas, lighting, awake }: BirdSpriteProps): J
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => () => shadowGeometry.dispose(), [shadowGeometry]);
   useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
+  const songRef = useRef<Mesh>(null);
+  const songGeometry = useMemo(() => createSpriteGeometry(atlas.frame(bubbleKey('note'))), [atlas]);
+  const songMaterial = useMemo(() => createSpriteMaterial(atlas.texture), [atlas]);
+  useEffect(() => () => songGeometry.dispose(), [songGeometry]);
+  useEffect(() => () => songMaterial.dispose(), [songMaterial]);
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     const shadow = shadowRef.current;
-    if (!mesh || !shadow) return;
+    const song = songRef.current;
+    if (!mesh || !shadow || !song) return;
     const shown = awake();
     mesh.visible = shown;
     shadow.visible = shown;
+    song.visible = shown && bird.song > 0;
     if (!shown) return;
     setAnimationFrame(material, birdFrame(bird, clock.elapsedTime));
     const t = state.interpolation;
@@ -90,12 +102,15 @@ function BirdSprite({ bird, state, atlas, lighting, awake }: BirdSpriteProps): J
       flight?.kind === 'fly' ? FLYING_Z : standingSpriteZ(footY),
     );
     shadow.position.set(x, worldYFromMapPx(footY), SHADOW_Z);
+    // Singing, coming out from shelter after rain: a note balloon over its head.
+    song.position.set(x + SONG_BESIDE_PX, worldYFromMapPx(footY - lift - SONG_ABOVE_PX), SONG_Z);
   });
 
   return (
     <>
       <mesh ref={shadowRef} geometry={shadowGeometry} material={shadowMaterial} />
       <mesh ref={meshRef} geometry={geometry} material={material} />
+      <mesh ref={songRef} geometry={songGeometry} material={songMaterial} visible={false} />
     </>
   );
 }

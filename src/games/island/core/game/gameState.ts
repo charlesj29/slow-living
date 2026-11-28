@@ -43,6 +43,7 @@ import {
 } from '../systems/rabbits';
 import { createPlaymates, updatePlaymates, type Playmates } from '../systems/playmates';
 import { birdAreas } from '../systems/birdAreas';
+import { villagePuddles, wetness } from '../systems/puddles';
 import { bumpsIntoSmall, tilesUnder, type Spot } from '../systems/bodies';
 import { createBirds, updateBird, type Bird } from '../systems/birds';
 import { createDuckFamily, duckWater, updateDuckFamily, type DuckFamily } from '../systems/ducks';
@@ -127,6 +128,8 @@ export interface GameState {
   readonly birdRng: Rng;
   /** The village kid and their puppy (island only, null without a village), with their own rng. */
   readonly playmates: Playmates | null;
+  /** Where puddles form after rain: on the village paths and in the kid's field (tiles). */
+  readonly puddles: readonly number[];
   readonly playRng: Rng;
   /** Clear spells and rain showers, with their own rng. */
   readonly weather: Weather;
@@ -190,6 +193,13 @@ export function createGameState(world: World, config: IslandConfig): GameState {
   const meadow = rabbitMeadow(world, config.rabbits);
   const water = duckWater(world);
   const birdRng = createRng(world.generationSeed ^ BIRD_SEED_SALT);
+  const playmates = createPlaymates(
+    world,
+    roam,
+    config.playmates,
+    config.map.tileSizePx,
+    config.afterRain.fieldPuddles,
+  );
   const animalRng = createRng(world.generationSeed ^ ANIMAL_SEED_SALT);
   const maps = new Map<string, World>([[ISLAND_MAP, world]]);
   for (const definition of Object.values(INTERIORS)) {
@@ -231,7 +241,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
       config.map.tileSizePx,
     ),
     birdRng,
-    playmates: createPlaymates(world, roam, config.playmates, config.map.tileSizePx),
+    playmates,
+    puddles: [...villagePuddles(world, home, config.afterRain), ...(playmates?.puddles ?? [])],
     playRng: createRng(world.generationSeed ^ PLAY_SEED_SALT),
     weather: createWeather(weatherRng, config.weather),
     weatherRng,
@@ -276,6 +287,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
       config.playmates,
       state.weather.intensity >= config.rainyDay.shelterAt,
       [...villagersAbout(state), ...state.rabbits, ...animalsAbout(state)],
+      wetness(state.weather, config.afterRain),
     );
   }
   if (state.transition) {

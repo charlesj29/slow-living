@@ -12,7 +12,12 @@ export interface Weather {
   timeLeft: number;
   /** 0 (dry) .. 1 (full rain), easing in and out over `fadeSeconds`. */
   intensity: number;
+  /** Seconds since the last shower stopped (`NO_RAIN_YET` until the first one has). */
+  sinceRain: number;
 }
+
+/** What `sinceRain` says before any shower: long enough ago that nothing is wet. */
+export const NO_RAIN_YET = Number.MAX_SAFE_INTEGER;
 
 type WeatherSettings = IslandConfig['weather'];
 
@@ -24,7 +29,12 @@ function spell(raining: boolean, rng: Rng, settings: WeatherSettings): number {
 
 /** Every visit starts clear. */
 export function createWeather(rng: Rng, settings: WeatherSettings): Weather {
-  return { raining: false, timeLeft: spell(false, rng, settings), intensity: 0 };
+  return {
+    raining: false,
+    timeLeft: spell(false, rng, settings),
+    intensity: 0,
+    sinceRain: NO_RAIN_YET,
+  };
 }
 
 export function updateWeather(
@@ -38,6 +48,9 @@ export function updateWeather(
     weather.raining = !weather.raining;
     weather.timeLeft = spell(weather.raining, rng, settings);
   }
+  // Counting from when the shower stops (until then, and before any shower, it stays put).
+  if (weather.raining) weather.sinceRain = 0;
+  else if (weather.sinceRain !== NO_RAIN_YET) weather.sinceRain += stepSeconds;
   const step = stepSeconds / settings.fadeSeconds;
   weather.intensity = weather.raining
     ? Math.min(1, weather.intensity + step)

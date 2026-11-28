@@ -89,6 +89,24 @@
 
 ## Session log
 
+### 2026-11-28 — After the rain (user request)
+
+- Puddles: a few fixed spots on the village paths and in the kid's field fill while it rains and
+  shrink as they dry over `afterRain.drySeconds` (three sizes, a darker rim and a sky glint).
+  The weather now counts the seconds since the last shower (`weather.sinceRain`).
+- The kid goes splashing: after a shower, from a rest, the kid heads for the nearest field puddle
+  and hops about in it with little splashes while the puppy wags nearby (`splash` mode).
+- A soft rainbow fades in over the sky for `afterRain.rainbowSeconds` after a daytime shower
+  (drawn faint and fading as a whole; it keeps its place in the view, like a far-off sky).
+- The birds sing as they come out from under the trees (a note balloon over each).
+- Fix found on the way: while the kid walked back to the field, the puppy kept trotting into the
+  kid's next step; now it waits while the kid walks, then comes to sit beside them.
+- `core/systems/puddles.ts`, `render/AfterRain.tsx`, puddle and rainbow sprites in
+  `assets/paintWeather.ts`.
+- **Verified:** typecheck, lint, tests (puddles fill and dry, the kid reaches a puddle and splashes,
+  birds sing leaving shelter, the weather counts since the rain), build; browser started just after
+  a shower: puddles on the paths, the rainbow, the kid by a field puddle; console clean.
+
 ### 2026-11-28 — Rounded emote balloons (user follow-up)
 
 - The square cards became small rounded balloons (user: best shape, game-like, cute, not

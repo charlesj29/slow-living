@@ -196,6 +196,8 @@ export interface IslandConfig {
     readonly minIdleSeconds: number;
     readonly maxIdleSeconds: number;
     readonly gulls: number;
+    /** How long a bird's song bubble shows as it comes out from shelter after rain. */
+    readonly songSeconds: number;
     /** How wide a seagull's lazy loop is (map pixels), and how long one loop takes. */
     readonly gullLoopPx: number;
     readonly gullLoopSeconds: number;
@@ -221,6 +223,8 @@ export interface IslandConfig {
     /** The puppy comes to say hello when you are this close (tiles), then not again for a while. */
     readonly greetRangeTiles: number;
     readonly greetCooldownSeconds: number;
+    /** After a shower, how long the kid splashes about in a puddle. */
+    readonly splashSeconds: number;
     /** Their field: how far outside the village edge (tiles), and how big (radius, tiles). */
     readonly fieldTiles: Range;
     readonly playRadiusTiles: number;
@@ -471,6 +475,17 @@ export interface IslandConfig {
     /** About how often a shooting star crosses the water at night, and how long it takes. */
     readonly shootingStarEverySeconds: number;
     readonly shootingStarSeconds: number;
+  };
+  /**
+   * After a shower: puddles (on village paths and in the kid's field) that dry up over
+   * `drySeconds`, the kid splashing in them, a rainbow for `rainbowSeconds` (by day); the birds
+   * sing as they come out from under the trees (`birds.songSeconds`).
+   */
+  readonly afterRain: {
+    readonly villagePuddles: number;
+    readonly fieldPuddles: number;
+    readonly drySeconds: number;
+    readonly rainbowSeconds: number;
   };
   /** A breeze through the island: trees, bushes and grass sway; a few leaves drift by day. */
   readonly breeze: {
@@ -729,6 +744,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     minIdleSeconds: 0.8,
     maxIdleSeconds: 3,
     gulls: 3,
+    songSeconds: 2.5,
     gullLoopPx: 40,
     gullLoopSeconds: 26,
   },
@@ -744,6 +760,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     restSeconds: 8,
     greetRangeTiles: 3,
     greetCooldownSeconds: 30,
+    splashSeconds: 8,
     fieldTiles: { min: 2, max: 6 },
     playRadiusTiles: 4,
   },
@@ -904,6 +921,12 @@ export const ISLAND_CONFIG: IslandConfig = {
     twinkleSeconds: 3,
     shootingStarEverySeconds: 50,
     shootingStarSeconds: 1.2,
+  },
+  afterRain: {
+    villagePuddles: 7,
+    fieldPuddles: 3,
+    drySeconds: 80,
+    rainbowSeconds: 45,
   },
   breeze: { swayPx: 3, base: 0.7, rainBoost: 0.5, nightCalm: 0.5, leaves: 10, leafSpeedPx: 20 },
   clouds: { count: 5, speedPx: 4 },

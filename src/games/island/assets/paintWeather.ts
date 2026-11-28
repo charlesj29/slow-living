@@ -152,6 +152,61 @@ const leafColors = (i: number): Readonly<Record<string, Rgba>> => ({
   ...(LEAF_TINTS[Math.floor(i / 2)] ?? LEAF_TINTS[0]),
 });
 
+/** Puddles after the rain, small to brimming: still water with a darker rim and a sky glint. */
+export const PUDDLE_KEYS = ['puddle_0', 'puddle_1', 'puddle_2'] as const;
+const PUDDLE_SIZES = [
+  { width: 6, height: 3 },
+  { width: 10, height: 4 },
+  { width: 14, height: 5 },
+] as const;
+const PUDDLE = {
+  water: hexToRgba('#78b8dc'),
+  rim: hexToRgba('#4f8ab4'),
+  glint: hexToRgba('#d4f0fc'),
+} as const;
+
+function puddle(width: number, height: number): PixelCanvas {
+  const canvas = createPixelCanvas(width, height);
+  const cx = (width - 1) / 2;
+  const cy = (height - 1) / 2;
+  const inside = (x: number, y: number): boolean =>
+    ((x - cx) / (width / 2)) ** 2 + ((y - cy) / (height / 2)) ** 2 <= 1;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (!inside(x, y)) continue;
+      // The rim along the lower edge (where the ground meets it), a glint up on the left.
+      const rim = !inside(x, y + 1) || !inside(x + 1, y);
+      const glint = y === Math.floor(cy) - (height > 3 ? 1 : 0) && x > cx - width / 3 && x < cx;
+      setPixel(canvas, x, y, rim ? PUDDLE.rim : glint ? PUDDLE.glint : PUDDLE.water);
+    }
+  }
+  return canvas;
+}
+
+/** A soft rainbow arc for the sky after a shower (drawn faint, faded as a whole). */
+export const RAINBOW_KEY = 'rainbow';
+const RAINBOW = { width: 160, height: 60, band: 3 } as const;
+const RAINBOW_COLORS = ['#e8505a', '#f29a48', '#f6d24a', '#7cc45a', '#5aa0e0', '#9a78d0'].map(
+  (hex) => hexToRgba(hex),
+);
+
+function rainbow(): PixelCanvas {
+  const canvas = createPixelCanvas(RAINBOW.width, RAINBOW.height);
+  const cx = (RAINBOW.width - 1) / 2;
+  // The arc's middle sits below the sprite so its top just touches the first row.
+  const cy = RAINBOW.width / 2 + 1;
+  const outer = RAINBOW.width / 2;
+  for (let y = 0; y < RAINBOW.height; y++) {
+    for (let x = 0; x < RAINBOW.width; x++) {
+      const r = Math.hypot(x - cx, y - cy);
+      const band = Math.floor((outer - r) / RAINBOW.band);
+      const color = band >= 0 ? RAINBOW_COLORS[band] : undefined;
+      if (color) setPixel(canvas, x, y, color);
+    }
+  }
+  return canvas;
+}
+
 export function paintWeatherSprites(): SpriteSource[] {
   return [
     { key: RAIN_DROP_KEY, frames: [fromRows(DROP_ROWS, { h: DROP.head, t: DROP.tail })] },
@@ -164,6 +219,11 @@ export function paintWeatherSprites(): SpriteSource[] {
       frames: [cloudShadow(shape.width, shape.height, shape.puffs)],
     })),
     ...LEAF_KEYS.map((key, i) => ({ key, frames: [fromRows(LEAF_ROWS[i] ?? [], leafColors(i))] })),
+    ...PUDDLE_KEYS.map((key, i) => {
+      const size = PUDDLE_SIZES[i] ?? PUDDLE_SIZES[0];
+      return { key, frames: [puddle(size.width, size.height)] };
+    }),
+    { key: RAINBOW_KEY, frames: [rainbow()] },
     ...MIST_SHAPES.map((shape, i) => ({
       key: MIST_KEYS[i] ?? 'mist_0',
       frames: [mistBank(shape.width, shape.height, shape.puffs)],

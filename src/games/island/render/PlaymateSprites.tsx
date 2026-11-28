@@ -5,6 +5,7 @@ import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { BUBBLE_KINDS, bubbleKey } from '../assets/paintBubbles';
 import { BALL_KEY, KID_FRAMES, kidKey, type KidView } from '../assets/paintPlaymates';
 import { DOG_FRAMES, dogKey, type DogView } from '../assets/paintPuppy';
+import { SPLASH_KEYS } from '../assets/paintLakeLife';
 import { SHADOW_KEYS } from '../assets/paintShadows';
 import type { BubbleKind } from '../core/entities/villager';
 import type { GameState } from '../core/game/gameState';
@@ -25,6 +26,9 @@ const MOUTH = { side: 7, up: 5, upFront: 4 } as const;
 /** Speech bubbles float above the head; bubbles draw over everything else. */
 const BUBBLE_ABOVE = { kid: 24, dog: 18 } as const;
 const BUBBLE_Z = 40;
+/** Splashing in a puddle: how high each hop goes, and how fast the splash flickers. */
+const SPLASH_HOP_PX = 2;
+const SPLASH_FRAME_SECONDS = 0.18;
 const IN_FRONT = 0.002;
 
 function kidView(p: Playmates): KidView {
@@ -78,6 +82,7 @@ export function PlaymateSprites({
       kid: createSpriteGeometry(atlas.frame(kidKey('front'))),
       dog: createSpriteGeometry(atlas.frame(dogKey('side'))),
       ball: createSpriteGeometry(atlas.frame(BALL_KEY)),
+      splashes: SPLASH_KEYS.slice(0, 2).map((key) => createSpriteGeometry(atlas.frame(key))),
       shadow: createSpriteGeometry(atlas.frame(SHADOW_KEYS.small)),
       tinyShadow: createSpriteGeometry(atlas.frame(SHADOW_KEYS.tiny)),
       bubbles: new Map<BubbleKind, BufferGeometry>(
@@ -98,9 +103,10 @@ export function PlaymateSprites({
   );
   useEffect(
     () => () => {
-      const { bubbles, ...rest } = geometries;
+      const { bubbles, splashes, ...rest } = geometries;
       Object.values(rest).forEach((g) => g.dispose());
       bubbles.forEach((g) => g.dispose());
+      splashes.forEach((g) => g.dispose());
     },
     [geometries],
   );
@@ -112,6 +118,8 @@ export function PlaymateSprites({
   const dogShadow = useRef<Mesh>(null);
   const ballShadow = useRef<Mesh>(null);
   const bubble = useRef<Mesh>(null);
+  const splash = useRef<Mesh>(null);
+  const splashFrameSize = atlas.frame(SPLASH_KEYS[0]);
   const shownView = useRef<KidView>('front');
   const dogSide = useRef<'left' | 'right'>('left');
   const shownDogView = useRef<DogView>('side');
@@ -137,11 +145,25 @@ export function PlaymateSprites({
     }
     setAnimationFrame(materials.kid, kidFrame(p, seconds));
     kid.current.scale.x = p.kid.facing === 'right' ? -1 : 1;
+    // Jumping in a puddle: a little hop, and a splash at the feet.
+    const jumping = p.mode === 'splash' && p.kid.pose === 'cheer' && !p.kid.moving;
     kid.current.position.set(
       kx,
-      worldYFromMapPx(ky + FOOT_INSET_PX) + kidFrameSize.height / 2,
+      worldYFromMapPx(ky + FOOT_INSET_PX - (jumping ? SPLASH_HOP_PX : 0)) + kidFrameSize.height / 2,
       standingSpriteZ(ky),
     );
+    if (splash.current) {
+      splash.current.visible = jumping;
+      const crown = geometries.splashes[Math.floor(seconds / SPLASH_FRAME_SECONDS) % 2];
+      if (jumping && crown) {
+        if (splash.current.geometry !== crown) splash.current.geometry = crown;
+        splash.current.position.set(
+          kx,
+          worldYFromMapPx(ky + 2) + splashFrameSize.height / 2,
+          standingSpriteZ(ky) + IN_FRONT,
+        );
+      }
+    }
     kidShadow.current.position.set(kx + 1, worldYFromMapPx(ky), SHADOW_Z);
 
     // The puppy: seen from the side, keeping its last sideways look when going up or down.
@@ -213,6 +235,12 @@ export function PlaymateSprites({
       <mesh ref={kid} geometry={geometries.kid} material={materials.kid} />
       <mesh ref={dog} geometry={geometries.dog} material={materials.dog} />
       <mesh ref={ball} geometry={geometries.ball} material={materials.still} />
+      <mesh
+        ref={splash}
+        geometry={geometries.splashes[0]}
+        material={materials.still}
+        visible={false}
+      />
       <mesh
         ref={bubble}
         geometry={geometries.bubbles.get('heart')}

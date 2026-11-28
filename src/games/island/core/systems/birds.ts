@@ -46,6 +46,8 @@ export interface Bird {
   /** Ground under or beside a tree in that place: shelter from the rain. */
   readonly shelters: readonly number[];
   readonly shelterSet: ReadonlySet<number>;
+  /** Seconds left of a little song (a note bubble), sung coming out from shelter after rain. */
+  song: number;
 }
 
 type BirdSettings = IslandConfig['birds'];
@@ -138,6 +140,7 @@ export function createBirds(
       homeSet: flock.homeSet,
       shelters: flock.shelters,
       shelterSet: flock.shelterSet,
+      song: 0,
     };
     startIdle(bird, rng, settings);
     return bird;
@@ -270,9 +273,15 @@ export function updateBird(
     if (spot) setOff(bird, spot[0], spot[1], 'fly', settings);
     return;
   }
+  bird.song = Math.max(0, bird.song - stepSeconds);
   if (raining) {
     shelterFromRain(bird, world, rng, settings, tileSizePx);
     return;
+  }
+  // The rain has stopped: out from under the tree with a little song.
+  if (bird.idle === 'huddle') {
+    bird.song = settings.songSeconds;
+    startIdle(bird, rng, settings);
   }
   bird.idleTime -= stepSeconds;
   if (bird.idleTime > 0) return;
