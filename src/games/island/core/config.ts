@@ -374,6 +374,24 @@ export interface IslandConfig {
     readonly breakfast: readonly [from: number, to: number];
     readonly dinner: readonly [from: number, to: number];
   };
+  /**
+   * Light on the water: stars and the moon reflected at night (now and then a shooting star),
+   * golden sparkles on the lake at sunrise and sunset (times of day: 0.25 = 6 AM).
+   */
+  readonly waterLights: {
+    /** Stars reflected on the sea, and (closer together) on the lake. */
+    readonly stars: number;
+    readonly lakeStars: number;
+    readonly glints: number;
+    readonly night: readonly [from: number, to: number];
+    readonly dawn: readonly [from: number, to: number];
+    readonly dusk: readonly [from: number, to: number];
+    /** How fast the stars twinkle (seconds per twinkle). */
+    readonly twinkleSeconds: number;
+    /** About how often a shooting star crosses the water at night, and how long it takes. */
+    readonly shootingStarEverySeconds: number;
+    readonly shootingStarSeconds: number;
+  };
   /** A breeze through the island: trees, bushes and grass sway; a few leaves drift by day. */
   readonly breeze: {
     /** How far the top of a tree leans at full wind (map pixels); the base stays rooted. */
@@ -758,6 +776,17 @@ export const ISLAND_CONFIG: IslandConfig = {
     stallCloses: 0.8,
     breakfast: [0.26, 0.34],
     dinner: [0.72, 0.8],
+  },
+  waterLights: {
+    stars: 60,
+    lakeStars: 16,
+    glints: 24,
+    night: [0.83, 0.2],
+    dawn: [0.21, 0.3],
+    dusk: [0.72, 0.81],
+    twinkleSeconds: 3,
+    shootingStarEverySeconds: 50,
+    shootingStarSeconds: 1.2,
   },
   breeze: { swayPx: 2.4, base: 0.55, rainBoost: 0.6, nightCalm: 0.5, leaves: 6, leafSpeedPx: 16 },
   clouds: { count: 5, speedPx: 4 },

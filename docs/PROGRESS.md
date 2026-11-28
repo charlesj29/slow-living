@@ -89,6 +89,20 @@
 
 ## Session log
 
+### 2026-11-28 — Night sky and light on the water (user request)
+
+- At night the stars and the moon are reflected on the water: a few dozen twinkling stars on the
+  sea and, closer together, on the lake, with the moon's ripple-broken reflection in the lake's
+  middle; about once a minute a shooting star streaks across the lake. At sunrise and sunset gold
+  sparkles twinkle on the lake. Nothing shines under rain clouds. `render/NightWater` (untinted,
+  flat on the water), spots and timing in `render/waterLights.ts`, sprites in
+  `assets/paintWaterLights.ts`, settings in `waterLights`.
+- Warm window light on the water was planned too, but the village sits inland (the nearest lit
+  building is about 9 tiles from water), so it was left out (D73).
+- **Verified:** typecheck, lint, tests (spots on water, night/dawn/dusk windows, twinkling, one
+  shooting star at a time), build; browser at 11:30 PM (stars, moon, a shooting star) and 6 PM
+  (gold sparkles); console clean.
+
 ### 2026-11-28 — The village goes to sleep (user request)
 
 - Village house windows go dark one house after another (left to right) between about 9:35 PM

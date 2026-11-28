@@ -21,6 +21,7 @@ import { VillagerBubbles } from './VillagerBubbles';
 import { BreadSteam } from './BreadSteam';
 import { Butterflies } from './Butterflies';
 import { Fireflies } from './Fireflies';
+import { NightWater } from './NightWater';
 import { CloudShadows } from './CloudShadows';
 import { Rain } from './Rain';
 import { MorningMist } from './MorningMist';
@@ -167,6 +168,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       {mapId === ISLAND_MAP && <DuckSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <Butterflies world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <Fireflies world={world} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && <NightWater state={game} atlas={atlas} sceneTime={sceneTime} />}
       {mapId === ISLAND_MAP && (
         <CloudShadows world={world} state={game} atlas={atlas} lighting={lighting} />
       )}

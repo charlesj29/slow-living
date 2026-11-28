@@ -902,3 +902,13 @@ alternatives → consequences.
   line (D71).
 - **Consequences:** about 45 KB of fonts, loaded on demand with `font-display: swap`; the
   arrow → falls back to the system font (outside the Latin subset).
+
+## D73 — Light on the water, without window reflections
+
+- **Context:** the "night sky" pick: stars and moon on the water, shooting stars, window light on
+  the lake, gold at sunrise and sunset.
+- **Decision:** reflections are small untinted sprites flat on the water (`GROUND_DECAL_Z`),
+  shown by time of day from the scene time (so the held midnight shows them too) and hidden under
+  rain. Spots come from a hash of the tiles, so an island always has the same stars; the lake gets
+  its own share because it is where people look. Window reflections were dropped: no lit building
+  stands within reach of water on the default island.

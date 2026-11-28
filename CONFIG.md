@@ -33,6 +33,7 @@ Change a value, save, and the page updates (`npm run dev`).
 | `mist`                            | When the morning mist comes and goes, and how thick it is.           |
 | `lanterns`                        | How spread out the lamp posts are when they light up at dusk.        |
 | `villageNight`                    | When houses go to bed, when the market stall opens, smoky mealtimes. |
+| `waterLights`                     | Stars, the moon and shooting stars on the water; sunset sparkles.    |
 | `breeze`                          | How much trees and grass sway, how windy it gets, drifting leaves.   |
 | `clouds`                          | How many cloud shadows drift by, and how fast.                       |
 
