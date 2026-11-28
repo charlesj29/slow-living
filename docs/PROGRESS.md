@@ -89,6 +89,25 @@
 
 ## Session log
 
+### 2026-11-28 — Chickens in a coop and a village cat (user request)
+
+- The chickens and the cat are back, redrawn in the rabbits' soft round style, with side, front and
+  back views (user rule from now on: every walking sprite gets vertical views too): a plump white
+  chicken with a red comb, a grey tabby cat with a white chest.
+- A chicken run (user request): a new last generation step, `buildChickenCoop`, puts a 7×5 fenced
+  pen with a little red-roofed hen house on open grass just outside the village, near the bakery,
+  never on a path, with a clear walkway round it (meadow flowers inside it make way). The baked
+  map was re-baked (it was identical to generation before, so no hand edits were lost).
+- The chickens peck about their run and scurry when someone comes to the fence; in the rain they
+  huddle by the hen house, and at night they go inside (out of sight) and come out in the morning.
+  The cat wanders the village, naps, flicks its tail, waits out rain as a loaf on a doorstep and
+  sleeps there at night (never on a doorway). Trips home follow a proper path; everyone keeps a
+  body-width apart (the no-overlap test now counts the animals). The first chicken fix (shelter
+  by the bakery door) had boxed the baker in: that is why the run exists.
+- **Verified:** typecheck, lint, tests (the run is fenced, outside the village, on grass, added last;
+  chickens keep to the run, the cat to the village, at night the chickens are inside and the cat
+  asleep; nobody overlaps), build; browser: the run with its hen house and three chickens.
+
 ### 2026-11-28 — Fix: the kid stuck on the doorstep, blocking the sweeper (user report)
 
 - On the live site the kid stood by the house instead of playing, in the old man's way. Cause:

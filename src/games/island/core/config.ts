@@ -129,6 +129,8 @@ export interface IslandConfig {
     readonly clearedObjectCost: number;
     /** Washing lines hung beside the houses (placed last, so nothing else moves). */
     readonly laundryLines: number;
+    /** A fenced chicken run with a hen house just outside the village (placed last, like the lines). */
+    readonly chickenCoop: boolean;
   };
   /** The village's chickens and cat. */
   readonly animals: {
@@ -142,6 +144,9 @@ export interface IslandConfig {
     readonly wanderRadiusTiles: number;
     readonly minRestSeconds: number;
     readonly maxRestSeconds: number;
+    /** Chickens scurry off when someone is this close (tiles), this much faster than a stroll. */
+    readonly fleeRadiusTiles: number;
+    readonly fleeSpeedFactor: number;
   };
   /**
    * The animals' night and rainy days: rabbits sleep by a tree or bush at night and huddle there
@@ -684,9 +689,10 @@ export const ISLAND_CONFIG: IslandConfig = {
     shapeAttempts: 12,
     clearedObjectCost: 3,
     laundryLines: 2,
+    chickenCoop: true,
   },
   animals: {
-    enabled: false,
+    enabled: true,
     chickens: 3,
     cats: 1,
     chickenSpeedTilesPerSecond: 1.6,
@@ -694,6 +700,8 @@ export const ISLAND_CONFIG: IslandConfig = {
     wanderRadiusTiles: 3,
     minRestSeconds: 1.5,
     maxRestSeconds: 6,
+    fleeRadiusTiles: 1.8,
+    fleeSpeedFactor: 2,
   },
   wildlife: { night: [0.84, 0.24] },
   rabbits: {

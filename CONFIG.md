@@ -8,20 +8,21 @@ Change a value, save, and the page updates (`npm run dev`).
 
 ## Quick switches
 
-| Setting                             | What it does                                                     |
-| ----------------------------------- | ---------------------------------------------------------------- |
-| `render.zoomEnabled`                | Allow zooming with + / − (and the phone zoom buttons).           |
-| `touch.controls`                    | Phones: the slide-stick (walk) and the small interact button.    |
-| `touch.tapToWalk`                   | Phones: tapping the screen walks there too (off: stick only).    |
-| `pointer.clickToWalk`               | Click the screen to walk there (phones always tap to walk).      |
-| `tour.enabled`                      | The slow camera tour after a minute without input.               |
-| `debug.showClock`                   | The clock at the top right.                                      |
-| `debug.alwaysShowFps`               | Always show the FPS, on the live site too (F3: dev server only). |
-| `debug.fpsOnly`                     | F3 shows only the FPS (`false`: also tile and camera).           |
-| `rabbits.enabled` / `ducks.enabled` | The rabbits near the village / the ducks on the lake.            |
-| `animals.enabled`                   | The village chickens and cat (off).                              |
-| `birds.enabled`                     | Little birds in the village and seagulls over the sea.           |
-| `playmates.enabled`                 | The village kid and the puppy.                                   |
+| Setting                             | What it does                                                                       |
+| ----------------------------------- | ---------------------------------------------------------------------------------- |
+| `render.zoomEnabled`                | Allow zooming with + / − (and the phone zoom buttons).                             |
+| `touch.controls`                    | Phones: the slide-stick (walk) and the small interact button.                      |
+| `touch.tapToWalk`                   | Phones: tapping the screen walks there too (off: stick only).                      |
+| `pointer.clickToWalk`               | Click the screen to walk there (phones always tap to walk).                        |
+| `tour.enabled`                      | The slow camera tour after a minute without input.                                 |
+| `debug.showClock`                   | The clock at the top right.                                                        |
+| `debug.alwaysShowFps`               | Always show the FPS, on the live site too (F3: dev server only).                   |
+| `debug.fpsOnly`                     | F3 shows only the FPS (`false`: also tile and camera).                             |
+| `rabbits.enabled` / `ducks.enabled` | The rabbits near the village / the ducks on the lake.                              |
+| `animals.enabled`                   | The chickens (in their run) and the village cat.                                   |
+| `village.chickenCoop`               | A fenced chicken run with a hen house just outside the village (re-bake to apply). |
+| `birds.enabled`                     | Little birds in the village and seagulls over the sea.                             |
+| `playmates.enabled`                 | The village kid and the puppy.                                                     |
 
 ## Time, light and weather
 
@@ -60,6 +61,7 @@ Change a value, save, and the page updates (`npm run dev`).
 | `rainyDay`                                                  | How heavy the rain must be before villagers shelter, and how fast they hurry.                      |
 | `rabbits`, `ducks`                                          | How many, how fast, and how shy they are.                                                          |
 | `wildlife.night`                                            | When the animals sleep (rabbits by cover, ducks by the shore).                                     |
+| `animals`                                                   | How many chickens and cats, how fast, how far they roam, how jumpy the chickens are.               |
 | `butterflies`, `fireflies`                                  | How many, and how they fly or blink.                                                               |
 | `birds`                                                     | How many birds and gulls, when they are out, how shy they are and how far they fly.                |
 | `playmates`                                                 | When and where (a field outside the village) the kid and puppy play, their pace, the ball, hellos. |

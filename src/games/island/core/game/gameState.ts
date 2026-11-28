@@ -43,7 +43,7 @@ import {
 } from '../systems/rabbits';
 import { createPlaymates, updatePlaymates, type Playmates } from '../systems/playmates';
 import { birdAreas } from '../systems/birdAreas';
-import { bumpsIntoSmall, type Spot } from '../systems/bodies';
+import { bumpsIntoSmall, tilesUnder, type Spot } from '../systems/bodies';
 import { createBirds, updateBird, type Bird } from '../systems/birds';
 import { createDuckFamily, duckWater, updateDuckFamily, type DuckFamily } from '../systems/ducks';
 import { movePlayer } from '../systems/movement';
@@ -111,8 +111,9 @@ export interface GameState {
   readonly villagers: readonly Villager[];
   /** Randomness for wandering: seeded per world, so a session is reproducible. */
   readonly wanderRng: Rng;
-  /** The village's chickens and cat (island only). */
+  /** The village's chickens and cat (island only), with their own rng. */
   readonly animals: readonly Animal[];
+  readonly animalRng: Rng;
   /** The village tiles villagers and animals keep to. */
   readonly villageHome: ReadonlySet<number>;
   /** Wild rabbits round the village (island only), and the meadow they keep to. */
@@ -149,6 +150,7 @@ const WANDER_SEED_SALT = 0x5a11;
 const WEATHER_SEED_SALT = 0x3a1e;
 const BIRD_SEED_SALT = 0xb12d;
 const PLAY_SEED_SALT = 0x9a1d;
+const ANIMAL_SEED_SALT = 0xa41a;
 
 function createVillagers(world: World, roam: ReadonlySet<number>, tileSizePx: number): Villager[] {
   if (!world.village) return [];
@@ -188,6 +190,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
   const meadow = rabbitMeadow(world, config.rabbits);
   const water = duckWater(world);
   const birdRng = createRng(world.generationSeed ^ BIRD_SEED_SALT);
+  const animalRng = createRng(world.generationSeed ^ ANIMAL_SEED_SALT);
   const maps = new Map<string, World>([[ISLAND_MAP, world]]);
   for (const definition of Object.values(INTERIORS)) {
     maps.set(definition.id, buildInteriorWorld(definition));
@@ -213,7 +216,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     routinePlaces: routinePlaces(world, roam),
     villagers: createVillagers(world, roam, config.map.tileSizePx),
     wanderRng,
-    animals: createAnimals(world, home, wanderRng, config.animals, config.map.tileSizePx),
+    animals: createAnimals(world, home, animalRng, config.animals, config.map.tileSizePx),
+    animalRng,
     villageHome: new Set(home),
     rabbits: createRabbits(world, meadow, wanderRng, config.rabbits, config.map.tileSizePx),
     rabbitMeadow: meadow,
@@ -271,7 +275,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
       stepSeconds,
       config.playmates,
       state.weather.intensity >= config.rainyDay.shelterAt,
-      [...villagersAbout(state), ...state.rabbits],
+      [...villagersAbout(state), ...state.rabbits, ...animalsAbout(state)],
     );
   }
   if (state.transition) {
@@ -306,7 +310,9 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     if (intent.facing) player.facing = intent.facing;
     movePlayer(player, intent, state.world, stepSeconds, config.player, tileSizePx);
     const villagersHere = villagersOut(state);
-    const smallHere = onIsland(state) ? [...state.rabbits, ...playmateSpots(state)] : [];
+    const smallHere = onIsland(state)
+      ? [...state.rabbits, ...playmateSpots(state), ...animalsAbout(state)]
+      : [];
     if (
       bumpsInto(player, villagersHere, config.player) ||
       bumpsIntoSmall(player, smallHere, config.player)
@@ -339,6 +345,11 @@ function villagersAbout(state: GameState): Villager[] {
   return state.villagers.filter((villager) => !villager.hidden);
 }
 
+/** The chickens and the cat, except those in the hen house for the night. */
+function animalsAbout(state: GameState): Animal[] {
+  return state.animals.filter((animal) => !animal.hidden);
+}
+
 /** The kid (when out) and the puppy: where their feet are. */
 function playmateSpots(state: GameState): Spot[] {
   const p = state.playmates;
@@ -357,7 +368,7 @@ function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   // They only notice the player out on the island.
   const player = onIsland(state) ? state.player : null;
-  const people = [...villagersAbout(state), ...playmateSpots(state)];
+  const people = [...villagersAbout(state), ...playmateSpots(state), ...animalsAbout(state)];
   for (const rabbit of state.rabbits) {
     const others = [...people, ...state.rabbits.filter((r) => r !== rabbit)];
     updateRabbit(
@@ -415,15 +426,35 @@ function stepDucks(state: GameState, stepSeconds: number, config: IslandConfig):
 
 function stepAnimals(state: GameState, stepSeconds: number, config: IslandConfig): void {
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
+  const tileSizePx = config.map.tileSizePx;
+  const rest = wildlifeRest(state, config);
+  // The player, the kid and the puppy send the chickens scurrying.
+  const scarers = [...(onIsland(state) ? [state.player] : []), ...playmateSpots(state)];
+  const people = [...scarers, ...villagersAbout(state), ...state.rabbits];
   for (const animal of state.animals) {
+    // The other animals' spots and where they are heading: no two make for the same tile.
+    const mates = animalsAbout(state).filter((a) => a !== animal);
+    // (The hen house door doesn't count: the chickens go in one after another.)
+    const atDoor = (a: Animal): boolean =>
+      a.den !== null && a.target?.x === a.den.x && a.target.y === a.den.y;
+    // When two want the same tile, the one listed first goes first (nobody waits for ever).
+    const heading = mates.flatMap((a) =>
+      a.target && a.id < animal.id && !atDoor(a) ? [a.target] : [],
+    );
+    const others = [...people, ...mates, ...heading];
     updateAnimal(
       animal,
       island,
-      state.villageHome,
-      state.wanderRng,
+      state.animalRng,
       stepSeconds,
       config.animals,
-      config.map.tileSizePx,
+      tileSizePx,
+      rest,
+      scarers,
+      tilesUnder(others, island, tileSizePx),
+      // Keeping a body-width apart. On the way home (all making for the same spot) the one
+      // listed first goes first, so two never stall.
+      [...people, ...(rest === 'free' ? mates : mates.filter((a) => a.id < animal.id))],
     );
   }
 }
@@ -435,7 +466,7 @@ function stepVillagers(state: GameState, stepSeconds: number, config: IslandConf
   const crowd = {
     player: onIsland(state) ? state.player : null,
     villagers: out,
-    others: [...state.rabbits, ...playmateSpots(state)],
+    others: [...state.rabbits, ...playmateSpots(state), ...animalsAbout(state)],
   };
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   const time = villageTime(state);

@@ -44,6 +44,7 @@ export const OBJECT_KINDS = [
   'floor_lamp',
   'cat_sleeping',
   'laundry_line',
+  'chicken_coop',
   'desk_laptop',
   'phone_wall',
   'tech_shelf',
@@ -259,6 +260,11 @@ export const OBJECT_REGISTRY: Readonly<Record<ObjectKind, ObjectDefinition>> = {
     ...decoration('laundry_line', 'Washing line', 'structure', '#d8d0c0'),
     footprint: { width: 3, height: 1 },
     interaction: says('Fresh laundry, drying in the breeze.'),
+  },
+  // The hen house in the chicken run (a fence round it): 2×2, the roof rising above.
+  chicken_coop: {
+    ...solid('chicken_coop', 'Hen house', 'structure', '#c44434', { width: 2, height: 2 }),
+    interaction: says('The hens cluck softly. There might be an egg in the straw tomorrow.'),
   },
   cat_sleeping: {
     ...solid('cat_sleeping', 'Sleeping cat', 'structure', '#e0893a'),

@@ -1,106 +1,177 @@
-// Village animals, 16×16, facing left (mirrored to face right): a white
-// chicken (stand, peck, two walk frames) and an orange cat (sit, two walk
-// frames, curled up asleep). Feet sit on the bottom rows, like the characters.
+// Village animals, soft and round like the rabbits, facing left (mirrored to
+// face right; front and back views in paintAnimalViews.ts), feet on the bottom
+// rows: a plump white chicken with a red comb and a grey tabby cat with a white
+// chest. Every strip has six frames:
+//   chicken: stand, peck, two walk steps, huddled (fluffed against the rain),
+//            asleep (head tucked, eyes closed);
+//   cat:     sit, two walk steps, curled up asleep, sitting with the tail
+//            flicked, and a "loaf" (paws tucked in, sheltering from the rain).
 import type { SpriteSource } from '@/shared/render/atlasLayout';
-import {
-  createPixelCanvas,
-  fillRect,
-  hexToRgba,
-  setPixel,
-  type PixelCanvas,
-} from '@/shared/render/pixelCanvas';
-import { fillEllipse } from './paint';
+import { hexToRgba, type Rgba } from '@/shared/render/pixelCanvas';
+import { capsule, ellipse, outline, put, softCanvas, softGrid, type SoftGrid } from './softShapes';
 
-/** Frames per animal strip (see ANIMAL_FRAMES for which is which). */
-export const ANIMAL_FRAME_COUNT = 4;
+import { ANIMAL_FRAME_COUNT, ANIMAL_FRAMES, ANIMAL_VIEWS, animalKey } from './animalFrames';
+import { catView, chickenView } from './paintAnimalViews';
 
-/** Frame indexes in both strips. */
-export const ANIMAL_FRAMES = {
-  chicken: { stand: 0, peck: 1, walk: [2, 3] },
-  cat: { sit: 0, walk: [1, 2], sleep: 3 },
-} as const;
+export { ANIMAL_FRAME_COUNT, ANIMAL_FRAMES } from './animalFrames';
 
 const SIZE = 16;
-const C = {
-  outline: hexToRgba('#3a2a22'),
-  white: hexToRgba('#f6f2ea'),
-  whiteShade: hexToRgba('#d8d0c4'),
-  comb: hexToRgba('#d64040'),
-  beak: hexToRgba('#f2b030'),
-  ginger: hexToRgba('#e08a3c'),
-  gingerDark: hexToRgba('#b0602a'),
-  gingerLight: hexToRgba('#f4b06a'),
-  cream: hexToRgba('#f6e2c4'),
-  eye: hexToRgba('#2a2420'),
-} as const;
 
-function chicken(frame: number): PixelCanvas {
-  const c = createPixelCanvas(SIZE, SIZE);
-  const peck = frame === ANIMAL_FRAMES.chicken.peck;
-  // Body and tail.
-  fillEllipse(c, 9, 10, 4.5, 3.2, C.outline);
-  fillEllipse(c, 9, 10, 3.6, 2.4, C.white);
-  fillRect(c, 12, 6, 2, 3, C.outline);
-  fillRect(c, 12, 7, 1, 2, C.white);
-  fillRect(c, 8, 11, 4, 1, C.whiteShade);
-  // Head: up, or down to the ground when pecking.
-  const hy = peck ? 10 : 6;
-  const hx = peck ? 4 : 5;
-  fillRect(c, hx - 1, hy - 1, 4, 4, C.outline);
-  fillRect(c, hx, hy, 2, 2, C.white);
-  setPixel(c, hx, hy, C.eye);
-  setPixel(c, hx - 2, hy + 1, C.beak);
-  setPixel(c, hx + 1, hy - 2, C.comb);
-  setPixel(c, hx, hy - 2, C.comb);
-  // Legs: together, or apart while walking.
-  const apart =
-    frame === ANIMAL_FRAMES.chicken.walk[0] ? 1 : frame === ANIMAL_FRAMES.chicken.walk[1] ? -1 : 0;
-  fillRect(c, 8 + apart, 13, 1, 2, C.beak);
-  fillRect(c, 10 - apart, 13, 1, 2, C.beak);
-  return c;
+function chicken(frame: number): SoftGrid {
+  const g = softGrid(SIZE, SIZE);
+  const f = ANIMAL_FRAMES.chicken;
+  const resting = frame === f.huddle || frame === f.sleep;
+  if (resting) {
+    // Sitting down, fluffed into a round ball; the head sunk in.
+    capsule(g, 12, 10, 13.4, 8, 1, 'w'); // tail tuft
+    ellipse(g, 8.6, 11.4, 5.2, 3.6, 'w', 's');
+    ellipse(g, 5.4, 8.4, 2.6, 2.4, 'w');
+    put(g, 4.6, 5.8, 'r'); // comb
+    put(g, 5.6, 5.8, 'r');
+    put(g, 2.6, 8.8, 'y'); // beak
+    if (frame === f.sleep) {
+      put(g, 4.2, 8.2, 'o'); // eyes closed
+      put(g, 5, 8.2, 'o');
+    } else put(g, 4.4, 8, 'e');
+    put(g, 5.2, 9.4, 'p');
+    outline(g);
+    return g;
+  }
+  const peck = frame === f.peck;
+  const step = frame === f.walk[0] ? 1 : frame === f.walk[1] ? -1 : 0;
+  const bob = step !== 0 ? -0.4 : 0;
+  // Little orange legs, stepping when walking.
+  capsule(g, 7.6, 12, 7.6 - step, 14.4, 0.5, 'y');
+  capsule(g, 9.6, 12, 9.6 + step, 14.4, 0.5, 'y');
+  capsule(g, 11.4, 8.6 + bob, 13.4, 6.2 + bob, 1.1, 'w'); // tail tuft, perked up
+  ellipse(g, 8.6, 10 + bob, 4.6, 3.4, 'w', 's'); // plump body
+  ellipse(g, 9.4, 10.2 + bob, 2, 1.3, 's'); // folded wing
+  const hx = peck ? 3.6 : 5;
+  const hy = peck ? 10.6 : 6 + bob;
+  ellipse(g, hx, hy, 2.4, 2.3, 'w');
+  put(g, hx - 0.4, hy - 2.4, 'r'); // comb: two little bumps
+  put(g, hx + 0.6, hy - 2.6, 'r');
+  put(g, hx - 2.6, hy + 0.2, 'y'); // beak
+  put(g, hx - 1.4, hy + 1.4, 'r'); // wattle
+  put(g, hx - 0.6, hy - 0.4, 'e');
+  put(g, hx + 0.2, hy + 0.8, 'p'); // rosy cheek
+  outline(g);
+  return g;
 }
 
-function cat(frame: number): PixelCanvas {
-  const c = createPixelCanvas(SIZE, SIZE);
-  if (frame === ANIMAL_FRAMES.cat.sleep) {
-    // Curled up: a round ginger loaf with the tail wrapped round.
-    fillEllipse(c, 8, 12, 5.5, 3, C.outline);
-    fillEllipse(c, 8, 12, 4.6, 2.2, C.ginger);
-    fillRect(c, 5, 11, 6, 1, C.gingerLight);
-    fillRect(c, 9, 13, 4, 1, C.gingerDark);
-    setPixel(c, 4, 10, C.outline); // ears
-    setPixel(c, 6, 10, C.outline);
-    return c;
+const CHICKEN: Readonly<Record<string, Rgba>> = {
+  o: hexToRgba('#5a4440'),
+  w: hexToRgba('#fbf7ef'),
+  s: hexToRgba('#ddd3c4'),
+  r: hexToRgba('#e0564a'),
+  y: hexToRgba('#f2a943'),
+  e: hexToRgba('#2a2026'),
+  p: hexToRgba('#f5b0a8'),
+};
+
+/** Pointy ears either side of a round head. */
+function ears(g: SoftGrid, hx: number, hy: number): void {
+  capsule(g, hx - 1.6, hy - 1.6, hx - 2.2, hy - 3.4, 0.7, 'g');
+  capsule(g, hx + 1.2, hy - 1.8, hx + 1.6, hy - 3.6, 0.7, 'g');
+}
+
+function catFace(g: SoftGrid, hx: number, hy: number, asleep = false): void {
+  ellipse(g, hx - 0.6, hy + 1, 1.6, 1.1, 'c'); // white muzzle
+  put(g, hx - 1.8, hy + 0.4, 'n'); // nose
+  if (asleep) {
+    put(g, hx - 1.4, hy - 0.4, 'o');
+    put(g, hx - 0.6, hy - 0.4, 'o');
+  } else put(g, hx - 1, hy - 0.6, 'e');
+  put(g, hx + 0.4, hy + 0.8, 'p');
+  put(g, hx + 0.4, hy - 1.6, 'd'); // a tabby stripe on the brow
+}
+
+function cat(frame: number): SoftGrid {
+  const g = softGrid(SIZE, SIZE);
+  const f = ANIMAL_FRAMES.cat;
+  if (frame === f.sleep) {
+    // Curled up: a round grey loaf with the tail wrapped round the front.
+    ellipse(g, 8.6, 12, 5.6, 2.8, 'g', 'd');
+    capsule(g, 13, 12.6, 6, 14, 0.9, 'g');
+    ellipse(g, 4.8, 11.6, 2.6, 2.2, 'g');
+    ears(g, 4.8, 11.6);
+    catFace(g, 4.8, 11.6, true);
+    put(g, 9, 10, 'd'); // stripes along the back
+    put(g, 11, 10.4, 'd');
+    outline(g);
+    return g;
   }
-  const sitting = frame === ANIMAL_FRAMES.cat.sit;
+  if (frame === f.loaf) {
+    // Paws tucked in, a neat round loaf, eyes open: waiting out the rain.
+    capsule(g, 12.4, 12.6, 13.6, 10.4, 0.8, 'g');
+    ellipse(g, 8.6, 11.6, 4.8, 3, 'g', 'd');
+    ellipse(g, 7.6, 12.6, 2, 1.2, 'c'); // white chest
+    ellipse(g, 5.2, 8.4, 2.6, 2.4, 'g');
+    ears(g, 5.2, 8.4);
+    catFace(g, 5.2, 8.4);
+    put(g, 9.6, 9.8, 'd');
+    put(g, 11.4, 10.4, 'd');
+    outline(g);
+    return g;
+  }
+  const sitting = frame === f.sit || frame === f.flick;
   if (sitting) {
-    fillEllipse(c, 9, 11, 3.5, 3.6, C.outline);
-    fillEllipse(c, 9, 11, 2.6, 2.7, C.ginger);
-    fillRect(c, 8, 12, 2, 2, C.cream);
-    fillRect(c, 12, 12, 3, 1, C.outline); // tail curled at the feet
+    // Sitting up, the tail curled round the feet (or flicked up).
+    if (frame === f.flick) capsule(g, 11.6, 12.6, 13.6, 9, 0.8, 'g');
+    else capsule(g, 11.6, 13.6, 13.8, 13, 0.8, 'g');
+    ellipse(g, 9, 11, 3.4, 3.6, 'g', 'd');
+    ellipse(g, 8, 12, 1.6, 2, 'c'); // white chest
+    capsule(g, 7.4, 12.6, 7.4, 14.4, 0.7, 'c'); // front paws
+    put(g, 10.4, 9, 'd');
+    put(g, 11, 11, 'd');
+    ellipse(g, 6.4, 6.4, 2.8, 2.6, 'g');
+    ears(g, 6.4, 6.4);
+    catFace(g, 6.4, 6.4);
   } else {
-    fillEllipse(c, 9, 11, 5, 2.5, C.outline);
-    fillEllipse(c, 9, 11, 4.1, 1.6, C.ginger);
-    fillRect(c, 7, 11, 5, 1, C.gingerDark);
-    fillRect(c, 13, 7, 1, 4, C.outline); // tail up
-    const step = frame === ANIMAL_FRAMES.cat.walk[0] ? 1 : -1;
-    for (const x of [6 + step, 11 - step]) fillRect(c, x, 13, 1, 2, C.outline);
+    const step = frame === f.walk[0] ? 1 : -1;
+    capsule(g, 13, 9.6, 14.4, 6.2, 0.8, 'g'); // tail up
+    capsule(g, 6, 12, 6 - step * 0.8, 14.4, 0.8, 'c');
+    capsule(g, 7.6, 12, 7.6 + step * 0.8, 14.4, 0.8, 'd');
+    capsule(g, 10.4, 12, 10.4 + step * 0.8, 14.4, 0.8, 'd');
+    capsule(g, 12, 12, 12 - step * 0.8, 14.4, 0.8, 'g');
+    ellipse(g, 9, 10.6, 4.8, 3, 'g', 'd');
+    ellipse(g, 7.4, 11.8, 1.8, 1, 'c'); // white chest
+    put(g, 8.4, 8.4, 'd');
+    put(g, 10.4, 8.4, 'd');
+    put(g, 12.2, 9, 'd');
+    ellipse(g, 4.6, 8, 2.6, 2.4, 'g');
+    ears(g, 4.6, 8);
+    catFace(g, 4.6, 8);
   }
-  // Head with pointy ears.
-  const hy = sitting ? 5 : 7;
-  fillRect(c, 4, hy, 5, 4, C.outline);
-  fillRect(c, 5, hy + 1, 3, 2, C.ginger);
-  setPixel(c, 4, hy - 1, C.outline);
-  setPixel(c, 7, hy - 1, C.outline);
-  setPixel(c, 5, hy + 1, C.eye);
-  setPixel(c, 6, hy + 2, C.cream);
-  return c;
+  outline(g);
+  return g;
 }
+
+const CAT: Readonly<Record<string, Rgba>> = {
+  o: hexToRgba('#3c3640'),
+  g: hexToRgba('#a8a4b0'),
+  d: hexToRgba('#7c7888'),
+  c: hexToRgba('#f8f6f2'),
+  e: hexToRgba('#3a6a48'),
+  n: hexToRgba('#e89aa0'),
+  p: hexToRgba('#f2b4b4'),
+};
 
 export function paintAnimalSprites(): SpriteSource[] {
   const frames = Array.from({ length: ANIMAL_FRAME_COUNT }, (_, i) => i);
-  return [
-    { key: 'animal_chicken', frames: frames.map(chicken) },
-    { key: 'animal_cat', frames: frames.map(cat) },
-  ];
+  // Side (facing left; mirrored for right), front (coming down) and back (going up).
+  return ANIMAL_VIEWS.flatMap((view) => [
+    {
+      key: animalKey('chicken', view),
+      frames: frames.map((i) =>
+        softCanvas(view === 'side' ? chicken(i) : chickenView(i, view === 'front'), CHICKEN),
+      ),
+    },
+    {
+      key: animalKey('cat', view),
+      frames: frames.map((i) =>
+        softCanvas(view === 'side' ? cat(i) : catView(i, view === 'front'), CAT),
+      ),
+    },
+  ]);
 }

@@ -35,6 +35,7 @@ export const SHADOW_SPECS: Partial<Readonly<Record<ObjectKind, ShadowSpec>>> = {
   house_thatch: { key: SHADOW_KEYS.house, offsetX: 9, offsetY: -19 },
   house_bakery: { key: SHADOW_KEYS.house, offsetX: 9, offsetY: -19 },
   well: { key: SHADOW_KEYS.large, offsetX: 3, offsetY: -3 },
+  chicken_coop: { key: SHADOW_KEYS.large, offsetX: 3, offsetY: -3 },
   haystack: { key: SHADOW_KEYS.medium, offsetX: 2, offsetY: -2 },
   crate: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },
   lamp_post: { key: SHADOW_KEYS.small, offsetX: 2, offsetY: -1 },

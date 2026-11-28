@@ -34,8 +34,11 @@ describe('washing lines', () => {
       (c, step) => step(c),
       createInitialContext(46, ISLAND_CONFIG),
     );
+    // (Compared by kind and place: ids are list positions, which later steps may renumber.)
+    const where = (objects: readonly { kind: string; x: number; y: number }[]): string[] =>
+      objects.map((o) => `${o.kind}@${String(o.x)},${String(o.y)}`);
     const others = withLines.objects.filter((o) => o.kind !== 'laundry_line');
-    expect(others).toEqual(without.objects);
+    expect(where(others)).toEqual(where(without.objects));
     expect(withLines.terrain).toEqual(without.terrain);
     expect(withLines.spawn).toEqual(without.spawn);
   });

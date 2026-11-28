@@ -920,3 +920,12 @@ alternatives → consequences.
 - **Decision:** `assets/softShapes.ts` draws creatures from ellipses and rounded strokes on a
   letter grid with an automatic outline (the rabbits' method, generalised to any size). Birds,
   and next the dog and fish, use it; the rabbits keep their own copy (unchanged).
+
+## D75 — A chicken run as a generation step
+
+- **Context:** chickens loose in the village blocked doorways; the user asked for a small designed
+  area for them.
+- **Decision:** a decoration-only step at the end of the pipeline (`buildChickenCoop`, own step rng)
+  places a fenced 7×5 run with a hen house outside the village; the baked map is re-baked. The
+  chickens' ground is the run (worked out from the hen house's position); at night they go inside.
+  Every walking sprite now gets front and back views (user rule).

@@ -5,7 +5,7 @@ import { createGameState, stepGame, type GameState } from './gameState';
 
 /** Feet closer than this (map pixels, across and up-down) count as walking through each other. */
 const TOO_CLOSE = { x: 8, y: 5 } as const;
-/** Villagers' positions are the middle of their feet box; their feet are this much lower. */
+/** (Animals included: the chickens and the cat.) Villagers' positions are the middle of their feet box; their feet are this much lower. */
 const VILLAGER_FEET_PX = 4;
 
 function feet(state: GameState): { x: number; y: number }[] {
@@ -13,6 +13,7 @@ function feet(state: GameState): { x: number; y: number }[] {
   return [
     ...state.villagers.filter((v) => !v.hidden).map((v) => ({ x: v.x, y: v.y + VILLAGER_FEET_PX })),
     ...state.rabbits,
+    ...state.animals.filter((a) => !a.hidden),
     ...(p && !p.kid.hidden ? [p.kid] : []),
     ...(p ? [p.dog] : []),
   ];
