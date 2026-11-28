@@ -89,6 +89,16 @@
 
 ## Session log
 
+### 2026-11-28 — Square, game-style emote bubbles (user request)
+
+- Bubbles are now square cards in a classic game style: 15×15 (odd, so icons have a true middle;
+  about a character's width, so they sit over a head without crowding it), cream with a dark
+  outline, rounded corners, a soft shade along the bottom and right, and a small tail. The icons
+  (11×11) are drawn from soft shapes with their own outline and a shine: three square chat dots,
+  a yellow smiley with rosy cheeks, a bold musical note, a waving hand with spread fingers, an
+  orange fish and a red heart. `assets/paintBubbles.ts`.
+- **Verified:** typecheck, lint, tests, build; every bubble previewed as a sprite sheet.
+
 ### 2026-11-28 — Fishing pose fixed; ducks clear of the dock, fish clear of the ducks (user report)
 
 - The fisher facing left (the new island's dock points west) held a squashed rod with no line.
