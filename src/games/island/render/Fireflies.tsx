@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type JSX } from 'react';
-import type { Mesh } from 'three';
+import type { Group, Mesh } from 'three';
 import { createRng } from '@/shared/engine/random';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { FIREFLY_KEYS } from '../assets/paintInsects';
@@ -20,6 +20,8 @@ interface FirefliesProps {
   readonly world: World;
   readonly atlas: SpriteAtlas;
   readonly lighting: LightingUniforms;
+  /** True while it rains: the fireflies hide. */
+  readonly raining: () => boolean;
 }
 
 /**
@@ -27,7 +29,8 @@ interface FirefliesProps {
  * (the window-light material: untinted, and only drawn once the lamps are on),
  * drift slowly, and blink on and off, each in its own rhythm.
  */
-export function Fireflies({ world, atlas, lighting }: FirefliesProps): JSX.Element {
+export function Fireflies({ world, atlas, lighting, raining }: FirefliesProps): JSX.Element {
+  const groupRef = useRef<Group>(null);
   const flies = useMemo(() => {
     const settings = ISLAND_CONFIG.fireflies;
     const swarms = fireflySwarms(world, settings, ISLAND_CONFIG.map.tileSizePx);
@@ -53,6 +56,7 @@ export function Fireflies({ world, atlas, lighting }: FirefliesProps): JSX.Eleme
   const meshes = useRef<(Mesh | null)[]>([]);
 
   useFrame(({ clock }) => {
+    if (groupRef.current) groupRef.current.visible = !raining();
     const drift = ISLAND_CONFIG.fireflies.driftPx;
     flies.forEach((fly, i) => {
       const mesh = meshes.current[i];
@@ -73,7 +77,7 @@ export function Fireflies({ world, atlas, lighting }: FirefliesProps): JSX.Eleme
   });
 
   return (
-    <group>
+    <group ref={groupRef}>
       {flies.map((_, i) => (
         <mesh
           key={i}

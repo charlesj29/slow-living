@@ -2,9 +2,10 @@
 // head level with it, long ears, a cotton tail) and outlined automatically, so
 // every pose stays smooth and chubby. Three views: side (facing left; mirrored
 // for right), front (hopping towards the viewer) and back (hopping away). Each
-// view has the same eight frames: sit, sit with an ear twitched, two nibble
-// frames, and a four-frame hop (crouch, push off, airborne, land) with squash
-// and stretch. The renderer adds a small arc to the hop; the shadow stays down.
+// view has the same ten frames: sit, sit with an ear twitched, two nibble
+// frames, a four-frame hop (crouch, push off, airborne, land) with squash
+// and stretch, then huddled (low, ears laid back: sheltering from the rain)
+// and asleep (the same, eyes closed). The renderer adds a small arc to the hop; the shadow stays down.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
   createPixelCanvas,
@@ -20,8 +21,10 @@ export const RABBIT_FRAMES = {
   twitch: 1,
   nibble: [2, 3],
   hop: [4, 5, 6, 7],
+  huddle: 8,
+  sleep: 9,
 } as const;
-export const RABBIT_FRAME_COUNT = 8;
+export const RABBIT_FRAME_COUNT = 10;
 export const RABBIT_VIEWS = ['side', 'front', 'back'] as const;
 export type RabbitView = (typeof RABBIT_VIEWS)[number];
 
@@ -99,6 +102,8 @@ interface Pose {
   ];
   /** Legs as strokes (front paws, hind legs), drawn under the body. */
   readonly legs?: readonly (readonly [number, number, number, number])[];
+  /** Asleep: the eyes are closed (little dashes). */
+  readonly closed?: boolean;
 }
 
 /** Side view, facing left. */
@@ -191,6 +196,25 @@ const SIDE: readonly Pose[] = [
       [13, 11.5, 14, 12.5],
     ],
   },
+  // huddle: low and round, ears laid flat along the back
+  {
+    body: [9.5, 11.6, 5.6, 3.6],
+    head: [4.6, 11, 3],
+    ears: [
+      [6.4, 9.2, 10.6, 8.6],
+      [5.4, 9.2, 9.6, 8.2],
+    ],
+  },
+  // asleep: the same, eyes closed
+  {
+    body: [9.5, 11.6, 5.6, 3.6],
+    head: [4.6, 11, 3],
+    ears: [
+      [6.4, 9.2, 10.6, 8.6],
+      [5.4, 9.2, 9.6, 8.2],
+    ],
+    closed: true,
+  },
 ];
 
 /**
@@ -207,6 +231,8 @@ const FRONT: readonly Pose[] = [
   { body: [7.5, 10.9, 4.8, 4.2], head: [7.5, 6.4, 3], ears: [[6.3, 4, 5, 0.4], [8.7, 4, 10, 0.4]] },
   { body: [7.5, 9.8, 5, 3.9], head: [7.5, 5.8, 3], ears: [[6.3, 3.6, 4.2, 0.4], [8.7, 3.6, 10.8, 0.4]] },
   { body: [7.5, 11.8, 5.8, 3.5], head: [7.5, 8.2, 3], ears: [[6.2, 6, 3.8, 2.6], [8.8, 6, 11.2, 2.6]] },
+  { body: [7.5, 12, 5.8, 3.4], head: [7.5, 9.6, 3], ears: [[6.2, 7.6, 3.6, 6.6], [8.8, 7.6, 11.4, 6.6]] },
+  { body: [7.5, 12, 5.8, 3.4], head: [7.5, 9.6, 3], ears: [[6.2, 7.6, 3.6, 6.6], [8.8, 7.6, 11.4, 6.6]], closed: true },
 ];
 
 /** Back view (hopping away): the same shapes as the front, seen from behind. */
@@ -226,7 +252,10 @@ function drawSide(pose: Pose): Grid {
   capsule(g, near[0], near[1] - 0.6, near[2], near[3] + 0.6, 0.35, 'p');
   ellipse(g, hx - hr + 1.4, hy + 0.9, 1.3, 1, 'b'); // muzzle
   put(g, hx - hr + 0.4, hy + 0.4, 'p'); // nose
-  put(g, hx - 0.8, hy - 0.6, 'e'); // eye
+  if (pose.closed) {
+    put(g, hx - 1.3, hy - 0.4, 'o'); // a closed eye: a little dash
+    put(g, hx - 0.3, hy - 0.4, 'o');
+  } else put(g, hx - 0.8, hy - 0.6, 'e'); // eye
   outline(g);
   return g;
 }
@@ -249,8 +278,12 @@ function drawFrontOrBack(pose: Pose, front: boolean): Grid {
   ellipse(g, hx, hy, hr, hr, 'w');
   if (front) {
     ellipse(g, hx, hy + 1.3, 1.6, 1.1, 'b');
-    put(g, hx - 1.4, hy - 0.4, 'e');
-    put(g, hx + 1.4, hy - 0.4, 'e');
+    if (pose.closed) {
+      for (const x of [hx - 1.9, hx - 0.9, hx + 0.9, hx + 1.9]) put(g, x, hy - 0.2, 'o');
+    } else {
+      put(g, hx - 1.4, hy - 0.4, 'e');
+      put(g, hx + 1.4, hy - 0.4, 'e');
+    }
     put(g, hx, hy + 0.8, 'p');
   }
   outline(g);

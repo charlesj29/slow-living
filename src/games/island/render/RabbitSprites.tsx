@@ -41,6 +41,8 @@ function rabbitFrame(rabbit: Rabbit, seconds: number): number {
     );
   }
   if (rabbit.idle === 'alert') return RABBIT_FRAMES.sit;
+  if (rabbit.idle === 'huddle') return RABBIT_FRAMES.huddle;
+  if (rabbit.idle === 'sleep') return RABBIT_FRAMES.sleep;
   const twitching = (seconds + rabbit.id * 1.1) % TWITCH_EVERY_SECONDS < TWITCH_SECONDS;
   return twitching ? RABBIT_FRAMES.twitch : RABBIT_FRAMES.sit;
 }

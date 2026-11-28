@@ -111,6 +111,11 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
     () => shownTime(useIslandUiStore.getState().dayNightMode, game.timeOfDay),
     [game],
   );
+  // Raining hard enough for animals to take shelter.
+  const raining = useCallback(
+    () => game.weather.intensity >= ISLAND_CONFIG.rainyDay.shelterAt,
+    [game],
+  );
   const followTarget = useCallback(() => {
     const { x, y } = interpolatedPlayerPosition(game);
     const lookAhead = game.player.sitting ? SIT_LOOK_AHEAD_PX : 0;
@@ -171,11 +176,21 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       {mapId === ISLAND_MAP && <RabbitSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <DuckSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <LakeLife state={game} atlas={atlas} lighting={lighting} />}
-      {mapId === ISLAND_MAP && <Butterflies world={world} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && (
-        <BirdSprites state={game} atlas={atlas} lighting={lighting} sceneTime={sceneTime} />
+        <Butterflies world={world} atlas={atlas} lighting={lighting} raining={raining} />
       )}
-      {mapId === ISLAND_MAP && <Fireflies world={world} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && (
+        <BirdSprites
+          state={game}
+          atlas={atlas}
+          lighting={lighting}
+          sceneTime={sceneTime}
+          raining={raining}
+        />
+      )}
+      {mapId === ISLAND_MAP && (
+        <Fireflies world={world} atlas={atlas} lighting={lighting} raining={raining} />
+      )}
       {mapId === ISLAND_MAP && <NightWater state={game} atlas={atlas} sceneTime={sceneTime} />}
       {mapId === ISLAND_MAP && (
         <CloudShadows world={world} state={game} atlas={atlas} lighting={lighting} />

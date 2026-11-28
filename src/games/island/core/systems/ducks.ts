@@ -2,6 +2,7 @@
 // dabbling: head under, tail up), then glides to another spot of open water
 // along a smooth path; the ducklings follow in a line, each keeping a small
 // gap to the duck ahead. If the player comes close, the family paddles away.
+// At night they paddle to a quiet spot by the shore and sleep there.
 // Pure: positions and timers advance by the fixed step; randomness comes from
 // the game's rng.
 import type { Rng } from '@/shared/engine/random';
@@ -37,6 +38,9 @@ export interface DuckFamily {
   dabbleTime: number;
   /** Paddling away from the player (faster, and no dabbling). */
   shooed: boolean;
+  /** Their quiet spot by the shore for the night (a water tile), and whether they sleep there now. */
+  readonly roost: number;
+  asleep: boolean;
 }
 
 type DuckSettings = IslandConfig['ducks'];
@@ -117,9 +121,66 @@ export function createDuckFamily(
       swimming: false,
     };
   });
-  const family: DuckFamily = { ducks, path: [], idleTime: 0, dabbleTime: 0, shooed: false };
+  const family: DuckFamily = {
+    ducks,
+    path: [],
+    idleTime: 0,
+    dabbleTime: 0,
+    shooed: false,
+    roost: roostTile(world, water, tileAt(world, start.x, start.y, tileSizePx)),
+    asleep: false,
+  };
   startPause(family, rng, settings);
   return family;
+}
+
+/** A water tile at the edge of the swimming water (by the shore), the nearest to `from`. */
+function roostTile(world: World, water: ReadonlySet<number>, from: number): number {
+  const fx = from % world.width;
+  const fy = Math.floor(from / world.width);
+  let best = from;
+  let bestDistance = Infinity;
+  for (const tile of water) {
+    const x = tile % world.width;
+    const y = Math.floor(tile / world.width);
+    const edge = [tile - 1, tile + 1, tile - world.width, tile + world.width].some(
+      (n) => !water.has(n),
+    );
+    const d = Math.hypot(x - fx, y - fy);
+    if (edge && d < bestDistance) {
+      bestDistance = d;
+      best = tile;
+    }
+  }
+  return best;
+}
+
+/** Night: off to the roost, then asleep there (true while that is what the family does). */
+function goToRoost(
+  family: DuckFamily,
+  mother: Duck,
+  world: World,
+  water: ReadonlySet<number>,
+  tileSizePx: number,
+): boolean {
+  if (family.path.length > 0 || family.shooed) return false;
+  const here = tileAt(world, mother.x, mother.y, tileSizePx);
+  if (here === family.roost) {
+    family.asleep = true;
+    mother.swimming = false;
+    return true;
+  }
+  if (!water.has(here)) return false;
+  family.path = pathTo(
+    world,
+    water,
+    waterRoutes(world, water, here),
+    mother,
+    family.roost,
+    tileSizePx,
+  );
+  family.dabbleTime = 0;
+  return false;
 }
 
 /** Sets off somewhere: away from the player if shooed, else to a random nearby spot. */
@@ -182,11 +243,17 @@ function stepMother(
   stepSeconds: number,
   settings: DuckSettings,
   tileSizePx: number,
+  night: boolean,
 ): void {
   const near =
     player !== null &&
     Math.hypot(player.x - mother.x, player.y - mother.y) < settings.shyRadiusTiles * tileSizePx;
-  if (near && !family.shooed) setOff(family, world, water, player, rng, settings, tileSizePx);
+  if (near && !family.shooed) {
+    family.asleep = false;
+    setOff(family, world, water, player, rng, settings, tileSizePx);
+  }
+  if (!night) family.asleep = false;
+  else if (goToRoost(family, mother, world, water, tileSizePx)) return;
   const target = family.path[0];
   if (!target) {
     mother.swimming = false;
@@ -243,6 +310,7 @@ export function updateDuckFamily(
   stepSeconds: number,
   settings: DuckSettings,
   tileSizePx: number,
+  night = false,
 ): void {
   for (const duck of family.ducks) {
     duck.previousX = duck.x;
@@ -250,7 +318,7 @@ export function updateDuckFamily(
   }
   const [mother, ...ducklings] = family.ducks;
   if (!mother) return;
-  stepMother(family, mother, world, water, player, rng, stepSeconds, settings, tileSizePx);
+  stepMother(family, mother, world, water, player, rng, stepSeconds, settings, tileSizePx, night);
   let ahead = mother;
   for (const duckling of ducklings) {
     stepDuckling(duckling, ahead, stepSeconds, settings);

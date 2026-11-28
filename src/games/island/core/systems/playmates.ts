@@ -3,7 +3,8 @@
 // cheers), chase (the kid runs about, the puppy at their heels) and a rest
 // (the puppy sits wagging). When the player comes near, the puppy trots over,
 // sniffs and wags with a heart, then goes back to play. At dusk they go home:
-// the kid indoors, the puppy curled up asleep by the door. Pure: the fixed
+// the kid indoors, the puppy curled up asleep by the door. In the rain the kid
+// goes indoors too and the puppy waits by the door, out of the rain. Pure: the fixed
 // step moves them; randomness comes from the rng passed in.
 import type { Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
@@ -324,7 +325,7 @@ function updateGreet(
   if (p.timer <= 0) startMode(p, 'rest', rng, settings);
 }
 
-function updateHome(p: Playmates, stepSeconds: number): void {
+function updateHome(p: Playmates, stepSeconds: number, night: boolean): void {
   const { kid, dog } = p;
   if (!kid.hidden) {
     if (kid.route.length === 0 && tileOf(kid, p.ground) !== p.door) routeTo(kid, p.door, p.ground);
@@ -334,8 +335,9 @@ function updateHome(p: Playmates, stepSeconds: number): void {
   if (dog.pose === 'sleep') return;
   if (dog.route.length === 0 && tileOf(dog, p.ground) !== p.bed) routeTo(dog, p.bed, p.ground);
   if (stepAlong(dog, stepSeconds, p.ground) && tileOf(dog, p.ground) === p.bed) {
-    dog.pose = 'sleep';
-    dog.facing = 'left';
+    // Asleep for the night, or sitting by the door waiting for the rain to stop.
+    dog.pose = night ? 'sleep' : 'sit';
+    dog.facing = night ? 'left' : 'down';
   }
 }
 
@@ -347,6 +349,7 @@ export function updatePlaymates(
   rng: Rng,
   stepSeconds: number,
   settings: PlaySettings,
+  raining = false,
 ): void {
   for (const mate of [p.kid, p.dog]) {
     mate.previousX = mate.x;
@@ -357,7 +360,8 @@ export function updatePlaymates(
     if (p.bubble.seconds <= 0) p.bubble = null;
   }
   p.greetCooldown = Math.max(0, p.greetCooldown - stepSeconds);
-  const awake = within(time, settings.awake);
+  const night = !within(time, settings.awake);
+  const awake = !night && !raining;
   if (!awake && p.mode !== 'home') {
     p.mode = 'home';
     p.kid.pose = 'stand';
@@ -405,7 +409,7 @@ export function updatePlaymates(
       updateGreet(p, player, rng, stepSeconds, settings);
       break;
     case 'home':
-      updateHome(p, stepSeconds);
+      updateHome(p, stepSeconds, night);
       break;
   }
 }

@@ -89,6 +89,22 @@
 
 ## Session log
 
+### 2026-11-28 — Animals in the rain and at night (user request)
+
+- Rain (once `rainyDay.shelterAt` heavy): each rabbit hops to its own spot by a tree or a bush
+  and huddles there (low, ears laid back); the little birds fly to a spot under a tree in their
+  place and sit fluffed up; butterflies, fireflies and gulls go; the kid goes indoors and the
+  puppy waits by the door; the ducks paddle on (ducks like rain).
+- Night (`wildlife.night`): the rabbits sleep at their spot (eyes closed), the duck family paddles
+  to a quiet spot by the shore and sleeps, heads tucked; the birds roost out of sight and the
+  puppy sleeps by the door, as before. Startled animals still hop or paddle off, then settle again.
+- New frames: rabbit huddle and asleep (all views), duck and duckling asleep, a fluffed-up bird.
+  `wildlifeRest` in `core/game/gameState.ts` says what the animals do; `duringTimes` (in
+  `core/systems/dayNight.ts`) checks stretches of the day.
+- **Verified:** typecheck, lint, tests (rabbits huddle or sleep at their spot, ducks sleep by the
+  shore and wake by day, birds shelter fluffed up under trees, the puppy waits by the door in the
+  rain), build; browser at night: the ducks asleep by the shore, a rabbit curled up.
+
 ### 2026-11-28 — A raincoat instead of the umbrella (user request)
 
 - The umbrella is gone. Out in the rain, the night owl now changes into a rainy-day outfit: a

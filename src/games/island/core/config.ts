@@ -143,6 +143,15 @@ export interface IslandConfig {
     readonly minRestSeconds: number;
     readonly maxRestSeconds: number;
   };
+  /**
+   * The animals' night and rainy days: rabbits sleep by a tree or bush at night and huddle there
+   * in the rain; the ducks sleep by the shore; birds shelter under trees in the rain; butterflies,
+   * fireflies and gulls hide while it rains. (Rain counts once it is `rainyDay.shelterAt` heavy.)
+   */
+  readonly wildlife: {
+    /** When the animals sleep (times of day; wraps past midnight). */
+    readonly night: readonly [from: number, to: number];
+  };
   /** Wild rabbits in the meadows around the village. */
   readonly rabbits: {
     readonly enabled: boolean;
@@ -686,6 +695,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     minRestSeconds: 1.5,
     maxRestSeconds: 6,
   },
+  wildlife: { night: [0.84, 0.24] },
   rabbits: {
     enabled: true,
     white: 1,

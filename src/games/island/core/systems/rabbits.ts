@@ -1,7 +1,8 @@
 // Wild rabbits in the meadows just outside the village. A rabbit idles
 // (sitting with a twitch of the ears, nibbling, or sitting up alert), then
 // hops a few tiles, one tile per hop, and idles again. If the player comes
-// close it hops away. Pure: positions and timers advance by the fixed step;
+// close it hops away. In the rain it huddles by a tree or a bush, and at
+// night it sleeps there (it still hops off if the player comes close). Pure: positions and timers advance by the fixed step;
 // randomness comes from the game's rng.
 import {
   CARDINAL_DIRECTIONS,
@@ -18,7 +19,9 @@ import { OBJECT_REGISTRY } from '../world/objects';
 import type { World } from '../world/world';
 
 export type RabbitColor = 'white' | 'brown';
-export type RabbitIdle = 'sit' | 'nibble' | 'alert';
+export type RabbitIdle = 'sit' | 'nibble' | 'alert' | 'huddle' | 'sleep';
+/** Out and about, sheltering from the rain, or asleep for the night. */
+export type RabbitRest = 'free' | 'shelter' | 'sleep';
 export type RabbitFacing = 'left' | 'right' | 'up' | 'down';
 
 export interface Hop {
@@ -50,6 +53,8 @@ export interface Rabbit {
   idle: RabbitIdle;
   /** Seconds to wait before trying to hop again after a hop was blocked (no fidgeting). */
   waitTime: number;
+  /** Its own spot beside a tree or a bush: where it shelters and sleeps. */
+  readonly shelter: TilePoint;
 }
 
 type RabbitSettings = IslandConfig['rabbits'];
@@ -121,8 +126,12 @@ export function createRabbits(
     ...Array.from({ length: settings.white }, (): RabbitColor => 'white'),
     ...Array.from({ length: settings.brown }, (): RabbitColor => 'brown'),
   ];
+  const cover = shelterSpots(world, meadow);
+  const taken = new Set<number>();
   return colors.map((color, id) => {
     const tile = rng.pick(spots);
+    const shelter = nearestFree(cover, taken, tile, world) ?? tile;
+    taken.add(shelter);
     const x = ((tile % world.width) + 0.5) * tileSizePx;
     const y = (Math.floor(tile / world.width) + 0.5) * tileSizePx;
     const rabbit: Rabbit = {
@@ -139,10 +148,51 @@ export function createRabbits(
       idleTime: 0,
       idle: 'sit',
       waitTime: 0,
+      shelter: { x: shelter % world.width, y: Math.floor(shelter / world.width) },
     };
     startIdle(rabbit, rng, settings);
     return rabbit;
   });
+}
+
+/** Meadow tiles with a tree or a bush right beside them (or on them): cover from rain and night. */
+function shelterSpots(world: World, meadow: ReadonlySet<number>): number[] {
+  const cover = new Set<number>();
+  for (const object of world.objects) {
+    const { category } = OBJECT_REGISTRY[object.kind];
+    if (category !== 'tree' && category !== 'bush') continue;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const x = object.x + dx;
+        const y = object.y + dy;
+        if (x >= 0 && y >= 0 && x < world.width && y < world.height)
+          cover.add(toIndex(world, x, y));
+      }
+    }
+  }
+  return [...meadow].filter((tile) => cover.has(tile));
+}
+
+/** The spot nearest `from` that no other rabbit has taken yet. */
+function nearestFree(
+  spots: readonly number[],
+  taken: ReadonlySet<number>,
+  from: number,
+  world: World,
+): number | null {
+  const fx = from % world.width;
+  const fy = Math.floor(from / world.width);
+  let best: number | null = null;
+  let bestDistance = Infinity;
+  for (const tile of spots) {
+    if (taken.has(tile)) continue;
+    const d = Math.hypot((tile % world.width) - fx, Math.floor(tile / world.width) - fy);
+    if (d < bestDistance) {
+      bestDistance = d;
+      best = tile;
+    }
+  }
+  return best;
 }
 
 const tileOf = (r: Rabbit, tileSizePx: number): TilePoint => ({
@@ -265,6 +315,7 @@ export function updateRabbit(
   stepSeconds: number,
   settings: RabbitSettings,
   tileSizePx: number,
+  rest: RabbitRest = 'free',
 ): void {
   rabbit.previousX = rabbit.x;
   rabbit.previousY = rabbit.y;
@@ -278,6 +329,12 @@ export function updateRabbit(
     rabbit.hopsLeft -= 1;
     if (!hopTowardsGoal(rabbit, world, meadow, player, tileSizePx))
       startIdle(rabbit, rng, settings);
+    return;
+  }
+  if (
+    rest !== 'free' &&
+    restAtShelter(rabbit, world, meadow, player, rest, stepSeconds, settings, tileSizePx)
+  ) {
     return;
   }
   rabbit.idleTime -= stepSeconds;
@@ -300,6 +357,39 @@ export function updateRabbit(
   rabbit.goal = null;
   rabbit.waitTime = RETRY_SECONDS;
   if (!near) startIdle(rabbit, rng, settings);
+}
+
+/**
+ * Rain or night: heads for its shelter spot and huddles (or sleeps) there.
+ * Returns false when the player is close, so the usual fleeing takes over.
+ */
+function restAtShelter(
+  rabbit: Rabbit,
+  world: World,
+  meadow: ReadonlySet<number>,
+  player: Player | null,
+  rest: Exclude<RabbitRest, 'free'>,
+  stepSeconds: number,
+  settings: RabbitSettings,
+  tileSizePx: number,
+): boolean {
+  const near =
+    player !== null &&
+    Math.hypot(player.x - rabbit.x, player.y - rabbit.y) < settings.fleeRadiusTiles * tileSizePx;
+  if (near) return false;
+  const here = tileOf(rabbit, tileSizePx);
+  // Huddled (or asleep) at its spot, or, while the way there is blocked, where it is.
+  rabbit.idle = rest === 'sleep' ? 'sleep' : 'huddle';
+  rabbit.idleTime = 1;
+  if (here.x === rabbit.shelter.x && here.y === rabbit.shelter.y) return true;
+  if (rabbit.waitTime > 0) {
+    rabbit.waitTime -= stepSeconds;
+    return true;
+  }
+  rabbit.goal = rabbit.shelter;
+  rabbit.hopsLeft = Number.MAX_SAFE_INTEGER;
+  if (!hopTowardsGoal(rabbit, world, meadow, player, tileSizePx)) rabbit.waitTime = RETRY_SECONDS;
+  return true;
 }
 
 /** True if the player's feet box would overlap a rabbit (rabbits are solid). */

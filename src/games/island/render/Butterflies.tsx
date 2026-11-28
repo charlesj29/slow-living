@@ -52,10 +52,12 @@ interface ButterfliesProps {
   readonly world: World;
   readonly atlas: SpriteAtlas;
   readonly lighting: LightingUniforms;
+  /** True while it rains: the butterflies hide. */
+  readonly raining: () => boolean;
 }
 
-/** A few butterflies flitting between flowers near the start (daytime only). */
-export function Butterflies({ world, atlas, lighting }: ButterfliesProps): JSX.Element {
+/** A few butterflies flitting between flowers near the start (daytime only, not in the rain). */
+export function Butterflies({ world, atlas, lighting, raining }: ButterfliesProps): JSX.Element {
   const groupRef = useRef<Group>(null);
   const routes = useMemo(
     () =>
@@ -69,7 +71,9 @@ export function Butterflies({ world, atlas, lighting }: ButterfliesProps): JSX.E
   );
 
   useFrame(() => {
-    if (groupRef.current) groupRef.current.visible = lighting.uLightsOn.value < LIGHTS_ON;
+    if (groupRef.current) {
+      groupRef.current.visible = lighting.uLightsOn.value < LIGHTS_ON && !raining();
+    }
   });
 
   return (

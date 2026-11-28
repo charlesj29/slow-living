@@ -2,7 +2,13 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type JSX } from 'react';
 import type { Mesh } from 'three';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
-import { DUCK_FRAMES, DUCK_KEYS, DUCK_SPRITE, DUCKLING_SPRITE } from '../assets/paintDucks';
+import {
+  DUCK_FRAMES,
+  DUCK_KEYS,
+  DUCK_SPRITE,
+  DUCKLING_FRAMES,
+  DUCKLING_SPRITE,
+} from '../assets/paintDucks';
 import type { GameState } from '../core/game/gameState';
 import { isDabbling, type Duck, type DuckFamily } from '../core/systems/ducks';
 import type { LightingUniforms } from './lighting';
@@ -16,6 +22,10 @@ const FLOAT_FRAME_SECONDS = 0.7;
 const DABBLE_FRAME_SECONDS = 0.22;
 
 function duckFrame(duck: Duck, family: DuckFamily, seconds: number): number {
+  // Asleep by the shore (a duckling still catching up paddles on).
+  if (family.asleep && !duck.swimming) {
+    return duck.kind === 'mother' ? DUCK_FRAMES.sleep : DUCKLING_FRAMES.sleep;
+  }
   if (duck.kind === 'mother' && isDabbling(family)) {
     return DUCK_FRAMES.dabble[Math.floor(seconds / DABBLE_FRAME_SECONDS) % 2] ?? 0;
   }

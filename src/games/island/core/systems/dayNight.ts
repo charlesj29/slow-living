@@ -51,6 +51,12 @@ export function advanceTimeOfDay(
   return next - Math.floor(next);
 }
 
+/** True during a stretch of the day (one that wraps past midnight, from > to, works too). */
+export function duringTimes(time: number, [from, to]: readonly [number, number]): boolean {
+  const t = time - Math.floor(time);
+  return from <= to ? t >= from && t < to : t >= from || t < to;
+}
+
 /** The light at a time of day, blended smoothly between keyframes. */
 export function lightingAt(time: number): Lighting {
   const t = time - Math.floor(time);

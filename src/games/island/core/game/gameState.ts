@@ -18,7 +18,7 @@ import { villageHouses, villagerSpawns, wanderTiles } from '../world/village';
 import type { World } from '../world/world';
 import { updatePlayerAnimation } from '../systems/animation';
 import { readMovementIntent, type IslandAction } from '../systems/controls';
-import { advanceTimeOfDay } from '../systems/dayNight';
+import { advanceTimeOfDay, dayPhase, duringTimes } from '../systems/dayNight';
 import {
   findLandmarks,
   signpostPages,
@@ -40,6 +40,7 @@ import {
   rabbitMeadow,
   updateRabbit,
   type Rabbit,
+  type RabbitRest,
 } from '../systems/rabbits';
 import { createPlaymates, updatePlaymates, type Playmates } from '../systems/playmates';
 import { birdAreas } from '../systems/birdAreas';
@@ -61,7 +62,6 @@ import {
   updateRoutine,
   type RoutinePlaces,
 } from '../systems/routine';
-import { dayPhase } from '../systems/dayNight';
 import { tourStops, type PixelPoint, type Tour, type TourReturn } from '../systems/tour';
 import { createWeather, updateWeather, type Weather } from '../systems/weather';
 
@@ -270,6 +270,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
       state.playRng,
       stepSeconds,
       config.playmates,
+      state.weather.intensity >= config.rainyDay.shelterAt,
     );
   }
   if (state.transition) {
@@ -332,7 +333,14 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   clearPresses(input);
 }
 
+/** What the animals do now: out and about, sheltering from the rain, or asleep for the night. */
+export function wildlifeRest(state: GameState, config: IslandConfig): RabbitRest {
+  if (duringTimes(villageTime(state), config.wildlife.night)) return 'sleep';
+  return state.weather.intensity >= config.rainyDay.shelterAt ? 'shelter' : 'free';
+}
+
 function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig): void {
+  const rest = wildlifeRest(state, config);
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   // They only notice the player out on the island.
   const player = onIsland(state) ? state.player : null;
@@ -346,11 +354,13 @@ function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig
       stepSeconds,
       config.rabbits,
       config.map.tileSizePx,
+      rest,
     );
   }
 }
 
 function stepBirds(state: GameState, stepSeconds: number, config: IslandConfig): void {
+  const rest = wildlifeRest(state, config);
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   const player = onIsland(state) ? state.player : null;
   for (const bird of state.birds) {
@@ -364,6 +374,7 @@ function stepBirds(state: GameState, stepSeconds: number, config: IslandConfig):
       stepSeconds,
       config.birds,
       config.map.tileSizePx,
+      rest === 'shelter',
     );
   }
 }
@@ -380,6 +391,7 @@ function stepDucks(state: GameState, stepSeconds: number, config: IslandConfig):
     stepSeconds,
     config.ducks,
     config.map.tileSizePx,
+    wildlifeRest(state, config) === 'sleep',
   );
 }
 

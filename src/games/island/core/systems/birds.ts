@@ -6,10 +6,11 @@
 import type { Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import type { Player } from '../entities/player';
+import { OBJECT_REGISTRY } from '../world/objects';
 import type { World } from '../world/world';
 
 export type BirdColor = 'brown' | 'blue';
-export type BirdIdle = 'peck' | 'look';
+export type BirdIdle = 'peck' | 'look' | 'huddle';
 
 export interface Flight {
   readonly fromX: number;
@@ -40,6 +41,9 @@ export interface Bird {
   /** The flock's place: the ground it lands on. */
   readonly home: readonly number[];
   readonly homeSet: ReadonlySet<number>;
+  /** Ground under or beside a tree in that place: shelter from the rain. */
+  readonly shelters: readonly number[];
+  readonly shelterSet: ReadonlySet<number>;
 }
 
 type BirdSettings = IslandConfig['birds'];
@@ -65,6 +69,18 @@ function startIdle(bird: Bird, rng: Rng, settings: BirdSettings): void {
   bird.idleTime = rng.range(settings.minIdleSeconds, settings.maxIdleSeconds);
 }
 
+/** Tiles of a place with a tree on them or right beside them. */
+function underTrees(world: World, home: readonly number[]): number[] {
+  const near = new Set<number>();
+  for (const object of world.objects) {
+    if (OBJECT_REGISTRY[object.kind].category !== 'tree') continue;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) near.add((object.y + dy) * world.width + object.x + dx);
+    }
+  }
+  return home.filter((tile) => near.has(tile));
+}
+
 export function createBirds(
   world: World,
   areas: readonly (readonly number[])[],
@@ -80,7 +96,14 @@ export function createBirds(
   // Each flock settles in one of the places, picked at random.
   const flocks = Array.from({ length: FLOCKS }, () => {
     const home = rng.pick(areas);
-    return { home, homeSet: new Set(home), middle: tileCentre(rng.pick(home), world, tileSizePx) };
+    const shelters = underTrees(world, home);
+    return {
+      home,
+      homeSet: new Set(home),
+      shelters,
+      shelterSet: new Set(shelters),
+      middle: tileCentre(rng.pick(home), world, tileSizePx),
+    };
   });
   const spread = FLOCK_SPREAD_TILES * tileSizePx;
   return colors.map((color, id) => {
@@ -110,6 +133,8 @@ export function createBirds(
       idleTime: 0,
       home: flock.home,
       homeSet: flock.homeSet,
+      shelters: flock.shelters,
+      shelterSet: flock.shelterSet,
     };
     startIdle(bird, rng, settings);
     return bird;
@@ -188,6 +213,24 @@ function landingSpot(
   return best;
 }
 
+/** Rain: off to a spot under a tree, then fluffed up there until it clears. */
+function shelterFromRain(
+  bird: Bird,
+  world: World,
+  rng: Rng,
+  settings: BirdSettings,
+  tileSizePx: number,
+): void {
+  const tile = Math.floor(bird.y / tileSizePx) * world.width + Math.floor(bird.x / tileSizePx);
+  if (bird.shelters.length > 0 && !bird.shelterSet.has(tile)) {
+    const [cx, cy] = tileCentre(rng.pick(bird.shelters), world, tileSizePx);
+    setOff(bird, cx + rng.range(-4, 4), cy + rng.range(-3, 3), 'fly', settings);
+    return;
+  }
+  bird.idle = 'huddle';
+  bird.idleTime = 1;
+}
+
 /** One fixed step: carry on flying, or idle (and maybe hop, flit, or flee the player). */
 export function updateBird(
   bird: Bird,
@@ -199,6 +242,7 @@ export function updateBird(
   stepSeconds: number,
   settings: BirdSettings,
   tileSizePx: number,
+  raining = false,
 ): void {
   bird.previousX = bird.x;
   bird.previousY = bird.y;
@@ -216,6 +260,10 @@ export function updateBird(
   if (near) {
     const spot = landingSpot(bird, world, groundList, player, rng, settings, tileSizePx);
     if (spot) setOff(bird, spot[0], spot[1], 'fly', settings);
+    return;
+  }
+  if (raining) {
+    shelterFromRain(bird, world, rng, settings, tileSizePx);
     return;
   }
   bird.idleTime -= stepSeconds;

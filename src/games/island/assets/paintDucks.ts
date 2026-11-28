@@ -14,9 +14,10 @@ import {
 } from '@/shared/render/pixelCanvas';
 
 /** Frame indexes in the mother's strip; ducklings only have `swim`. */
-export const DUCK_FRAMES = { swim: [0, 1], dabble: [2, 3] } as const;
-export const DUCK_FRAME_COUNT = 4;
-export const DUCKLING_FRAME_COUNT = 2;
+export const DUCK_FRAMES = { swim: [0, 1], dabble: [2, 3], sleep: 4 } as const;
+export const DUCK_FRAME_COUNT = 5;
+export const DUCKLING_FRAMES = { swim: [0, 1], sleep: 2 } as const;
+export const DUCKLING_FRAME_COUNT = 3;
 export const DUCK_KEYS = { mother: 'duck_mother', duckling: 'duck_duckling' } as const;
 
 /** Sprite sizes, and the row of the waterline (the ripple row) in each. */
@@ -124,6 +125,29 @@ function motherDabbling(wiggle: number): Grid {
   return g;
 }
 
+/** Asleep: head turned back and tucked onto the back, eyes closed. */
+function motherSleeping(): Grid {
+  const g = blank(DUCK_SPRITE.width, DUCK_SPRITE.height);
+  capsule(g, [12.6, 7.4, 14, 6], 1, 'w'); // tail, settled
+  ellipse(g, [8.4, 8.6, 5.8, 3.4], 'w', true); // body, low and round
+  ellipse(g, [7.6, 5.6, 2.6, 2.3], 'w'); // head, resting on the back
+  capsule(g, [9.4, 5.4, 10.4, 6.2], 0.6, 'b'); // bill tucked into the feathers
+  put(g, 6.6, 5.4, 'o'); // a closed eye
+  put(g, 7.4, 5.4, 'o');
+  floatOnWater(g, DUCK_SPRITE.waterline, 1);
+  return g;
+}
+
+function ducklingSleeping(): Grid {
+  const g = blank(DUCKLING_SPRITE.width, DUCKLING_SPRITE.height);
+  ellipse(g, [6.2, 6.8, 3.8, 2.6], 'w'); // body
+  ellipse(g, [5, 4.6, 2.1, 1.9], 'w'); // head, nestled down
+  put(g, 6.6, 4.8, 'b'); // bill tucked in
+  put(g, 4.2, 4.4, 'o'); // a closed eye
+  floatOnWater(g, DUCKLING_SPRITE.waterline, 1);
+  return g;
+}
+
 function duckling(phase: number): Grid {
   const g = blank(DUCKLING_SPRITE.width, DUCKLING_SPRITE.height);
   put(g, 9.8, 5, 'w'); // a tiny tail
@@ -173,13 +197,17 @@ export function paintDuckSprites(): SpriteSource[] {
   return [
     {
       key: DUCK_KEYS.mother,
-      frames: [motherSwimming(0), motherSwimming(2), motherDabbling(0), motherDabbling(1)].map(
-        (g) => toCanvas(g, MOTHER),
-      ),
+      frames: [
+        motherSwimming(0),
+        motherSwimming(2),
+        motherDabbling(0),
+        motherDabbling(1),
+        motherSleeping(),
+      ].map((g) => toCanvas(g, MOTHER)),
     },
     {
       key: DUCK_KEYS.duckling,
-      frames: [duckling(0), duckling(2)].map((g) => toCanvas(g, DUCKLING)),
+      frames: [duckling(0), duckling(2), ducklingSleeping()].map((g) => toCanvas(g, DUCKLING)),
     },
   ];
 }

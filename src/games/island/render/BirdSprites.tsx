@@ -32,6 +32,7 @@ function birdFrame(bird: Bird, seconds: number): number {
       : BIRD_FRAMES.wingsDown;
   }
   if (bird.flight) return BIRD_FRAMES.stand;
+  if (bird.idle === 'huddle') return BIRD_FRAMES.fluffed;
   const offset = bird.id * 0.7;
   if (bird.idle === 'peck' && Math.floor((seconds + offset) / PECK_SECONDS) % 3 === 0) {
     return BIRD_FRAMES.peck;
@@ -181,10 +182,18 @@ interface BirdSpritesProps {
   readonly lighting: LightingUniforms;
   /** The time of day the scene shows: birds are out by day only. */
   readonly sceneTime: () => number;
+  /** True while it rains: the seagulls go (the little birds shelter, see `birds.ts`). */
+  readonly raining: () => boolean;
 }
 
 /** The village's little birds and the seagulls over the sea (island only, by day). */
-export function BirdSprites({ state, atlas, lighting, sceneTime }: BirdSpritesProps): JSX.Element {
+export function BirdSprites({
+  state,
+  atlas,
+  lighting,
+  sceneTime,
+  raining,
+}: BirdSpritesProps): JSX.Element {
   const awake = (): boolean => within(sceneTime(), ISLAND_CONFIG.birds.awake);
   return (
     <group>
@@ -198,7 +207,12 @@ export function BirdSprites({ state, atlas, lighting, sceneTime }: BirdSpritesPr
           awake={awake}
         />
       ))}
-      <Seagulls state={state} atlas={atlas} lighting={lighting} awake={awake} />
+      <Seagulls
+        state={state}
+        atlas={atlas}
+        lighting={lighting}
+        awake={() => awake() && !raining()}
+      />
     </group>
   );
 }

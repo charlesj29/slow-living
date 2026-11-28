@@ -1,14 +1,21 @@
 // Little birds, soft and round like the rabbits: a plump ball of a body with
 // the head tucked into it, a stubby tail, a dot of an eye, a rosy cheek and a
 // tiny beak. Two colours (a brown sparrow and a blue tit), seen from the side
-// facing left (mirrored for right), with five frames: stand, blink, peck, wings
-// up and wings down. And a seagull seen from above, gliding or flapping.
+// facing left (mirrored for right), with six frames: stand, blink, peck, wings
+// up, wings down, and fluffed up into a ball (sheltering from the rain). And a seagull seen from above, gliding or flapping.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { hexToRgba, type Rgba } from '@/shared/render/pixelCanvas';
 import { capsule, ellipse, outline, put, softCanvas, softGrid, type SoftGrid } from './softShapes';
 
-export const BIRD_FRAMES = { stand: 0, blink: 1, peck: 2, wingsUp: 3, wingsDown: 4 } as const;
-export const BIRD_FRAME_COUNT = 5;
+export const BIRD_FRAMES = {
+  stand: 0,
+  blink: 1,
+  peck: 2,
+  wingsUp: 3,
+  wingsDown: 4,
+  fluffed: 5,
+} as const;
+export const BIRD_FRAME_COUNT = 6;
 export const BIRD_COLORS = ['brown', 'blue'] as const;
 export type BirdColor = (typeof BIRD_COLORS)[number];
 export const birdKey = (color: BirdColor): string => `bird_${color}`;
@@ -17,11 +24,27 @@ export const GULL_KEYS = { glide: 'gull_glide', flap: 'gull_flap' } as const;
 const BIRD_W = 12;
 const BIRD_H = 11;
 
+/** Fluffed up into a round ball against the rain, head sunk in, feet hidden. */
+function fluffed(): SoftGrid {
+  const g = softGrid(BIRD_W, BIRD_H);
+  capsule(g, 9, 7.6, 10.8, 6.6, 0.9, 'k'); // the tail
+  ellipse(g, 6.2, 7.2, 4.2, 3.4, 'w', 's');
+  ellipse(g, 5.4, 8.4, 2.6, 1.8, 'b'); // the belly
+  ellipse(g, 4.4, 5.4, 2.6, 2.3, 'w'); // the head, sunk into the feathers
+  ellipse(g, 7.4, 7.2, 2, 1.4, 'k'); // the folded wing
+  put(g, 1.8, 6, 'y'); // beak
+  put(g, 3.6, 5, 'e');
+  put(g, 4.1, 6.2, 'p'); // a rosy cheek
+  outline(g);
+  return g;
+}
+
 /** A small bird facing left; feet on the bottom row. */
 function bird(frame: number): SoftGrid {
   const g = softGrid(BIRD_W, BIRD_H);
   const flying = frame === BIRD_FRAMES.wingsUp || frame === BIRD_FRAMES.wingsDown;
   const peck = frame === BIRD_FRAMES.peck;
+  if (frame === BIRD_FRAMES.fluffed) return fluffed();
   const by = flying ? 6 : 6.5;
   if (!flying) {
     put(g, 5, 10, 'l');
