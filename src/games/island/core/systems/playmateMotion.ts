@@ -33,6 +33,8 @@ export interface Ground {
   readonly tileSizePx: number;
   /** The tiles other people and animals stand on now (refilled every step). */
   readonly occupied: Set<number>;
+  /** Tiles to pass through but never stop on: the village doors (their people come and go). */
+  readonly keepClear: ReadonlySet<number>;
 }
 
 export function tileOf(mate: Pick<Mate, 'x' | 'y'>, ground: Ground): number {
@@ -156,7 +158,9 @@ export function besideTile(
     const y = p.y + side.y;
     if (x < 0 || y < 0 || x >= ground.world.width || y >= ground.world.height) continue;
     const index = toIndex(ground.world, x, y);
-    if (!ground.walkable.has(index) || ground.occupied.has(index)) continue;
+    if (!ground.walkable.has(index) || ground.occupied.has(index) || ground.keepClear.has(index)) {
+      continue;
+    }
     const c = centreOf(index, ground);
     const distance = Math.hypot(c.x - from.x, c.y - from.y);
     if (distance < bestDistance) {

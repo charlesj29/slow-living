@@ -111,15 +111,21 @@ export function createPlaymates(
   tileSizePx: number,
 ): Playmates | null {
   if (!settings.enabled || !world.village) return null;
-  const ground: Ground = { world, walkable, tileSizePx, occupied: new Set() };
+  // The village doors: passed through, never sat on (whoever lives there comes and goes).
+  const doorTiles = villagerSpawns(world).map((p) => p.y * world.width + p.x);
+  const ground: Ground = {
+    world,
+    walkable,
+    tileSizePx,
+    occupied: new Set(),
+    keepClear: new Set(doorTiles),
+  };
   const well = world.objects.find((object) => object.kind === 'well');
   const centre = well ? { x: well.x + 1, y: well.y + 1 } : null;
   const near = (tile: number, point: { x: number; y: number }): number =>
     Math.hypot((tile % world.width) - point.x, Math.floor(tile / world.width) - point.y);
   // The kid lives in the house nearest the well, and plays in a field just outside the village.
-  const doors = villagerSpawns(world)
-    .map((p) => p.y * world.width + p.x)
-    .filter((tile) => walkable.has(tile));
+  const doors = doorTiles.filter((tile) => walkable.has(tile));
   const door = centre ? doors.sort((a, b) => near(a, centre) - near(b, centre))[0] : doors[0];
   if (door === undefined) return null;
   const playground = playField(world, walkable, door, settings);
@@ -127,9 +133,13 @@ export function createPlaymates(
   const doorCentre = centreOf(door, ground);
   const bed = besideTile(door, { x: doorCentre.x - tileSizePx, y: doorCentre.y }, ground) ?? door;
   const bedCentre = centreOf(bed, ground);
-  // The kid starts beside the door (whoever else lives there steps out of it), the other side from the puppy.
-  const start = besideTile(door, { x: doorCentre.x + tileSizePx, y: doorCentre.y }, ground) ?? door;
-  const startCentre = start === bed ? doorCentre : centreOf(start, ground);
+  // They start out in their field (the island opens mid-morning), the puppy beside the kid.
+  const start = playground.reduce((best, tile) =>
+    tileDistance(tile, door, ground) < tileDistance(best, door, ground) ? tile : best,
+  );
+  const startCentre = centreOf(start, ground);
+  const pup = besideTile(start, startCentre, ground);
+  const pupCentre = pup === null ? bedCentre : centreOf(pup, ground);
   return {
     kid: {
       ...mateAt(startCentre.x, startCentre.y, settings.kidSpeedTilesPerSecond * tileSizePx),
@@ -137,7 +147,7 @@ export function createPlaymates(
       hidden: false,
     },
     dog: {
-      ...mateAt(bedCentre.x, bedCentre.y, settings.dogSpeedTilesPerSecond * tileSizePx),
+      ...mateAt(pupCentre.x, pupCentre.y, settings.dogSpeedTilesPerSecond * tileSizePx),
       pose: 'sit',
     },
     ball: { x: startCentre.x, y: startCentre.y, holder: 'kid', flight: null },
@@ -274,7 +284,14 @@ function updateRest(p: Playmates, rng: Rng, stepSeconds: number, settings: PlayS
   const kidTile = tileOf(p.kid, p.ground);
   // Out of the house in the morning: off to play first.
   if (!p.playground.includes(kidTile) && p.kid.route.length === 0) {
-    routeTo(p.kid, rng.pick(p.playground), p.ground);
+    const field = rng.pick(p.playground);
+    // If the puppy is the only thing in the way, squeeze past rather than wait for ever.
+    if (!routeTo(p.kid, field, p.ground)) {
+      const avoid = p.kid.avoid;
+      p.kid.avoid = null;
+      routeTo(p.kid, field, p.ground);
+      p.kid.avoid = avoid;
+    }
   }
   stepAlong(p.kid, stepSeconds, p.ground);
   if (dogToKid(p, stepSeconds)) p.dog.pose = Math.floor(p.timer * 2) % 3 === 0 ? 'wag' : 'sit';

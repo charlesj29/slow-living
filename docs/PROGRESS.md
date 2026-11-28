@@ -89,6 +89,18 @@
 
 ## Session log
 
+### 2026-11-28 — Fix: the kid stuck on the doorstep, blocking the sweeper (user report)
+
+- On the live site the kid stood by the house instead of playing, in the old man's way. Cause:
+  the kid started beside the door in a dead-end pocket; the puppy came to sit beside them on the
+  door tile, the only way out, and the kid would not walk through the puppy, so neither moved;
+  the keeper could not reach the doorstep to sweep. Fix: the kid and the puppy start out in their
+  field; the puppy never sits on a village door tile (passes through only: `Ground.keepClear`);
+  and if the puppy is the only thing in the way, the kid squeezes past instead of waiting.
+- **Verified:** typecheck, lint, tests (new `kidPlays.test.ts`: over four minutes on two islands
+  the kid is never stuck by the house and the puppy never sits in a doorway; it fails on the old
+  code), build; a 10-minute run on four islands: the kid never stuck, the sweeper at work.
+
 ### 2026-11-28 — Birds scattered over the studio, cottage and village (user request)
 
 - Both flocks often landed in the same place (they picked at random). Now there is one flock in
