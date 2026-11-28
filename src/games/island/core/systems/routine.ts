@@ -358,7 +358,7 @@ export function updateRoutine(
   tileSizePx: number,
 ): void {
   const wanted = activityAt(schedule[villager.role], time);
-  if (wanted !== villager.activity && !villager.talking) {
+  if (wanted !== villager.activity && !villager.talking && !villager.chat) {
     switchActivity(villager, wanted, places, tileSizePx);
   }
   const errand = villager.errand;

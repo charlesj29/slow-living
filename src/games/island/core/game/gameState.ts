@@ -50,6 +50,7 @@ import { buildInteriorWorld, INTERIORS } from '../world/interiors';
 import { checkDoors, ISLAND_MAP, stepTransition } from './mapTravel';
 import { stepIdleTour } from './idleTour';
 import { sitOn, standUp } from '../systems/seat';
+import { updateSocial } from '../systems/villagerSocial';
 import {
   roamTiles,
   roleFor,
@@ -375,6 +376,15 @@ function stepVillagers(state: GameState, stepSeconds: number, config: IslandConf
     );
     updatePlayerAnimation(villager, stepSeconds, config.player, tileSizePx);
   }
+  // Chats, waves and hums (after moving, so who stands where is up to date).
+  updateSocial(
+    state.villagers,
+    crowd.player,
+    state.wanderRng,
+    stepSeconds,
+    config.social,
+    tileSizePx,
+  );
 }
 
 /** How to reach things, and what villagers and signposts say on this island. */

@@ -17,6 +17,7 @@ import { ChimneySmoke } from './ChimneySmoke';
 import { RabbitSprites } from './RabbitSprites';
 import { DuckSprites } from './DuckSprites';
 import { ChoreProps } from './ChoreProps';
+import { VillagerBubbles } from './VillagerBubbles';
 import { BreadSteam } from './BreadSteam';
 import { Butterflies } from './Butterflies';
 import { Fireflies } from './Fireflies';
@@ -149,6 +150,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
       {mapId === ISLAND_MAP && <VillagerSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <ChoreProps state={game} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && <VillagerBubbles state={game} atlas={atlas} />}
       {mapId === ISLAND_MAP && (
         <BreadSteam world={world} state={game} atlas={atlas} lighting={lighting} />
       )}

@@ -49,6 +49,7 @@ Change a value, save, and the page updates (`npm run dev`).
 | Setting                                                     | What it does                                                                          |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `villagerDay`                                               | Each villager's day: from which time they bake, sweep, fish, read, gather or go home. |
+| `social`                                                    | How often villagers chat, wave at you and hum at their chores.                        |
 | `villagers.walkSpeedTilesPerSecond`                         | How fast villagers stroll.                                                            |
 | `rabbits`, `ducks`                                          | How many, how fast, and how shy they are.                                             |
 | `butterflies`, `fireflies`                                  | How many, and how they fly or blink.                                                  |

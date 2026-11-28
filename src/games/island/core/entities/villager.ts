@@ -60,7 +60,18 @@ export interface Villager extends Player {
   atErrand: boolean;
   /** Indoors for the night: not drawn, not solid, not talking. */
   hidden: boolean;
+  /** Chatting with another villager (their id), for this many more seconds. */
+  chat: { readonly partner: number; seconds: number } | null;
+  /** A little speech bubble over their head (chatting, humming, waving), for this long. */
+  bubble: { readonly kind: BubbleKind; seconds: number } | null;
+  /** Seconds before the next chat, the next wave at the player, the next hum at a chore. */
+  chatCooldown: number;
+  waveCooldown: number;
+  humIn: number;
 }
+
+/** What a villager's speech bubble shows. */
+export type BubbleKind = 'dots' | 'smile' | 'note' | 'wave';
 
 export type VillagerRole = 'baker' | 'keeper' | 'owl';
 
@@ -92,6 +103,11 @@ export function createVillager(
     errand: null,
     atErrand: false,
     hidden: false,
+    chat: null,
+    bubble: null,
+    chatCooldown: 0,
+    waveCooldown: 0,
+    humIn: 5 + id * 3,
   };
 }
 

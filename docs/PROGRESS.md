@@ -89,6 +89,19 @@
 
 ## Session log
 
+### 2026-11-28 — Villagers being social (user request)
+
+- `core/systems/villagerSocial.ts`: two strolling villagers who meet (2 tiles; 5 when gathered
+  round the well in the evening or the night owl on its bench) stop, face each other and chat for
+  6 s, taking turns with a speech bubble (… ☺ ♪), then wait 15 s. They wave (a hand bubble) when you
+  come within 2.5 tiles, at most every 40 s, and hum (♪) now and then at their chores. Chatting
+  villagers stand still and keep their activity until the chat ends.
+- Bubbles: `assets/paintBubbles.ts` (cream paper, dark-wood outline, a tail at the speaker),
+  drawn above everything by `render/VillagerBubbles`, untinted at night so they stay readable.
+- **Verified:** typecheck, lint, tests (chats start and end, not during chores or far apart, the
+  wider evening circle, waves, hums); a simulated evening on the island: chats for 18 s of 90;
+  browser: villagers gathering by the well; console clean.
+
 ### 2026-11-28 — A breeze through the island (user request)
 
 - Trees, bushes and grass tufts sway: `render/swayMaterial.ts` shears each sprite (its top edge

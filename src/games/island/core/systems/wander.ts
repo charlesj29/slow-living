@@ -173,7 +173,7 @@ export function updateVillager(
   villager.previousX = villager.x;
   villager.previousY = villager.y;
   villager.moving = false;
-  if (villager.talking) return;
+  if (villager.talking || villager.chat) return;
   if (villager.pauseTime > 0) {
     villager.pauseTime -= stepSeconds;
     return;

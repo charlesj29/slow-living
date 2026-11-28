@@ -300,6 +300,25 @@ export interface IslandConfig {
    * 0.5 = noon) they do that activity until the next one; the last runs past
    * midnight into the first. The night owl stays out on the plaza bench.
    */
+  /** Villagers being social: chatting when they meet, waving at you, humming at their chores. */
+  readonly social: {
+    /** Two strolling villagers this close (tiles) stop for a chat, this long, taking turns. */
+    readonly chatRangeTiles: number;
+    readonly chatSeconds: number;
+    readonly chatTurnSeconds: number;
+    /** Gathered round the well in the evening (or the night owl on its bench), they chat across a wider circle. */
+    readonly gatherChatRangeTiles: number;
+    /** After a chat, a villager waits this long before the next. */
+    readonly chatCooldownSeconds: number;
+    /** You within this many tiles: a wave (shown this long), at most every so often. */
+    readonly waveRangeTiles: number;
+    readonly waveSeconds: number;
+    readonly waveCooldownSeconds: number;
+    /** At a chore, a hum (a little note) every so often, shown this long. */
+    readonly humMinSeconds: number;
+    readonly humMaxSeconds: number;
+    readonly humSeconds: number;
+  };
   readonly villagerDay: Readonly<
     Record<'baker' | 'keeper' | 'owl', readonly (readonly [start: number, activity: string])[]>
   >;
@@ -658,6 +677,19 @@ export const ISLAND_CONFIG: IslandConfig = {
     minRestSeconds: 2,
     maxRestSeconds: 6,
     giveUpSeconds: 1.5,
+  },
+  social: {
+    chatRangeTiles: 2,
+    chatSeconds: 6,
+    chatTurnSeconds: 1.5,
+    gatherChatRangeTiles: 5,
+    chatCooldownSeconds: 15,
+    waveRangeTiles: 2.5,
+    waveSeconds: 1.8,
+    waveCooldownSeconds: 40,
+    humMinSeconds: 8,
+    humMaxSeconds: 20,
+    humSeconds: 2.5,
   },
   villagerDay: {
     baker: [
