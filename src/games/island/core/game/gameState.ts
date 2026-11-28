@@ -35,7 +35,6 @@ import {
 } from '../systems/interaction';
 import { createAnimals, updateAnimal, type Animal } from '../systems/animals';
 import {
-  bumpsIntoRabbit,
   createRabbits,
   rabbitMeadow,
   updateRabbit,
@@ -44,6 +43,7 @@ import {
 } from '../systems/rabbits';
 import { createPlaymates, updatePlaymates, type Playmates } from '../systems/playmates';
 import { birdAreas } from '../systems/birdAreas';
+import { bumpsIntoSmall, type Spot } from '../systems/bodies';
 import { createBirds, updateBird, type Bird } from '../systems/birds';
 import { createDuckFamily, duckWater, updateDuckFamily, type DuckFamily } from '../systems/ducks';
 import { movePlayer } from '../systems/movement';
@@ -271,6 +271,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
       stepSeconds,
       config.playmates,
       state.weather.intensity >= config.rainyDay.shelterAt,
+      [...villagersAbout(state), ...state.rabbits],
     );
   }
   if (state.transition) {
@@ -305,10 +306,10 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
     if (intent.facing) player.facing = intent.facing;
     movePlayer(player, intent, state.world, stepSeconds, config.player, tileSizePx);
     const villagersHere = villagersOut(state);
-    const rabbitsHere = onIsland(state) ? state.rabbits : [];
+    const smallHere = onIsland(state) ? [...state.rabbits, ...playmateSpots(state)] : [];
     if (
       bumpsInto(player, villagersHere, config.player) ||
-      bumpsIntoRabbit(player, rabbitsHere, config.player)
+      bumpsIntoSmall(player, smallHere, config.player)
     ) {
       // Villagers are solid: step back.
       player.x = player.previousX;
@@ -333,6 +334,18 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   clearPresses(input);
 }
 
+/** The villagers out of doors (wherever the player is): others keep out of their way. */
+function villagersAbout(state: GameState): Villager[] {
+  return state.villagers.filter((villager) => !villager.hidden);
+}
+
+/** The kid (when out) and the puppy: where their feet are. */
+function playmateSpots(state: GameState): Spot[] {
+  const p = state.playmates;
+  if (!p) return [];
+  return p.kid.hidden ? [p.dog] : [p.kid, p.dog];
+}
+
 /** What the animals do now: out and about, sheltering from the rain, or asleep for the night. */
 export function wildlifeRest(state: GameState, config: IslandConfig): RabbitRest {
   if (duringTimes(villageTime(state), config.wildlife.night)) return 'sleep';
@@ -344,7 +357,9 @@ function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   // They only notice the player out on the island.
   const player = onIsland(state) ? state.player : null;
+  const people = [...villagersAbout(state), ...playmateSpots(state)];
   for (const rabbit of state.rabbits) {
+    const others = [...people, ...state.rabbits.filter((r) => r !== rabbit)];
     updateRabbit(
       rabbit,
       island,
@@ -355,6 +370,7 @@ function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig
       config.rabbits,
       config.map.tileSizePx,
       rest,
+      others,
     );
   }
 }
@@ -363,6 +379,7 @@ function stepBirds(state: GameState, stepSeconds: number, config: IslandConfig):
   const rest = wildlifeRest(state, config);
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   const player = onIsland(state) ? state.player : null;
+  const walkers = [...villagersAbout(state), ...playmateSpots(state)];
   for (const bird of state.birds) {
     updateBird(
       bird,
@@ -375,6 +392,7 @@ function stepBirds(state: GameState, stepSeconds: number, config: IslandConfig):
       config.birds,
       config.map.tileSizePx,
       rest === 'shelter',
+      walkers,
     );
   }
 }
@@ -414,7 +432,11 @@ function stepVillagers(state: GameState, stepSeconds: number, config: IslandConf
   const tileSizePx = config.map.tileSizePx;
   // Villagers live on the island; the player only gets in their way when out there too.
   const out = state.villagers.filter((villager) => !villager.hidden);
-  const crowd = { player: onIsland(state) ? state.player : null, villagers: out };
+  const crowd = {
+    player: onIsland(state) ? state.player : null,
+    villagers: out,
+    others: [...state.rabbits, ...playmateSpots(state)],
+  };
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   const time = villageTime(state);
   const rain = {

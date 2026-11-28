@@ -7,6 +7,7 @@ import type { Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import type { Player } from '../entities/player';
 import { OBJECT_REGISTRY } from '../world/objects';
+import type { Spot } from './bodies';
 import type { World } from '../world/world';
 
 export type BirdColor = 'brown' | 'blue';
@@ -57,6 +58,8 @@ const LANDING_TRIES = 12;
 /** Birds of a flock start within this many tiles of its middle. */
 const FLOCK_SPREAD_TILES = 2;
 const FLOCKS = 2;
+/** Others startle them from this share of the player's distance. */
+const WALKER_STARTLE_SHARE = 0.6;
 
 const tileCentre = (tile: number, world: World, tileSizePx: number): [number, number] => [
   ((tile % world.width) + 0.5) * tileSizePx,
@@ -191,7 +194,7 @@ function landingSpot(
   bird: Bird,
   world: World,
   groundList: readonly number[],
-  player: Player | null,
+  player: Spot | null,
   rng: Rng,
   settings: BirdSettings,
   tileSizePx: number,
@@ -243,6 +246,7 @@ export function updateBird(
   settings: BirdSettings,
   tileSizePx: number,
   raining = false,
+  walkers: readonly Spot[] = [],
 ): void {
   bird.previousX = bird.x;
   bird.previousY = bird.y;
@@ -254,11 +258,15 @@ export function updateBird(
     if (flight.t >= 1) startIdle(bird, rng, settings);
     return;
   }
-  const near =
-    player !== null &&
-    Math.hypot(player.x - bird.x, player.y - bird.y) < settings.fleeRadiusTiles * tileSizePx;
-  if (near) {
-    const spot = landingSpot(bird, world, groundList, player, rng, settings, tileSizePx);
+  // The player startles them from further off than a villager, the kid or the puppy.
+  const close = (who: Spot, tiles: number): boolean =>
+    Math.hypot(who.x - bird.x, who.y - bird.y) < tiles * tileSizePx;
+  const startler =
+    player && close(player, settings.fleeRadiusTiles)
+      ? player
+      : walkers.find((w) => close(w, settings.fleeRadiusTiles * WALKER_STARTLE_SHARE));
+  if (startler) {
+    const spot = landingSpot(bird, world, groundList, startler, rng, settings, tileSizePx);
     if (spot) setOff(bird, spot[0], spot[1], 'fly', settings);
     return;
   }

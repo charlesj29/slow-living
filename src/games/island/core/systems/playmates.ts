@@ -23,6 +23,7 @@ import {
   type Ground,
   type Mate,
 } from './playmateMotion';
+import { tileUnder, type Spot } from './bodies';
 import { playField } from './playField';
 
 type PlaySettings = IslandConfig['playmates'];
@@ -89,7 +90,18 @@ const within = (time: number, [from, to]: readonly [number, number]): boolean =>
 };
 
 function mateAt(x: number, y: number, speedPx: number): Mate {
-  return { x, y, previousX: x, previousY: y, facing: 'down', route: [], speedPx, moving: false };
+  return {
+    x,
+    y,
+    previousX: x,
+    previousY: y,
+    facing: 'down',
+    route: [],
+    speedPx,
+    moving: false,
+    avoid: null,
+    waitTime: 0,
+  };
 }
 
 export function createPlaymates(
@@ -99,7 +111,7 @@ export function createPlaymates(
   tileSizePx: number,
 ): Playmates | null {
   if (!settings.enabled || !world.village) return null;
-  const ground: Ground = { world, walkable, tileSizePx };
+  const ground: Ground = { world, walkable, tileSizePx, occupied: new Set() };
   const well = world.objects.find((object) => object.kind === 'well');
   const centre = well ? { x: well.x + 1, y: well.y + 1 } : null;
   const near = (tile: number, point: { x: number; y: number }): number =>
@@ -115,9 +127,12 @@ export function createPlaymates(
   const doorCentre = centreOf(door, ground);
   const bed = besideTile(door, { x: doorCentre.x - tileSizePx, y: doorCentre.y }, ground) ?? door;
   const bedCentre = centreOf(bed, ground);
+  // The kid starts beside the door (whoever else lives there steps out of it), the other side from the puppy.
+  const start = besideTile(door, { x: doorCentre.x + tileSizePx, y: doorCentre.y }, ground) ?? door;
+  const startCentre = start === bed ? doorCentre : centreOf(start, ground);
   return {
     kid: {
-      ...mateAt(doorCentre.x, doorCentre.y, settings.kidSpeedTilesPerSecond * tileSizePx),
+      ...mateAt(startCentre.x, startCentre.y, settings.kidSpeedTilesPerSecond * tileSizePx),
       pose: 'stand',
       hidden: false,
     },
@@ -125,7 +140,7 @@ export function createPlaymates(
       ...mateAt(bedCentre.x, bedCentre.y, settings.dogSpeedTilesPerSecond * tileSizePx),
       pose: 'sit',
     },
-    ball: { x: doorCentre.x, y: doorCentre.y, holder: 'kid', flight: null },
+    ball: { x: startCentre.x, y: startCentre.y, holder: 'kid', flight: null },
     mode: 'rest',
     phase: 'aim',
     timer: settings.restSeconds,
@@ -350,11 +365,19 @@ export function updatePlaymates(
   stepSeconds: number,
   settings: PlaySettings,
   raining = false,
+  others: readonly Spot[] = [],
 ): void {
   for (const mate of [p.kid, p.dog]) {
     mate.previousX = mate.x;
     mate.previousY = mate.y;
   }
+  // Who stands where now: never walk through them (nor through each other).
+  p.ground.occupied.clear();
+  for (const spot of player ? [player, ...others] : others) {
+    p.ground.occupied.add(tileUnder(spot, p.ground.world, p.ground.tileSizePx));
+  }
+  p.kid.avoid = p.kid.hidden ? null : tileOf(p.dog, p.ground);
+  p.dog.avoid = p.kid.hidden ? null : tileOf(p.kid, p.ground);
   if (p.bubble) {
     p.bubble.seconds -= stepSeconds;
     if (p.bubble.seconds <= 0) p.bubble = null;

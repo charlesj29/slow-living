@@ -3,14 +3,16 @@
 // walk like the player (same movement and collision) and stop to face the
 // player while talking. They keep out of each other's way: routes avoid the
 // tiles other villagers stand on, step onto next or head for, and a villager
-// that still bumps into another plans a way round instead of waiting. Only the
-// player can make them wait.
+// that still bumps into another plans a way round instead of waiting. They go
+// round the rabbits, the kid and the puppy the same way. Only the player can
+// make them wait.
 import { toIndex, toPoint, type TilePoint } from '@/shared/engine/grid';
 import { findPath } from '@/shared/engine/pathfinding';
 import type { Rng } from '@/shared/engine/random';
 import type { Direction, Player } from '../entities/player';
 import { bumpsInto, type Villager } from '../entities/villager';
 import type { World } from '../world/world';
+import { bumpsIntoSmall, tileUnder, type Spot } from './bodies';
 import { movePlayer, type MovementSettings } from './movement';
 
 export interface WanderSettings {
@@ -34,6 +36,8 @@ export interface Crowd {
   /** Null while the player is indoors. */
   readonly player: Player | null;
   readonly villagers: readonly Villager[];
+  /** Everyone else about on foot (rabbits, the kid, the puppy): gone round, like villagers. */
+  readonly others?: readonly Spot[];
 }
 
 const tileIndexOf = (world: World, body: Player, tileSizePx: number): number =>
@@ -48,6 +52,7 @@ function occupiedTiles(
 ): Set<number> {
   const occupied = new Set<number>();
   if (crowd.player) occupied.add(tileIndexOf(world, crowd.player, tileSizePx));
+  for (const other of crowd.others ?? []) occupied.add(tileUnder(other, world, tileSizePx));
   for (const other of crowd.villagers) {
     if (other === villager) continue;
     occupied.add(tileIndexOf(world, other, tileSizePx));
@@ -216,8 +221,11 @@ export function updateVillager(
     walkSpeedTilesPerSecond: settings.walkSpeedTilesPerSecond * villager.speedFactor,
   };
   movePlayer(villager, { ...step, run: false }, world, stepSeconds, speed, tileSizePx);
-  if (bumpsInto(villager, crowd.villagers, movement)) {
-    // Another villager: step back and plan a way round them.
+  if (
+    bumpsInto(villager, crowd.villagers, movement) ||
+    bumpsIntoSmall(villager, crowd.others ?? [], movement)
+  ) {
+    // Another villager (or an animal, the kid): step back and plan a way round them.
     villager.x = villager.previousX;
     villager.y = villager.previousY;
     villager.moving = false;

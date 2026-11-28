@@ -89,6 +89,21 @@
 
 ## Session log
 
+### 2026-11-28 — Nobody walks through anybody (user request)
+
+- Everyone on foot keeps out of each other's way: the villagers now also go round the rabbits,
+  the kid and the puppy (they already went round each other); the rabbits never hop onto anybody
+  (the player, a villager, the kid, the puppy, another rabbit); the kid and the puppy plan their
+  paths round everyone and each other, wait a moment for someone stepping in front, then go round.
+  The player bumps into the kid and the puppy too, like the rabbits and villagers. Birds are
+  startled by anyone walking up (others from a little nearer than the player). The kid now starts
+  beside the door instead of on it.
+- `core/systems/bodies.ts` (who stands where, the small-body bump), `Crowd.others` in
+  `wander.ts`, `Ground.occupied` and each playmate's `avoid` in `playmateMotion.ts`.
+- **Verified:** typecheck, lint, tests (a new test steps the whole island 90 s in the morning and
+  at the evening gathering and finds no two characters' feet overlapping; before the fix a long
+  run found a few overlaps per island), build; browser: console clean.
+
 ### 2026-11-28 — Animals in the rain and at night (user request)
 
 - Rain (once `rainyDay.shelterAt` heavy): each rabbit hops to its own spot by a tree or a bush

@@ -17,6 +17,7 @@ import { isLandTile } from '../world/tiles';
 import { villageTiles } from '../world/village';
 import { OBJECT_REGISTRY } from '../world/objects';
 import type { World } from '../world/world';
+import type { Spot } from './bodies';
 
 export type RabbitColor = 'white' | 'brown';
 export type RabbitIdle = 'sit' | 'nibble' | 'alert' | 'huddle' | 'sleep';
@@ -200,25 +201,24 @@ const tileOf = (r: Rabbit, tileSizePx: number): TilePoint => ({
   y: Math.floor(r.y / tileSizePx),
 });
 
-/** Close enough to the player to count as in its way (map pixels). */
-const PLAYER_ROOM_PX = 14;
+/** Somebody this close to a tile's middle is standing in it (map pixels). */
+const ROOM_PX = 14;
 /** After a blocked hop, wait this long before trying again. */
 const RETRY_SECONDS = 0.6;
 
-/** An open meadow tile the player isn't standing in. */
+/** An open meadow tile nobody (the player, a villager, another animal) is standing in. */
 function isFree(
   world: World,
   meadow: ReadonlySet<number>,
-  player: Player | null,
+  blockers: readonly Spot[],
   tile: TilePoint,
   tileSizePx: number,
 ): boolean {
   if (tile.x < 0 || tile.y < 0 || tile.x >= world.width || tile.y >= world.height) return false;
   if (!meadow.has(toIndex(world, tile.x, tile.y))) return false;
-  if (!player) return true;
   const cx = (tile.x + 0.5) * tileSizePx;
   const cy = (tile.y + 0.5) * tileSizePx;
-  return Math.hypot(player.x - cx, player.y - cy) > PLAYER_ROOM_PX;
+  return blockers.every((b) => Math.hypot(b.x - cx, b.y - cy) > ROOM_PX);
 }
 
 /** Faces the way of a hop: sideways (also for diagonals), else up or down. */
@@ -232,7 +232,7 @@ function hopTowardsGoal(
   rabbit: Rabbit,
   world: World,
   meadow: ReadonlySet<number>,
-  player: Player | null,
+  blockers: readonly Spot[],
   tileSizePx: number,
 ): boolean {
   const goal = rabbit.goal;
@@ -242,7 +242,7 @@ function hopTowardsGoal(
   const dy = Math.sign(goal.y - here.y);
   if (dx === 0 && dy === 0) return false;
   const next = { x: here.x + dx, y: here.y + dy };
-  if (!isFree(world, meadow, player, next, tileSizePx)) return false;
+  if (!isFree(world, meadow, blockers, next, tileSizePx)) return false;
   faceTowards(rabbit, dx, dy);
   rabbit.hop = {
     fromX: rabbit.x,
@@ -274,6 +274,7 @@ function fleeGoal(
   world: World,
   meadow: ReadonlySet<number>,
   player: Player,
+  blockers: readonly Spot[],
   settings: RabbitSettings,
   tileSizePx: number,
 ): TilePoint | null {
@@ -281,7 +282,7 @@ function fleeGoal(
   let best: { dx: number; dy: number; distance: number } | null = null;
   for (const [dx, dy] of NEIGHBOUR_STEPS) {
     const next = { x: here.x + dx, y: here.y + dy };
-    if (!isFree(world, meadow, player, next, tileSizePx)) continue;
+    if (!isFree(world, meadow, blockers, next, tileSizePx)) continue;
     const distance = Math.hypot(
       (next.x + 0.5) * tileSizePx - player.x,
       (next.y + 0.5) * tileSizePx - player.y,
@@ -316,9 +317,12 @@ export function updateRabbit(
   settings: RabbitSettings,
   tileSizePx: number,
   rest: RabbitRest = 'free',
+  others: readonly Spot[] = [],
 ): void {
   rabbit.previousX = rabbit.x;
   rabbit.previousY = rabbit.y;
+  // Never hop onto anybody: the player, a villager, the kid, the puppy, another rabbit.
+  const blockers = player ? [player, ...others] : others;
   const hop = rabbit.hop;
   if (hop) {
     hop.t = Math.min(1, hop.t + stepSeconds / settings.hopSeconds);
@@ -327,13 +331,13 @@ export function updateRabbit(
     if (hop.t < 1) return;
     rabbit.hop = null;
     rabbit.hopsLeft -= 1;
-    if (!hopTowardsGoal(rabbit, world, meadow, player, tileSizePx))
+    if (!hopTowardsGoal(rabbit, world, meadow, blockers, tileSizePx))
       startIdle(rabbit, rng, settings);
     return;
   }
   if (
     rest !== 'free' &&
-    restAtShelter(rabbit, world, meadow, player, rest, stepSeconds, settings, tileSizePx)
+    restAtShelter(rabbit, world, meadow, player, blockers, rest, stepSeconds, settings, tileSizePx)
   ) {
     return;
   }
@@ -348,11 +352,11 @@ export function updateRabbit(
   if (!near && rabbit.idleTime > 0) return;
   const goal =
     near && player
-      ? fleeGoal(rabbit, world, meadow, player, settings, tileSizePx)
+      ? fleeGoal(rabbit, world, meadow, player, blockers, settings, tileSizePx)
       : wanderGoal(rabbit, rng, settings, tileSizePx);
   rabbit.goal = goal;
   rabbit.hopsLeft = near ? settings.fleeHops : rng.int(1, settings.hopRangeTiles);
-  if (goal && hopTowardsGoal(rabbit, world, meadow, player, tileSizePx)) return;
+  if (goal && hopTowardsGoal(rabbit, world, meadow, blockers, tileSizePx)) return;
   // Blocked: keep doing what it was doing and try again in a moment (no fidgeting).
   rabbit.goal = null;
   rabbit.waitTime = RETRY_SECONDS;
@@ -368,6 +372,7 @@ function restAtShelter(
   world: World,
   meadow: ReadonlySet<number>,
   player: Player | null,
+  blockers: readonly Spot[],
   rest: Exclude<RabbitRest, 'free'>,
   stepSeconds: number,
   settings: RabbitSettings,
@@ -388,22 +393,6 @@ function restAtShelter(
   }
   rabbit.goal = rabbit.shelter;
   rabbit.hopsLeft = Number.MAX_SAFE_INTEGER;
-  if (!hopTowardsGoal(rabbit, world, meadow, player, tileSizePx)) rabbit.waitTime = RETRY_SECONDS;
+  if (!hopTowardsGoal(rabbit, world, meadow, blockers, tileSizePx)) rabbit.waitTime = RETRY_SECONDS;
   return true;
 }
-
-/** True if the player's feet box would overlap a rabbit (rabbits are solid). */
-export function bumpsIntoRabbit(
-  player: Player,
-  rabbits: readonly Rabbit[],
-  size: { readonly hitboxWidthPx: number; readonly hitboxHeightPx: number },
-): boolean {
-  return rabbits.some(
-    (rabbit) =>
-      Math.abs(player.x - rabbit.x) < (size.hitboxWidthPx + RABBIT_BODY.width) / 2 &&
-      Math.abs(player.y - rabbit.y) < (size.hitboxHeightPx + RABBIT_BODY.height) / 2,
-  );
-}
-
-/** A rabbit's solid footprint (map pixels), centred on its feet. */
-const RABBIT_BODY = { width: 10, height: 6 } as const;
