@@ -8,6 +8,10 @@ import { capsule, ellipse, outline, put, softCanvas, softGrid, type SoftGrid } f
 
 export const FISH_KEYS = { up: 'fish_up', level: 'fish_level', down: 'fish_down' } as const;
 export const WAKE_KEYS = ['duck_wake_0', 'duck_wake_1'] as const;
+/** A fish's splash: a crown of foam and droplets bursting up, spreading and falling back. */
+export const SPLASH_KEYS = ['fish_splash_0', 'fish_splash_1', 'fish_splash_2'] as const;
+/** Then soft double rings spreading over the water, the last one breaking up. */
+export const RIPPLE_KEYS = ['fish_ripple_0', 'fish_ripple_1', 'fish_ripple_2'] as const;
 
 const FISH_SIZE = 14;
 /** How far a leaping fish tilts its nose up (rising) or down (falling). */
@@ -68,6 +72,86 @@ const WAKES: readonly (readonly string[])[] = [
 ];
 const WAKE_COLORS: Readonly<Record<string, Rgba>> = { r: hexToRgba('#d6eefc') };
 
+// The crown, waterline on the bottom row: w foam, l light water, d droplets.
+// prettier-ignore
+const SPLASHES: readonly (readonly string[])[] = [
+  [
+    '.............',
+    '.............',
+    '.............',
+    '......d......',
+    '....d...d....',
+    '.....wlw.....',
+    '....wwlww....',
+    '...lwwwwwl...',
+    '..l.lllll.l..',
+  ],
+  [
+    '......d......',
+    '..d.......d..',
+    '.....d.d.....',
+    '...d.....d...',
+    '....w...w....',
+    '....ww.ww....',
+    '...lwwlwwl...',
+    '..lwlllllwl..',
+    '.l.l.....l.l.',
+  ],
+  [
+    '.............',
+    '.............',
+    '.d.........d.',
+    '.............',
+    '...d.....d...',
+    '.............',
+    '.....w.w.....',
+    '..l..lll..l..',
+    '.l.lw...wl.l.',
+  ],
+];
+const SPLASH_COLORS: Readonly<Record<string, Rgba>> = {
+  w: hexToRgba('#ffffff'),
+  l: hexToRgba('#d4f0fb'),
+  d: hexToRgba('#b4e2f6'),
+};
+
+// Rings on the water (flattened: seen at an angle): r the ring, i a fainter ring inside.
+// The last one breaks up as it fades.
+// prettier-ignore
+const RIPPLE_ROWS: readonly (readonly string[])[] = [
+  [
+    '...rrrrr...',
+    '.rr.....rr.',
+    'r.........r',
+    '.rr.....rr.',
+    '...rrrrr...',
+  ],
+  [
+    '.....rrrrrrr.....',
+    '..rrr.......rrr..',
+    '.r....iiiii....r.',
+    'r....i.....i....r',
+    '.r....iiiii....r.',
+    '..rrr.......rrr..',
+    '.....rrrrrrr.....',
+  ],
+  [
+    '.......rr.rrr.rr.......',
+    '....rr...........rr....',
+    '..r.................r..',
+    '.r.......i.i.i.......r.',
+    'r.....i.........i.....r',
+    '.r.......i.i.i.......r.',
+    '..r.................r..',
+    '....rr...........rr....',
+    '.......rr.rrr.rr.......',
+  ],
+];
+const RIPPLE_COLORS: Readonly<Record<string, Rgba>> = {
+  r: hexToRgba('#e4f6fd'),
+  i: hexToRgba('#b9e3f5'),
+};
+
 function fromRows(rows: readonly string[]): SoftGrid {
   const g = softGrid(rows[0]?.length ?? 0, rows.length);
   rows.forEach((row, y) => [...row].forEach((letter, x) => put(g, x, y, letter)));
@@ -82,6 +166,14 @@ export function paintLakeLifeSprites(): SpriteSource[] {
     ...WAKES.map((rows, i) => ({
       key: WAKE_KEYS[i] ?? `duck_wake_${String(i)}`,
       frames: [softCanvas(fromRows(rows), WAKE_COLORS)],
+    })),
+    ...SPLASHES.map((rows, i) => ({
+      key: SPLASH_KEYS[i] ?? `fish_splash_${String(i)}`,
+      frames: [softCanvas(fromRows(rows), SPLASH_COLORS)],
+    })),
+    ...RIPPLE_ROWS.map((rows, i) => ({
+      key: RIPPLE_KEYS[i] ?? `fish_ripple_${String(i)}`,
+      frames: [softCanvas(fromRows(rows), RIPPLE_COLORS)],
     })),
   ];
 }

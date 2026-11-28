@@ -3,23 +3,21 @@ import { useEffect, useMemo, useRef, type JSX } from 'react';
 import type { BufferGeometry, Mesh } from 'three';
 import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
-import { FISH_KEYS, WAKE_KEYS } from '../assets/paintLakeLife';
+import { FISH_KEYS, RIPPLE_KEYS, SPLASH_KEYS, WAKE_KEYS } from '../assets/paintLakeLife';
 import { DUCK_SPRITE, DUCKLING_SPRITE } from '../assets/paintDucks';
-import { RAIN_RING_KEYS } from '../assets/paintWeather';
 import { ISLAND_CONFIG } from '../core/config';
 import type { GameState } from '../core/game/gameState';
-import { fishJumpAt, LEAP_TRAVEL_PX, leapSpots } from './fishJumps';
+import { fishJumpAt, leapSpots } from './fishJumps';
+import { leapScene, type Splash } from './fishLeap';
 import type { LightingUniforms } from './lighting';
 import { createSpriteGeometry } from './spriteGeometry';
 import { createSpriteMaterial } from './spriteMaterial';
 import { GROUND_DECAL_Z, standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
-/** Each splash-ring frame lasts this long; a duck's wake shimmers at this pace. */
-const RING_FRAME_SECONDS = 0.3;
+/** A duck's wake shimmers at this pace. */
 const WAKE_FRAME_SECONDS = 0.35;
-/** Rising nose-up until here, level until here, then falling nose-down (fraction of the leap). */
-const LEAP_LEVEL_FROM = 0.35;
-const LEAP_FALL_FROM = 0.65;
+/** The fish is drawn this far up from its middle, so its belly meets the water as it leaves. */
+const FISH_BELLY_PX = 3;
 
 /** Puts a sprite's top-left at a map pixel. */
 function placeTopLeft(mesh: Mesh, frame: AtlasFrame, left: number, top: number, z: number): void {
@@ -50,7 +48,7 @@ interface LakeLifeProps {
 export function LakeLife({ state, atlas, lighting }: LakeLifeProps): JSX.Element {
   const spots = useMemo(() => leapSpots(state.world, ISLAND_CONFIG.map.tileSizePx), [state.world]);
   const keys = useMemo(
-    () => [...Object.values(FISH_KEYS), ...WAKE_KEYS, ...RAIN_RING_KEYS] as const,
+    () => [...Object.values(FISH_KEYS), ...WAKE_KEYS, ...SPLASH_KEYS, ...RIPPLE_KEYS] as const,
     [],
   );
   const frames = useMemo(
@@ -64,7 +62,7 @@ export function LakeLife({ state, atlas, lighting }: LakeLifeProps): JSX.Element
   const material = useMemo(() => createSpriteMaterial(atlas.texture, lighting), [atlas, lighting]);
   useEffect(() => () => geometries.forEach((g) => g.dispose()), [geometries]);
   useEffect(() => () => material.dispose(), [material]);
-  // The fish, its take-off splash and its landing splash, then one wake per duck.
+  // The fish, the burst splash (crown, rings), the dive splash (crown, rings), then one wake per duck.
   const meshes = useRef<(Mesh | null)[]>([]);
   const ducks = state.ducks?.ducks ?? [];
 
@@ -78,48 +76,51 @@ export function LakeLife({ state, atlas, lighting }: LakeLifeProps): JSX.Element
       if (geometry && mesh.geometry !== geometry) mesh.geometry = geometry;
       return geometry ? mesh : null;
     };
-    const ring = (sinceSeconds: number): string | null =>
-      RAIN_RING_KEYS[Math.floor(sinceSeconds / RING_FRAME_SECONDS)] ?? null;
+    // A splash: the crown stands on the water; the rings lie flat on it.
+    const splash = (crownSlot: number, s: Splash | null): void => {
+      const crownKey = s?.crown != null ? (SPLASH_KEYS[s.crown] ?? null) : null;
+      const crown = show(crownSlot, crownKey);
+      const crownFrame = crownKey ? frames.get(crownKey) : undefined;
+      if (crown && s && crownFrame) {
+        placeTopLeft(
+          crown,
+          crownFrame,
+          Math.round(s.x) - Math.floor(crownFrame.width / 2),
+          Math.round(s.y) - crownFrame.height + 2,
+          standingSpriteZ(s.y),
+        );
+      }
+      const rippleKey = s?.ripple != null ? (RIPPLE_KEYS[s.ripple] ?? null) : null;
+      const ripple = show(crownSlot + 1, rippleKey);
+      const rippleFrame = rippleKey ? frames.get(rippleKey) : undefined;
+      if (ripple && s && rippleFrame) placeCentre(ripple, rippleFrame, s.x, s.y, GROUND_DECAL_Z);
+    };
 
     const jump = fishJumpAt(seconds, spots, ISLAND_CONFIG.lakeLife);
-    const leap = ISLAND_CONFIG.lakeLife;
-    const p = jump?.progress ?? 0;
-    const dir = jump?.toLeft ? -1 : 1;
-    const fishKey =
-      !jump || p >= 1
-        ? null
-        : p < LEAP_LEVEL_FROM
-          ? FISH_KEYS.up
-          : p < LEAP_FALL_FROM
-            ? FISH_KEYS.level
-            : FISH_KEYS.down;
+    const scene = jump ? leapScene(jump, ISLAND_CONFIG.lakeLife) : null;
+    const leaping = scene?.fish ?? null;
+    const fishKey = leaping ? FISH_KEYS[leaping.pose] : null;
     const fish = show(0, fishKey);
-    if (fish && jump && fishKey) {
-      const groundY = jump.y;
-      const x = jump.x + dir * LEAP_TRAVEL_PX * p;
-      const lift = Math.sin(Math.PI * p) * leap.fishJumpHeightPx;
+    const fishFrame = fishKey ? frames.get(fishKey) : undefined;
+    if (fish && leaping && jump && fishFrame) {
       fish.scale.x = jump.toLeft ? 1 : -1;
-      const frame = frames.get(fishKey);
-      if (frame) placeCentre(fish, frame, x, groundY - lift - 3, standingSpriteZ(groundY));
+      placeCentre(
+        fish,
+        fishFrame,
+        leaping.x,
+        leaping.waterY - leaping.lift - FISH_BELLY_PX,
+        standingSpriteZ(leaping.waterY),
+      );
     }
-    const takeOffKey = jump ? ring(p * leap.fishJumpSeconds) : null;
-    const takeOff = show(1, takeOffKey);
-    const takeOffFrame = takeOffKey ? frames.get(takeOffKey) : undefined;
-    if (takeOff && jump && takeOffFrame)
-      placeCentre(takeOff, takeOffFrame, jump.x, jump.y, GROUND_DECAL_Z);
-    const landKey = jump && p >= 1 ? ring((p - 1) * leap.fishJumpSeconds) : null;
-    const land = show(2, landKey);
-    const landFrame = landKey ? frames.get(landKey) : undefined;
-    if (land && jump && landFrame) {
-      placeCentre(land, landFrame, jump.x + dir * LEAP_TRAVEL_PX, jump.y, GROUND_DECAL_Z);
-    }
+    splash(1, scene?.burst ?? null);
+    splash(3, scene?.dive ?? null);
 
     ducks.forEach((duck, i) => {
       const key = duck.swimming
         ? (WAKE_KEYS[Math.floor(seconds / WAKE_FRAME_SECONDS + duck.id * 0.5) % WAKE_KEYS.length] ??
           null)
         : null;
-      const wake = show(3 + i, key);
+      const wake = show(5 + i, key);
       const frame = key ? frames.get(key) : undefined;
       if (!wake || !frame) return;
       const t = state.interpolation;
@@ -136,7 +137,7 @@ export function LakeLife({ state, atlas, lighting }: LakeLifeProps): JSX.Element
 
   return (
     <group>
-      {Array.from({ length: 3 + ducks.length }, (_, i) => (
+      {Array.from({ length: 5 + ducks.length }, (_, i) => (
         <mesh
           key={i}
           ref={(mesh) => {

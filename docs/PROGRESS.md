@@ -89,6 +89,18 @@
 
 ## Session log
 
+### 2026-11-28 — A prettier, better-timed fish splash (user request)
+
+- The splash is now a crown of foam and droplets that bursts up, spreads and falls back, then
+  soft double rings spreading over the water (the last one breaking up as it fades), instead of
+  the rain's small rings. Timing: the fish shows only once clear of the water, a small splash
+  bursts as it leaves, and the big splash starts the instant it dives back in, where it went in.
+  `render/fishLeap.ts` (pure: what shows at each moment of a leap), sprites in
+  `assets/paintLakeLife.ts`.
+- **Verified:** typecheck, lint, tests (burst before the fish shows, dive splash at the moment and
+  place it goes under, room for the whole splash before the next leap), build; browser with leaps
+  made frequent: the fish mid-leap, the rings on the water.
+
 ### 2026-11-28 — The puppy faces every way (user request)
 
 - The puppy had only a side view; it now has a front view (coming towards you: round face, both

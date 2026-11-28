@@ -9,7 +9,7 @@ import type { World } from '../core/world/world';
 
 type LakeSettings = IslandConfig['lakeLife'];
 
-/** How long the splash rings spread after the fish dives back in. */
+/** How long after the leap the splash may still show (the dive splash fits inside). */
 export const SPLASH_SECONDS = 0.9;
 /** How far a leap carries the fish sideways (map pixels). */
 export const LEAP_TRAVEL_PX = 12;
