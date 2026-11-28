@@ -54,6 +54,7 @@ Change a value, save, and the page updates (`npm run dev`).
 | `villagerDay`                                               | Each villager's day: from which time they bake, sweep, fish, read, gather or go home. |
 | `social`                                                    | How often villagers chat, wave at you and hum at their chores.                        |
 | `villagers.walkSpeedTilesPerSecond`                         | How fast villagers stroll.                                                            |
+| `rainyDay`                                                  | How heavy the rain must be before villagers shelter, and how fast they hurry.         |
 | `rabbits`, `ducks`                                          | How many, how fast, and how shy they are.                                             |
 | `butterflies`, `fireflies`                                  | How many, and how they fly or blink.                                                  |
 | `birds`                                                     | How many birds and gulls, when they are out, how shy they are and how far they fly.   |

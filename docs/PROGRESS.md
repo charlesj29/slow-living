@@ -89,6 +89,18 @@
 
 ## Session log
 
+### 2026-11-28 — Villagers in the rain (user request)
+
+- When a shower gets going the keeper drops the chores and hurries home, the baker hurries under
+  the market stall's awning, and the night owl carries on (fishing, reading, strolling) under a
+  coral striped umbrella. When it clears, everyone goes back to their day. Bedtime stays bedtime.
+  `core/systems/rainyDay.ts` (the routine asks it instead of the schedule while it rains), a new
+  `shelter` activity, villagers' `speedFactor` for hurrying, `render/Umbrellas.tsx` and
+  `assets/paintUmbrella.ts` (soft shapes). Settings in `rainyDay`.
+- **Verified:** typecheck, lint, tests (who goes where in the rain, who carries an umbrella),
+  build; browser with rain forced on: the owl fishing on the dock under her umbrella, the baker
+  under the awning; console clean.
+
 ### 2026-11-28 — Little birds and seagulls (user request)
 
 - Six little birds (four brown sparrows, two blue tits) peck, blink and hop about the village in

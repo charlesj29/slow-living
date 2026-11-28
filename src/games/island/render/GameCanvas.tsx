@@ -21,6 +21,7 @@ import { VillagerBubbles } from './VillagerBubbles';
 import { BreadSteam } from './BreadSteam';
 import { Butterflies } from './Butterflies';
 import { Fireflies } from './Fireflies';
+import { Umbrellas } from './Umbrellas';
 import { BirdSprites } from './BirdSprites';
 import { NightWater } from './NightWater';
 import { CloudShadows } from './CloudShadows';
@@ -159,6 +160,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
       <PlayerSprite state={game} atlas={atlas} lighting={lighting} />
       {mapId === ISLAND_MAP && <VillagerSprites state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <ChoreProps state={game} atlas={atlas} lighting={lighting} />}
+      {mapId === ISLAND_MAP && <Umbrellas state={game} atlas={atlas} lighting={lighting} />}
       {mapId === ISLAND_MAP && <VillagerBubbles state={game} atlas={atlas} />}
       {mapId === ISLAND_MAP && (
         <BreadSteam world={world} state={game} atlas={atlas} lighting={lighting} />

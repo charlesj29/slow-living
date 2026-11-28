@@ -317,6 +317,15 @@ export interface IslandConfig {
     readonly giveUpSeconds: number;
   };
   /**
+   * Villagers in the rain: once a shower is this heavy (0..1) the keeper hurries home, the baker
+   * shelters under the market stall's awning and the night owl carries on under an umbrella.
+   */
+  readonly rainyDay: {
+    readonly shelterAt: number;
+    /** How much faster than a stroll they hurry to shelter. */
+    readonly hurryFactor: number;
+  };
+  /**
    * Each villager's day: from each start time (fraction of a day: 0.25 = 6 AM,
    * 0.5 = noon) they do that activity until the next one; the last runs past
    * midnight into the first. The night owl stays out on the plaza bench.
@@ -746,6 +755,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxRestSeconds: 6,
     giveUpSeconds: 1.5,
   },
+  rainyDay: { shelterAt: 0.35, hurryFactor: 1.7 },
   social: {
     chatRangeTiles: 2,
     chatSeconds: 6,

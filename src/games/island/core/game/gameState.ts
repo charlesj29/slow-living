@@ -385,6 +385,10 @@ function stepVillagers(state: GameState, stepSeconds: number, config: IslandConf
   const crowd = { player: onIsland(state) ? state.player : null, villagers: out };
   const island = state.maps.get(ISLAND_MAP) ?? state.world;
   const time = villageTime(state);
+  const rain = {
+    raining: state.weather.intensity >= config.rainyDay.shelterAt,
+    hurryFactor: config.rainyDay.hurryFactor,
+  };
   for (const villager of state.villagers) {
     updateRoutine(
       villager,
@@ -395,6 +399,7 @@ function stepVillagers(state: GameState, stepSeconds: number, config: IslandConf
       state.wanderRng,
       config.villagerDay,
       tileSizePx,
+      rain,
     );
     updateVillager(
       villager,

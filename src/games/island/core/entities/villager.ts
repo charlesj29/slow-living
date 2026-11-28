@@ -11,7 +11,17 @@ import {
 
 /** What a villager is up to (their day follows the clock: see `systems/routine.ts`). */
 export type Activity =
-  'wander' | 'bake' | 'water' | 'sweep' | 'fish' | 'read' | 'gather' | 'owl' | 'home';
+  | 'wander'
+  | 'bake'
+  | 'water'
+  | 'sweep'
+  | 'fish'
+  | 'read'
+  | 'gather'
+  | 'owl'
+  | 'home'
+  /** Out of the rain under the market stall's awning. */
+  | 'shelter';
 
 /** Somewhere to be for an activity, and how to be there. */
 export interface Errand {
@@ -68,6 +78,8 @@ export interface Villager extends Player {
   chatCooldown: number;
   waveCooldown: number;
   humIn: number;
+  /** Walking pace against a stroll (1; more when hurrying out of the rain). */
+  speedFactor: number;
 }
 
 /** What a villager's speech bubble shows. */
@@ -108,6 +120,7 @@ export function createVillager(
     chatCooldown: 0,
     waveCooldown: 0,
     humIn: 5 + id * 3,
+    speedFactor: 1,
   };
 }
 

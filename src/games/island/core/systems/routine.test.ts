@@ -9,10 +9,11 @@ import { TileId } from '../world/tiles';
 
 const STEP = 1 / 30;
 const TILE = ISLAND_CONFIG.map.tileSizePx;
-/** The clock stands still, so the village stays in one part of the day. */
+/** The clock stands still, so the village stays in one part of the day; and it stays dry. */
 const STILL: IslandConfig = {
   ...ISLAND_CONFIG,
   dayNight: { ...ISLAND_CONFIG.dayNight, dayLengthSeconds: 1e9 },
+  weather: { ...ISLAND_CONFIG.weather, minClearSeconds: 1e9, maxClearSeconds: 1e9 },
 };
 
 function villageAt(time: number, seed = 46): GameState {
@@ -63,6 +64,17 @@ describe('the village day', () => {
       expect(Math.floor(villager.x / TILE)).toBe(villager.errand.goal.x);
     }
     expect(byRole(state, 'baker').activity).toBe('bake');
+    expect(byRole(state, 'owl').activity).toBe('fish');
+  });
+
+  it('in the rain: the keeper goes home, the baker shelters at the stall, the owl fishes on', () => {
+    const state = villageAt(0.3);
+    Object.assign(state.weather, { raining: true, intensity: 1, timeLeft: 1e9 });
+    wait(state, 90);
+    expect(byRole(state, 'keeper').hidden).toBe(true);
+    const baker = byRole(state, 'baker');
+    expect(baker.activity).toBe('shelter');
+    expect(baker.atErrand).toBe(true);
     expect(byRole(state, 'owl').activity).toBe('fish');
   });
 

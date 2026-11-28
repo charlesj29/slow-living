@@ -13,6 +13,7 @@ import { OBJECT_REGISTRY } from '../world/objects';
 import { isWalkableTile, TileId } from '../world/tiles';
 import { villageTiles, wanderTiles } from '../world/village';
 import type { World, WorldObject } from '../world/world';
+import { rainyActivity, type RainSettings } from './rainyDay';
 import { sitOn, standUp } from './seat';
 import { planErrandRoute, type Crowd } from './wander';
 
@@ -49,6 +50,7 @@ const ACTIVITIES: readonly Activity[] = [
   'gather',
   'owl',
   'home',
+  'shelter',
 ];
 const isActivity = (name: string): name is Activity => (ACTIVITIES as string[]).includes(name);
 
@@ -297,6 +299,10 @@ export function errandFor(
       return gatherSpot ? errandAt(gatherSpot) : null;
     case 'gather':
       return gatherSpot ? errandAt(gatherSpot) : null;
+    case 'shelter':
+      return places.stall
+        ? errandAt(places.stall)
+        : { goal: villager.door, facing: 'up', bench: null, goInside: true };
     case 'home':
       return { goal: villager.door, facing: 'up', bench: null, goInside: true };
     case 'wander':
@@ -356,12 +362,19 @@ export function updateRoutine(
   rng: Rng,
   schedule: IslandConfig['villagerDay'],
   tileSizePx: number,
+  rain: RainSettings = { raining: false, hurryFactor: 1 },
 ): void {
-  const wanted = activityAt(schedule[villager.role], time);
+  const scheduled = activityAt(schedule[villager.role], time);
+  const wanted = rain.raining
+    ? rainyActivity(villager.role, scheduled, places.stall !== null)
+    : scheduled;
   if (wanted !== villager.activity && !villager.talking && !villager.chat) {
     switchActivity(villager, wanted, places, tileSizePx);
   }
   const errand = villager.errand;
+  // Hurrying out of the rain to the door or the awning; a stroll otherwise.
+  const sheltering = villager.activity === 'home' || villager.activity === 'shelter';
+  villager.speedFactor = rain.raining && sheltering && !villager.atErrand ? rain.hurryFactor : 1;
   if (!errand || villager.talking) return;
   if (villager.atErrand) {
     // Back to the work after a chat; a sweeper turns round now and then to do the other side.

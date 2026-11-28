@@ -211,7 +211,10 @@ export function updateVillager(
 
   const step = stepTowards(villager, target);
   villager.facing = step.facing;
-  const speed = { ...movement, walkSpeedTilesPerSecond: settings.walkSpeedTilesPerSecond };
+  const speed = {
+    ...movement,
+    walkSpeedTilesPerSecond: settings.walkSpeedTilesPerSecond * villager.speedFactor,
+  };
   movePlayer(villager, { ...step, run: false }, world, stepSeconds, speed, tileSizePx);
   if (bumpsInto(villager, crowd.villagers, movement)) {
     // Another villager: step back and plan a way round them.
