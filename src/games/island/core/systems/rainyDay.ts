@@ -1,6 +1,6 @@
 // What villagers do when it rains: the keeper hurries home, the baker shelters
 // under the market stall's awning (or goes home if there's no stall), and the
-// night owl carries on as planned under an umbrella. Bedtime stays bedtime.
+// night owl carries on as planned in a raincoat. Bedtime stays bedtime.
 // Pure: the routine asks this instead of the schedule while it rains.
 import type { Activity, Villager, VillagerRole } from '../entities/villager';
 
@@ -26,8 +26,8 @@ export function rainyActivity(
   }
 }
 
-/** Out in the rain without shelter: they put up an umbrella. */
-export function carriesUmbrella(villager: Villager, raining: boolean): boolean {
+/** Out in the rain without shelter: they put on a raincoat. */
+export function wearsRaincoat(villager: Villager, raining: boolean): boolean {
   return (
     raining && !villager.hidden && villager.activity !== 'shelter' && villager.activity !== 'home'
   );

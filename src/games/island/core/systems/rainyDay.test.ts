@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ISLAND_CONFIG } from '../config';
 import { createVillager } from '../entities/villager';
-import { carriesUmbrella, rainyActivity } from './rainyDay';
+import { rainyActivity, wearsRaincoat } from './rainyDay';
 
 describe('a rainy day in the village', () => {
   it('sends the keeper home, the baker under the awning, and lets the night owl carry on', () => {
@@ -12,12 +12,12 @@ describe('a rainy day in the village', () => {
     expect(rainyActivity('owl', 'home', true)).toBe('home');
   });
 
-  it('gives an umbrella to whoever stays out in the rain', () => {
+  it('puts a raincoat on whoever stays out in the rain', () => {
     const v = createVillager(0, 1, { x: 3, y: 3 }, [], ISLAND_CONFIG.map.tileSizePx, 'owl');
     v.activity = 'fish';
-    expect(carriesUmbrella(v, true)).toBe(true);
-    expect(carriesUmbrella(v, false)).toBe(false);
+    expect(wearsRaincoat(v, true)).toBe(true);
+    expect(wearsRaincoat(v, false)).toBe(false);
     v.activity = 'shelter';
-    expect(carriesUmbrella(v, true)).toBe(false);
+    expect(wearsRaincoat(v, true)).toBe(false);
   });
 });

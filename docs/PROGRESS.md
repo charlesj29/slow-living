@@ -89,6 +89,16 @@
 
 ## Session log
 
+### 2026-11-28 — A raincoat instead of the umbrella (user request)
+
+- The umbrella is gone. Out in the rain, the night owl now changes into a rainy-day outfit: a
+  yellow raincoat with the hood up (her hair becomes the hood, framing her face), no apron, red
+  boots; she changes back when it clears. A second outfit strip for her look
+  (`villager_1_raincoat_*`, `VILLAGER_RAINCOATS` in `assets/villagerParts.ts`), chosen in
+  `render/VillagerSprites.tsx` by `wearsRaincoat` (`core/systems/rainyDay.ts`).
+- **Verified:** typecheck, lint, tests, build; browser with rain forced on: the night owl on the
+  bench in her raincoat.
+
 ### 2026-11-28 — Birds at the forest edge, the studio and the cottage (user request)
 
 - The two bird flocks no longer live in the village: each picks, at random, one of three places

@@ -346,7 +346,7 @@ export interface IslandConfig {
   };
   /**
    * Villagers in the rain: once a shower is this heavy (0..1) the keeper hurries home, the baker
-   * shelters under the market stall's awning and the night owl carries on under an umbrella.
+   * shelters under the market stall's awning and the night owl carries on in a raincoat.
    */
   readonly rainyDay: {
     readonly shelterAt: number;

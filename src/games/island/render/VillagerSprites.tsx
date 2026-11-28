@@ -2,7 +2,9 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type JSX } from 'react';
 import type { Group } from 'three';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
-import { villagerSpriteKey } from '../assets/paintPlayer';
+import { hasRaincoat, villagerRaincoatKey, villagerSpriteKey } from '../assets/paintPlayer';
+import { ISLAND_CONFIG } from '../core/config';
+import { wearsRaincoat } from '../core/systems/rainyDay';
 import type { Direction } from '../core/entities/player';
 import type { Villager } from '../core/entities/villager';
 import type { GameState } from '../core/game/gameState';
@@ -19,9 +21,16 @@ function VillagerSprite({
   villager,
   ...props
 }: VillagerSpritesProps & { readonly villager: Villager }): JSX.Element {
+  const { state } = props;
+  // Their outfit, or (out in the rain, if they have one) their raincoat.
   const keyFor = useMemo(
-    () => (facing: Direction) => villagerSpriteKey(villager.look, facing),
-    [villager.look],
+    () => (facing: Direction) => {
+      const raining = state.weather.intensity >= ISLAND_CONFIG.rainyDay.shelterAt;
+      return hasRaincoat(villager.look) && wearsRaincoat(villager, raining)
+        ? villagerRaincoatKey(villager.look, facing)
+        : villagerSpriteKey(villager.look, facing);
+    },
+    [villager, state],
   );
   const groupRef = useRef<Group>(null);
   // Indoors for the night: not drawn (nor their shadow).

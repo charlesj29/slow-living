@@ -311,3 +311,33 @@ export const VILLAGER_CHARACTERS: readonly VillagerCharacter[] = [
     },
   },
 ];
+
+/**
+ * Rainy-day outfits, by look: the girl (the night owl) in a yellow raincoat with the hood up
+ * (her hair becomes the hood, so it frames her face the same way), no apron, and red boots.
+ */
+export const VILLAGER_RAINCOATS: ReadonlyMap<number, VillagerCharacter> = new Map([
+  [
+    1,
+    {
+      name: 'girl in a raincoat',
+      maps: buildCharacterMaps(character(GIRL_HEADS, false)),
+      palette: {
+        ...BASE,
+        h: '#f2c230',
+        H: '#c9951c',
+        r: '#f2c230',
+        b: '#f2c230',
+        s: '#fad6b8',
+        S: '#eca48a',
+        J: '#f2c230',
+        j: '#c9951c',
+        B: '#c9951c',
+        y: '#fbfbf4',
+        p: '#f2c230',
+        P: '#c9951c',
+        k: '#c2453a',
+      },
+    },
+  ],
+]);

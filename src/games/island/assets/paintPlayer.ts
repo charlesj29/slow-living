@@ -6,7 +6,7 @@ import {
   type PixelCanvas,
 } from '@/shared/render/pixelCanvas';
 import { PLAYER_PIXEL_MAPS, type CharacterMaps } from './playerFrames';
-import { VILLAGER_CHARACTERS } from './villagerParts';
+import { VILLAGER_CHARACTERS, VILLAGER_RAINCOATS } from './villagerParts';
 import { PLAYER_HEIGHT, PLAYER_PALETTE, PLAYER_WIDTH } from './playerPixels';
 
 /** Atlas key of the player's animation strip for a direction (frames in `PLAYER_FRAMES` order). */
@@ -43,6 +43,14 @@ export function villagerSpriteKey(look: number, direction: Facing): string {
   return `villager_${String(look)}_${direction}`;
 }
 
+/** Atlas key of a villager's rainy-day outfit strip (only looks with a raincoat have one). */
+export function villagerRaincoatKey(look: number, direction: Facing): string {
+  return `villager_${String(look)}_raincoat_${direction}`;
+}
+
+/** True if this look has a rainy-day outfit. */
+export const hasRaincoat = (look: number): boolean => VILLAGER_RAINCOATS.has(look);
+
 function strip(
   key: string,
   maps: CharacterMaps,
@@ -62,5 +70,10 @@ export function paintPlayerSprites(): SpriteSource[] {
       strip(villagerSpriteKey(look, direction), character.maps, direction, character.palette),
     ),
   );
-  return [...player, ...villagers];
+  const raincoats = [...VILLAGER_RAINCOATS].flatMap(([look, character]) =>
+    FACINGS.map((direction) =>
+      strip(villagerRaincoatKey(look, direction), character.maps, direction, character.palette),
+    ),
+  );
+  return [...player, ...villagers, ...raincoats];
 }
