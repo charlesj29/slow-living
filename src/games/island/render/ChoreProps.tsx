@@ -4,10 +4,12 @@ import type { Mesh } from 'three';
 import type { AtlasFrame } from '@/shared/render/atlasLayout';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { BROOM_FRAME_COUNT, BROOM_SPRITE, CHORE_KEYS } from '../assets/paintChoreProps';
+import { playerFootY } from '../core/entities/player';
 import type { Villager } from '../core/entities/villager';
+import { ISLAND_CONFIG } from '../core/config';
 import type { GameState } from '../core/game/gameState';
 import type { LightingUniforms } from './lighting';
-import { createSpriteGeometry, setSpriteGeometryFrame } from './spriteGeometry';
+import { createSpriteGeometry } from './spriteGeometry';
 import { createSpriteMaterial, showAnimationFrameAt } from './spriteMaterial';
 import { standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
@@ -29,10 +31,17 @@ type RodKey = typeof CHORE_KEYS.rodSide | typeof CHORE_KEYS.rodDown | typeof CHO
 
 /** Each facing: which rod, where its top-left goes (from the feet), where the bobber floats, and depth. */
 const ROD_BY_FACING = {
-  down: { key: CHORE_KEYS.rodDown, rod: [2, -10], bobber: [6, 7], behind: false, mirror: false },
-  right: { key: CHORE_KEYS.rodSide, rod: [3, -14], bobber: [13, 0], behind: false, mirror: false },
-  left: { key: CHORE_KEYS.rodSide, rod: [-19, -14], bobber: [-17, 0], behind: false, mirror: true },
-  up: { key: CHORE_KEYS.rodUp, rod: [2, -30], bobber: [5, -36], behind: true, mirror: false },
+  // Each bobber hangs right at the end of its line (the line's column over the red top).
+  down: { key: CHORE_KEYS.rodDown, rod: [2, -10], bobber: [7, 5], behind: false, mirror: false },
+  right: { key: CHORE_KEYS.rodSide, rod: [3, -14], bobber: [16, -3], behind: false, mirror: false },
+  left: {
+    key: CHORE_KEYS.rodSide,
+    rod: [-19, -14],
+    bobber: [-20, -3],
+    behind: false,
+    mirror: true,
+  },
+  up: { key: CHORE_KEYS.rodUp, rod: [2, -30], bobber: [7, -34], behind: true, mirror: false },
 } as const satisfies Record<
   string,
   {
@@ -69,7 +78,10 @@ function ChorePropsOf({ villager, atlas, lighting }: ChorePropsOfProps): JSX.Ele
     () => ({
       broom: createSpriteGeometry(frames.broom),
       bucket: createSpriteGeometry(frames.bucket),
-      rod: createSpriteGeometry(atlas.frame(CHORE_KEYS.rodDown)),
+      // One per way of holding it: the rods differ in size, so each needs its own plane.
+      rodSide: createSpriteGeometry(atlas.frame(CHORE_KEYS.rodSide)),
+      rodDown: createSpriteGeometry(atlas.frame(CHORE_KEYS.rodDown)),
+      rodUp: createSpriteGeometry(atlas.frame(CHORE_KEYS.rodUp)),
       bobber: createSpriteGeometry(frames.bobber),
       book: createSpriteGeometry(frames.book),
     }),
@@ -89,7 +101,6 @@ function ChorePropsOf({ villager, atlas, lighting }: ChorePropsOfProps): JSX.Ele
   const rod = useRef<Mesh>(null);
   const bobber = useRef<Mesh>(null);
   const book = useRef<Mesh>(null);
-  const shownRod = useRef<RodKey>(CHORE_KEYS.rodDown);
 
   useFrame(({ clock }) => {
     const working = villager.atErrand && !villager.hidden;
@@ -121,13 +132,18 @@ function ChorePropsOf({ villager, atlas, lighting }: ChorePropsOfProps): JSX.Ele
       bobber.current.visible = fishing;
       if (fishing) {
         const pose = ROD_BY_FACING[villager.facing];
-        if (pose.key !== shownRod.current) {
-          setSpriteGeometryFrame(geometries.rod, atlas.frame(pose.key));
-          shownRod.current = pose.key;
-        }
+        const rodGeometry =
+          pose.key === CHORE_KEYS.rodSide
+            ? geometries.rodSide
+            : pose.key === CHORE_KEYS.rodUp
+              ? geometries.rodUp
+              : geometries.rodDown;
+        if (rod.current.geometry !== rodGeometry) rod.current.geometry = rodGeometry;
         const rodFrame = atlas.frame(pose.key);
         rod.current.scale.x = pose.mirror ? -1 : 1;
-        const depth = pose.behind ? z - IN_FRONT : z + IN_FRONT;
+        // At the angler's own depth (their feet), so the rod sits in their hands, not behind them.
+        const feetZ = standingSpriteZ(Math.round(playerFootY(villager.y, ISLAND_CONFIG.player)));
+        const depth = pose.behind ? feetZ - IN_FRONT : feetZ + IN_FRONT;
         placeTopLeft(rod.current, rodFrame, x + pose.rod[0], y + pose.rod[1], depth);
         const bob = Math.sin(t * Math.PI * 2 * BOB_HZ) > 0.55 ? 1 : 0;
         placeTopLeft(
@@ -152,7 +168,7 @@ function ChorePropsOf({ villager, atlas, lighting }: ChorePropsOfProps): JSX.Ele
     <group>
       <mesh ref={broom} geometry={geometries.broom} material={broomMaterial} visible={false} />
       <mesh ref={bucket} geometry={geometries.bucket} material={material} visible={false} />
-      <mesh ref={rod} geometry={geometries.rod} material={material} visible={false} />
+      <mesh ref={rod} geometry={geometries.rodDown} material={material} visible={false} />
       <mesh ref={bobber} geometry={geometries.bobber} material={material} visible={false} />
       <mesh ref={book} geometry={geometries.book} material={material} visible={false} />
     </group>

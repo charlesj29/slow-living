@@ -89,6 +89,20 @@
 
 ## Session log
 
+### 2026-11-28 — Fishing pose fixed; ducks clear of the dock, fish clear of the ducks (user report)
+
+- The fisher facing left (the new island's dock points west) held a squashed rod with no line.
+  Cause: the rod swapped shape by re-pointing one plane at another frame, which only works for
+  frames of the same size; the side rod (16×12) was squeezed into the down rod's 8×16 plane. Now
+  each way of holding it has its own plane. Also: the rod and bobber are drawn at the angler's
+  own depth (in their hands, not behind them), the line is dark enough to see on the water, and
+  each bobber hangs right at the end of its line.
+- Ducks swim a tile clear of the dock (`duckWater`), so they never paddle over the planks. A
+  leaping fish picks its spot as the leap starts, at least two tiles from every duck, and keeps it
+  (`leapSpotAwayFrom`).
+- **Verified:** typecheck, lint, tests (no duck water touches the dock on four islands; leaps keep
+  clear of a duck), build; browser: the fisher on the west-facing dock with rod, line and bobber.
+
 ### 2026-11-28 — A breeze you notice, leaves that stay put (user request)
 
 - The drifting leaves moved with the player: they wrapped round the camera. Now each leaf drifts

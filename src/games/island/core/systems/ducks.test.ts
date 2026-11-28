@@ -4,6 +4,7 @@ import { ISLAND_CONFIG } from '../config';
 import { createGameState, stepGame, type GameState } from '../game/gameState';
 import { generateValidWorld } from '../generation/testUtils';
 import { createPlayer } from '../entities/player';
+import { TileId } from '../world/tiles';
 import { createDuckFamily, duckWater, updateDuckFamily, type Duck } from './ducks';
 import { tileAt } from './waterPaths';
 
@@ -90,5 +91,21 @@ describe('the duck family', () => {
     const world = generateValidWorld(46);
     const off = { ...ISLAND_CONFIG.ducks, enabled: false };
     expect(createDuckFamily(world, duckWater(world), createRng(1), off, TILE)).toBeNull();
+  });
+});
+
+describe('the ducks and the dock', () => {
+  it.each([46, 1, 7, 3068120830])('swim a tile clear of the dock (seed %i)', (seed) => {
+    const world = generateValidWorld(seed);
+    const water = duckWater(world);
+    for (const tile of water) {
+      const x = tile % world.width;
+      const y = Math.floor(tile / world.width);
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          expect(world.terrain[(y + dy) * world.width + x + dx]).not.toBe(TileId.Dock);
+        }
+      }
+    }
   });
 });

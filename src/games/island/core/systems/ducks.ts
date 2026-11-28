@@ -56,13 +56,24 @@ const LINE_DIRECTIONS = [
 ] as const;
 
 /**
- * Where the ducks may swim: the lake's open water, away from the shore (the
- * shallows too, if the open water is tiny).
+ * Where the ducks may swim: the lake's open water, away from the shore and a
+ * tile clear of the dock (the shallows too, if the open water is tiny).
  */
 export function duckWater(world: World): Set<number> {
+  // A tile clear of the dock all round: a duck is wider than a tile and would paddle over the planks.
+  const byDock = new Set<number>();
+  world.terrain.forEach((tile, index) => {
+    if (tile !== TileId.Dock) return;
+    const x = index % world.width;
+    const y = Math.floor(index / world.width);
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) byDock.add((y + dy) * world.width + x + dx);
+    }
+  });
   const open = new Set<number>();
   const all = new Set<number>();
   world.terrain.forEach((tile, index) => {
+    if (byDock.has(index)) return;
     if (tile === TileId.LakeWater) open.add(index);
     if (tile === TileId.LakeWater || tile === TileId.LakeShallow) all.add(index);
   });

@@ -4,7 +4,7 @@ import { SPLASH_SECONDS, type FishJump } from './fishJumps';
 import { DIVE_SPLASH_SECONDS, diveAt, EMERGE_PX, leapScene } from './fishLeap';
 
 const settings = ISLAND_CONFIG.lakeLife;
-const at = (progress: number): FishJump => ({ x: 100, y: 100, toLeft: false, progress });
+const at = (progress: number): FishJump => ({ index: 0, x: 100, y: 100, toLeft: false, progress });
 
 describe('a leaping fish', () => {
   it('bursts out with a splash before the fish shows, and shows only clear of the water', () => {

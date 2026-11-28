@@ -7,13 +7,15 @@ import { FISH_KEYS, RIPPLE_KEYS, SPLASH_KEYS, WAKE_KEYS } from '../assets/paintL
 import { DUCK_SPRITE, DUCKLING_SPRITE } from '../assets/paintDucks';
 import { ISLAND_CONFIG } from '../core/config';
 import type { GameState } from '../core/game/gameState';
-import { fishJumpAt, leapSpots } from './fishJumps';
+import { fishJumpAt, leapSpotAwayFrom, leapSpots } from './fishJumps';
 import { leapScene, type Splash } from './fishLeap';
 import type { LightingUniforms } from './lighting';
 import { createSpriteGeometry } from './spriteGeometry';
 import { createSpriteMaterial } from './spriteMaterial';
 import { GROUND_DECAL_Z, standingSpriteZ, worldYFromMapPx } from './worldSpace';
 
+/** A leaping fish keeps this far from every duck (tiles). */
+const LEAP_CLEAR_OF_DUCKS_TILES = 2;
 /** A duck's wake shimmers at this pace. */
 const WAKE_FRAME_SECONDS = 0.35;
 /** The fish is drawn this far up from its middle, so its belly meets the water as it leaves. */
@@ -65,6 +67,10 @@ export function LakeLife({ state, atlas, lighting }: LakeLifeProps): JSX.Element
   // The fish, the burst splash (crown, rings), the dive splash (crown, rings), then one wake per duck.
   const meshes = useRef<(Mesh | null)[]>([]);
   const ducks = state.ducks?.ducks ?? [];
+  const leapSpot = useRef<{ index: number; spot: { x: number; y: number } | null }>({
+    index: -1,
+    spot: null,
+  });
 
   useFrame(({ clock }) => {
     const seconds = clock.elapsedTime;
@@ -96,7 +102,18 @@ export function LakeLife({ state, atlas, lighting }: LakeLifeProps): JSX.Element
       if (ripple && s && rippleFrame) placeCentre(ripple, rippleFrame, s.x, s.y, GROUND_DECAL_Z);
     };
 
-    const jump = fishJumpAt(seconds, spots, ISLAND_CONFIG.lakeLife);
+    // Each leap picks its spot once, as it starts, clear of the ducks (the fish never jumps
+    // out under a duck), and keeps it for the whole leap.
+    const due = fishJumpAt(seconds, spots, ISLAND_CONFIG.lakeLife);
+    if (due && leapSpot.current.index !== due.index) {
+      const clear = LEAP_CLEAR_OF_DUCKS_TILES * ISLAND_CONFIG.map.tileSizePx;
+      leapSpot.current = {
+        index: due.index,
+        spot: leapSpotAwayFrom(due.index, spots, ducks, clear),
+      };
+    }
+    const chosen = leapSpot.current.spot;
+    const jump = due && chosen ? { ...due, x: chosen.x, y: chosen.y } : due;
     const scene = jump ? leapScene(jump, ISLAND_CONFIG.lakeLife) : null;
     const leaping = scene?.fish ?? null;
     const fishKey = leaping ? FISH_KEYS[leaping.pose] : null;

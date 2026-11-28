@@ -30,7 +30,7 @@ const C: Readonly<Record<string, Rgba>> = {
   o: hexToRgba('#4a2e1c'), // outline
   m: hexToRgba('#8c8c94'), // metal band
   w: hexToRgba('#5aa2e0'), // water
-  l: hexToRgba('#d8dde4'), // fishing line
+  l: hexToRgba('#4a5866'), // fishing line: dark, so it shows against the water
   r: hexToRgba('#e04848'), // bobber red
   b: hexToRgba('#fff6e0'), // bobber white, book pages
   c: hexToRgba('#4f7fc0'), // book cover

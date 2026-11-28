@@ -14,8 +14,12 @@ export const SPLASH_SECONDS = 0.9;
 /** How far a leap carries the fish sideways (map pixels). */
 export const LEAP_TRAVEL_PX = 12;
 const SHORE_GAP_TILES = 2;
+/** How many spots a leap tries before giving up on keeping clear of the ducks. */
+const SPOT_TRIES = 8;
 
 export interface FishJump {
+  /** Which leap this is (one per stretch of `fishJumpEverySeconds`). */
+  readonly index: number;
   /** Where it leaps from (map pixels), and which way. */
   readonly x: number;
   readonly y: number;
@@ -48,6 +52,27 @@ export function leapSpots(world: World, tileSizePx: number): { x: number; y: num
   return spots;
 }
 
+/**
+ * Where leap `index` happens, keeping clear of the ducks: the first of a few
+ * spots (picked by a hash, so the same leap always tries the same ones) that is
+ * at least `clearPx` from every duck; the first one if none is.
+ */
+export function leapSpotAwayFrom(
+  index: number,
+  spots: readonly { x: number; y: number }[],
+  ducks: readonly { x: number; y: number }[],
+  clearPx: number,
+): { x: number; y: number } | null {
+  let first: { x: number; y: number } | null = null;
+  for (let attempt = 1; attempt <= SPOT_TRIES; attempt++) {
+    const spot = spots[hashCoords(index, attempt, 0xf15b) % spots.length];
+    if (!spot) continue;
+    first ??= spot;
+    if (ducks.every((d) => Math.hypot(d.x - spot.x, d.y - spot.y) >= clearPx)) return spot;
+  }
+  return first;
+}
+
 export function fishJumpAt(
   seconds: number,
   spots: readonly { x: number; y: number }[],
@@ -64,6 +89,7 @@ export function fishJumpAt(
   const spot = spots[hashCoords(index, 1, 0xf15b) % spots.length];
   if (!spot) return null;
   return {
+    index,
     x: spot.x,
     y: spot.y,
     toLeft: (roll & 1) === 0,
