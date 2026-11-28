@@ -11,6 +11,7 @@ import {
   soundscapeLevels,
   villageDistances,
 } from '../core/systems/soundscape';
+import { eveningMusician } from '../core/systems/eveningMusic';
 import { useIslandUiStore } from '../state';
 
 /** How often to check for a new footstep (ms): short, so steps land on the beat of the feet. */
@@ -80,6 +81,7 @@ export function AmbientSound({ game }: { readonly game: GameState }): null {
           distances,
           settings,
           ISLAND_CONFIG.map.tileSizePx,
+          eveningMusician(game.villagers),
         ),
       );
     };

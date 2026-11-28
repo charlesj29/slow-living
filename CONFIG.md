@@ -62,6 +62,7 @@ Change a value, save, and the page updates (`npm run dev`).
 | `rabbits`, `ducks`                                          | How many, how fast, and how shy they are.                                                                                 |
 | `wildlife.night`                                            | When the animals sleep (rabbits by cover, ducks by the shore).                                                            |
 | `afterRain`                                                 | After a shower: how many puddles (village paths, the kid's field), how long they take to dry, how long the rainbow stays. |
+| `ambience.guitar`                                           | How near you must be to hear the guitar at the evening gathering (full / gone, tiles).                                    |
 | `playmates.splashSeconds`                                   | How long the kid splashes in a puddle after rain.                                                                         |
 | `birds.songSeconds`                                         | How long a bird sings (a note balloon) coming out from shelter after rain.                                                |
 | `animals`                                                   | How many chickens and cats, how fast, how far they roam, how jumpy the chickens are.                                      |

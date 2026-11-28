@@ -14,10 +14,28 @@ import {
   surf,
 } from './ambienceSounds';
 import { startTicker, type Ticker } from './ticker';
-import { bell, chimes, footstep, syllable, voiceBed, type FootstepGround } from './villageSounds';
+import {
+  bell,
+  chimes,
+  footstep,
+  strum,
+  syllable,
+  voiceBed,
+  type FootstepGround,
+} from './villageSounds';
 
 export type AmbienceLayer =
-  'waves' | 'birds' | 'crickets' | 'rain' | 'fire' | 'chimes' | 'chatter' | 'steps' | 'bell';
+  | 'waves'
+  | 'birds'
+  | 'crickets'
+  | 'rain'
+  | 'fire'
+  | 'chimes'
+  | 'chatter'
+  | 'steps'
+  | 'bell'
+  /** A little guitar played at the evening gathering. */
+  | 'guitar';
 /** 0..1 per layer. */
 export type AmbienceLevels = Readonly<Record<AmbienceLayer, number>>;
 
@@ -31,6 +49,7 @@ export const AMBIENCE_LAYERS: readonly AmbienceLayer[] = [
   'chatter',
   'steps',
   'bell',
+  'guitar',
 ];
 
 export interface AmbiencePlayerOptions {
@@ -68,6 +87,13 @@ const CRICKETS = [
   { pitch: 5150, every: 0.93 },
 ] as const;
 const RNG_SEED = 0xa3b1;
+/** The guitar's slow, warm round of chords (C, A minor, F, G), each picked low to high (Hz). */
+const GUITAR_CHORDS: readonly (readonly number[])[] = [
+  [130.81, 196, 261.63, 329.63],
+  [110, 164.81, 220, 261.63],
+  [87.31, 130.81, 174.61, 220],
+  [98, 146.83, 196, 246.94],
+];
 
 interface Graph {
   readonly context: AudioContext;
@@ -98,6 +124,7 @@ function buildGraph(context: AudioContext): Graph {
     chatter: layer(),
     steps: layer(),
     bell: layer(),
+    guitar: layer(),
   };
   const noise = noiseBuffer(context, 11);
   surf(context, noise, layers.waves);
@@ -121,9 +148,18 @@ export function createAmbiencePlayer(options: AmbiencePlayerOptions): AmbiencePl
     chatter: 0,
     steps: 0,
     bell: 0,
+    guitar: 0,
   };
   const rng = createRng(RNG_SEED);
-  const next = { bird: 0, crackle: 0, chime: 0, syllable: 0, crickets: CRICKETS.map(() => 0) };
+  const next = {
+    bird: 0,
+    crackle: 0,
+    chime: 0,
+    syllable: 0,
+    strum: 0,
+    chord: 0,
+    crickets: CRICKETS.map(() => 0),
+  };
 
   /** Queues the short sounds due before the lookahead horizon (or skips them while silent). */
   const tick = (): void => {
@@ -149,6 +185,13 @@ export function createAmbiencePlayer(options: AmbiencePlayerOptions): AmbiencePl
     if (levels.chatter < AUDIBLE) next.syllable = Math.max(next.syllable, now);
     while (levels.chatter >= AUDIBLE && next.syllable < horizon) {
       next.syllable = syllable(graph.syllables, Math.max(next.syllable, now), rng);
+    }
+    // The guitar: chord after chord round the progression, while it can be heard.
+    if (levels.guitar < AUDIBLE) next.strum = Math.max(next.strum, now);
+    while (levels.guitar >= AUDIBLE && next.strum < horizon) {
+      const chord = GUITAR_CHORDS[next.chord % GUITAR_CHORDS.length] ?? [];
+      next.strum = strum(context, layers.guitar, Math.max(next.strum, now), chord, rng);
+      next.chord += 1;
     }
     CRICKETS.forEach((cricket, i) => {
       let at = Math.max(next.crickets[i] ?? 0, now);

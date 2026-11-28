@@ -22,6 +22,8 @@ export interface SoundscapeLevels {
   /** Footsteps and the bell are short sounds: how loud they come through here. */
   readonly steps: number;
   readonly bell: number;
+  /** The guitar at the evening gathering, louder as you get near the player. */
+  readonly guitar: number;
 }
 
 /** Steps (8-way) from every tile to the sea, and to the village. */
@@ -72,6 +74,9 @@ const FIRE_FADE_TILES = 6;
 const ROOF_RAIN = 2;
 
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
+/** Full within `nearTiles`, gone by `farTiles`. */
+const fadeByTiles = (tiles: number, range: { nearTiles: number; farTiles: number }): number =>
+  clamp01(1 - (tiles - range.nearTiles) / (range.farTiles - range.nearTiles));
 
 /** Steps (8-way) from every tile to the nearest sea tile. */
 export function seaDistances(world: World): Int32Array {
@@ -111,6 +116,7 @@ export function soundscapeLevels(
   distances: Distances,
   settings: IslandConfig['ambience'],
   tileSizePx: number,
+  musician: { readonly x: number; readonly y: number } | null = null,
 ): SoundscapeLevels {
   const day = 1 - night;
   const birds = day * (1 - rain);
@@ -127,6 +133,7 @@ export function soundscapeLevels(
       chatter: 0,
       steps: 1,
       bell: damp,
+      guitar: 0,
     };
   }
   const tx = Math.floor(listener.x / tileSizePx);
@@ -148,5 +155,11 @@ export function soundscapeLevels(
     chatter: village * day * (1 - rain),
     steps: 1,
     bell: 1,
+    guitar: musician
+      ? fadeByTiles(
+          Math.hypot(musician.x - listener.x, musician.y - listener.y) / tileSizePx,
+          settings.guitar,
+        )
+      : 0,
   };
 }

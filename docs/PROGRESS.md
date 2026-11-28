@@ -89,6 +89,18 @@
 
 ## Session log
 
+### 2026-11-28 — Music at the evening gathering (user request)
+
+- The first villager settled in round the well in the evening (the old man, on the default island)
+  plays a little guitar: held across the body, with notes in three soft colours floating up and
+  swaying as they rise. A soft guitar plays in the ambience (plucked chords round C, A minor, F,
+  G, made in code like the chimes): full within 3 tiles, fading to silence by 14 (`ambience.guitar`),
+  gone indoors and when the gathering ends.
+- `core/systems/eveningMusic.ts` (who plays), a `guitar` sound layer (`shared/audio`), `render/EveningMusic.tsx`,
+  `assets/paintMusic.ts`.
+- **Verified:** typecheck, lint, tests (the first settled-in villager plays; the guitar fades with
+  distance), build; browser at the gathering: the old man playing, notes floating up; console clean.
+
 ### 2026-11-28 — A proper heart in the balloon (user report)
 
 - The heart looked like a diamond (its round lobes blended into a point). It is now drawn pixel by

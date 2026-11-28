@@ -18,6 +18,7 @@ import { paintLakeLifeSprites } from './paintLakeLife';
 import { paintPlaymateSprites } from './paintPlaymates';
 import { paintPuppySprites } from './paintPuppy';
 import { paintCoopSprites } from './paintCoop';
+import { paintMusicSprites } from './paintMusic';
 import { paintWaterLightSprites } from './paintWaterLights';
 import { paintLaundrySprites } from './paintLaundry';
 import { paintWindowLights } from './paintLights';
@@ -70,6 +71,7 @@ export function paintIslandSprites(): SpriteSource[] {
     ...paintPlaymateSprites(),
     ...paintPuppySprites(),
     ...paintCoopSprites(),
+    ...paintMusicSprites(),
     ...paintWaterLightSprites(),
     ...paintCatSprites(),
     ...paintBubbleSprites(),

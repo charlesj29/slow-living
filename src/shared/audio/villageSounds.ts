@@ -140,3 +140,34 @@ export function bell(context: BaseAudioContext, out: AudioNode, time: number): v
     }
   }
 }
+
+/**
+ * One chord on a little guitar, picked note by note (low to high), each string
+ * a soft pluck: a triangle tone with a quiet octave above, quick to sound and
+ * slow to die away. Returns when the next chord should start.
+ */
+export function strum(
+  context: BaseAudioContext,
+  out: AudioNode,
+  time: number,
+  chord: readonly number[],
+  rng: Rng,
+): number {
+  let t = time;
+  for (const frequency of chord) {
+    for (const [type, multiple, peak] of [
+      ['triangle', 1, 0.5],
+      ['sine', 2, 0.12],
+    ] as const) {
+      const osc = context.createOscillator();
+      osc.type = type;
+      osc.frequency.value = frequency * multiple;
+      const ring = rng.range(1.4, 1.9);
+      osc.connect(envelope(context, t, peak, 0.006, ring)).connect(out);
+      osc.start(t);
+      osc.stop(t + ring + 0.1);
+    }
+    t += rng.range(0.32, 0.4);
+  }
+  return t + rng.range(0.15, 0.3);
+}

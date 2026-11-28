@@ -531,7 +531,10 @@ export interface IslandConfig {
       readonly chatter: number;
       readonly steps: number;
       readonly bell: number;
+      readonly guitar: number;
     };
+    /** The evening guitar is loudest within `nearTiles` of the player, gone by `farTiles`. */
+    readonly guitar: { readonly nearTiles: number; readonly farTiles: number };
     /** Wind chimes and voices are loudest within `nearTiles` of the village, gone by `farTiles`. */
     readonly village: { readonly nearTiles: number; readonly farTiles: number };
     /** When the distant village bell rings (fractions of a day: 0.5 = noon, 0.75 = 6 PM). */
@@ -943,7 +946,9 @@ export const ISLAND_CONFIG: IslandConfig = {
       chatter: 0.1,
       steps: 0.3,
       bell: 0.28,
+      guitar: 0.3,
     },
+    guitar: { nearTiles: 3, farTiles: 14 },
     village: { nearTiles: 1, farTiles: 14 },
     bellTimes: [0.5, 0.75],
     waves: { nearTiles: 2, farTiles: 16, floor: 0.06 },
