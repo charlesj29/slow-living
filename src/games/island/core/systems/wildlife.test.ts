@@ -54,7 +54,7 @@ describe('animals in the rain and at night', () => {
   });
 
   it('birds shelter under trees in the rain, fluffed up', () => {
-    const areas = birdAreas(world, roam, createRng(5), ISLAND_CONFIG.birds.areaRadiusTiles);
+    const areas = birdAreas(world, roam, ISLAND_CONFIG.birds.areaRadiusTiles);
     const birds = createBirds(world, areas, createRng(6), ISLAND_CONFIG.birds, TILE);
     const rng = createRng(7);
     steps(20, () => {

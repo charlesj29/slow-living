@@ -13,7 +13,7 @@ const STEP = 1 / 60;
 const settings = ISLAND_CONFIG.birds;
 const world = generateValidWorld(46);
 const roam = roamTiles(world);
-const areas = birdAreas(world, roam, createRng(1), settings.areaRadiusTiles);
+const areas = birdAreas(world, roam, settings.areaRadiusTiles);
 const tileOf = (b: Bird): number => Math.floor(b.y / TILE) * world.width + Math.floor(b.x / TILE);
 
 function run(birds: Bird[], seconds: number, player: ReturnType<typeof createPlayer> | null): void {
@@ -26,7 +26,7 @@ function run(birds: Bird[], seconds: number, player: ReturnType<typeof createPla
 }
 
 describe('little birds', () => {
-  it('have three places: the forest edge, before the studio, before the cottage', () => {
+  it('have three places: before the studio, before the cottage, round the well', () => {
     expect(areas).toHaveLength(3);
     const near = (kind: string): boolean => {
       const building = world.objects.find((o) => o.kind === kind);
@@ -36,12 +36,15 @@ describe('little birds', () => {
     };
     expect(near('studio')).toBe(true);
     expect(near('cabin')).toBe(true);
+    const well = world.objects.find((o) => o.kind === 'well');
+    expect(well && areas[2]?.some((t) => Math.abs((t % world.width) - well.x) <= 1)).toBe(true);
   });
 
-  it('start in their flock’s place, in the configured numbers, and keep to it', () => {
+  it('are scattered: a flock in each place, and each keeps to its own', () => {
     const birds = createBirds(world, areas, createRng(2), settings, TILE);
     expect(birds).toHaveLength(settings.brown + settings.blue);
     for (const b of birds) expect(b.homeSet.has(tileOf(b))).toBe(true);
+    expect(new Set(birds.map((b) => b.home)).size).toBe(areas.length);
     run(birds, 60, null);
     for (const b of birds) if (!b.flight) expect(b.homeSet.has(tileOf(b))).toBe(true);
   });

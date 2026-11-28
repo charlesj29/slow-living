@@ -1,8 +1,9 @@
-// Little birds at the forest's edge, before the studio and before the cottage. A bird pecks at the ground or looks about,
-// now and then hops a few pixels or flits a short way; when the player comes
-// close it flutters off to land a few tiles further on, away from them. They
-// live in two small flocks, each keeping to its own place (see `birdAreas`). Pure: positions and timers advance by the fixed
-// step; randomness comes from the rng passed in.
+// Little birds, a small flock before the studio, one before the cottage and one
+// round the village well (see `birdAreas`), each keeping to its own place. A
+// bird pecks at the ground or looks about, now and then hops a few pixels or
+// flits a short way; when someone comes close it flutters off to land a few
+// tiles further on, away from them. Pure: positions and timers advance by the
+// fixed step; randomness comes from the rng passed in.
 import type { Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import type { Player } from '../entities/player';
@@ -57,7 +58,6 @@ const FLIGHT_ARC_PER_PX = 0.25;
 const LANDING_TRIES = 12;
 /** Birds of a flock start within this many tiles of its middle. */
 const FLOCK_SPREAD_TILES = 2;
-const FLOCKS = 2;
 /** Others startle them from this share of the player's distance. */
 const WALKER_STARTLE_SHARE = 0.6;
 
@@ -97,8 +97,8 @@ export function createBirds(
     ...Array.from({ length: settings.blue }, (): BirdColor => 'blue'),
   ];
   // Each flock settles in one of the places, picked at random.
-  const flocks = Array.from({ length: FLOCKS }, () => {
-    const home = rng.pick(areas);
+  // One flock in each place, so the birds are scattered over the island.
+  const flocks = areas.map((home) => {
     const shelters = underTrees(world, home);
     return {
       home,
@@ -110,7 +110,7 @@ export function createBirds(
   });
   const spread = FLOCK_SPREAD_TILES * tileSizePx;
   return colors.map((color, id) => {
-    const flock = flocks[id % FLOCKS] ?? flocks[0];
+    const flock = flocks[id % flocks.length] ?? flocks[0];
     if (!flock) throw new Error('no flock');
     const [fx, fy] = flock.middle;
     const ground = flock.home;

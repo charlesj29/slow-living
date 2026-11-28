@@ -221,7 +221,7 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     duckWater: water,
     birds: createBirds(
       world,
-      birdAreas(world, roam, birdRng, config.birds.areaRadiusTiles),
+      birdAreas(world, roam, config.birds.areaRadiusTiles),
       birdRng,
       config.birds,
       config.map.tileSizePx,

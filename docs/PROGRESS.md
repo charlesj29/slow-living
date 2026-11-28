@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-28 — Birds scattered over the studio, cottage and village (user request)
+
+- Both flocks often landed in the same place (they picked at random). Now there is one flock in
+  each of three places, before the studio, before the cottage and round the village well, with
+  the birds shared between them; the forest-edge spot is gone. `core/systems/birdAreas.ts`.
+- **Verified:** typecheck, lint, tests (three places, a flock in each, each keeps to its own),
+  build; browser: birds by the well, before the cottage and by the studio.
+
 ### 2026-11-28 — Nobody walks through anybody (user request)
 
 - Everyone on foot keeps out of each other's way: the villagers now also go round the rabbits,

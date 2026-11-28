@@ -172,8 +172,8 @@ export interface IslandConfig {
     readonly fleeHops: number;
   };
   /**
-   * Little birds hopping and pecking at the forest edge, before the studio or the cottage (they
-   * flutter off when you come close),
+   * Little birds hopping and pecking in flocks before the studio, before the cottage and round the
+   * village well (they flutter off when you come close),
    * and seagulls gliding over the sea. Out by day only.
    */
   readonly birds: {
@@ -183,7 +183,7 @@ export interface IslandConfig {
     /** The times of day they are out (0.25 = 6 AM, 0.75 = 6 PM). */
     readonly awake: readonly [from: number, to: number];
     readonly fleeRadiusTiles: number;
-    /** How big each flock's place is (forest edge, studio, cottage: radius in tiles). */
+    /** How big each flock's place is (studio, cottage, village well: radius in tiles). */
     readonly areaRadiusTiles: number;
     /** How far a startled bird flies (tiles), and how fast (map pixels per second). */
     readonly flyTiles: Range;
