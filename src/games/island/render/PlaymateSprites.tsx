@@ -3,14 +3,8 @@ import { useEffect, useMemo, useRef, type JSX } from 'react';
 import type { BufferGeometry, Mesh } from 'three';
 import type { SpriteAtlas } from '@/shared/render/spriteAtlas';
 import { BUBBLE_KINDS, bubbleKey } from '../assets/paintBubbles';
-import {
-  BALL_KEY,
-  DOG_FRAMES,
-  DOG_KEY,
-  KID_FRAMES,
-  kidKey,
-  type KidView,
-} from '../assets/paintPlaymates';
+import { BALL_KEY, KID_FRAMES, kidKey, type KidView } from '../assets/paintPlaymates';
+import { DOG_FRAMES, dogKey, type DogView } from '../assets/paintPuppy';
 import { SHADOW_KEYS } from '../assets/paintShadows';
 import type { BubbleKind } from '../core/entities/villager';
 import type { GameState } from '../core/game/gameState';
@@ -27,7 +21,7 @@ const WAG_FRAME_SECONDS = 0.15;
 const FOOT_INSET_PX = 1;
 /** Where the ball sits in the kid's hand (raised when throwing) and the puppy's mouth. */
 const HAND = { side: 5, up: 2, raised: 9 } as const;
-const MOUTH = { side: 7, up: 5 } as const;
+const MOUTH = { side: 7, up: 5, upFront: 4 } as const;
 /** Speech bubbles float above the head; bubbles draw over everything else. */
 const BUBBLE_ABOVE = { kid: 24, dog: 18 } as const;
 const BUBBLE_Z = 40;
@@ -44,6 +38,12 @@ function kidFrame(p: Playmates, seconds: number): number {
     : p.kid.pose === 'cheer'
       ? KID_FRAMES.cheer
       : KID_FRAMES.stand;
+}
+
+/** The puppy's view: back going up, front coming down, else the side (asleep: always the side). */
+function dogViewOf(p: Playmates): DogView {
+  if (p.dog.pose === 'sleep') return 'side';
+  return p.dog.facing === 'up' ? 'back' : p.dog.facing === 'down' ? 'front' : 'side';
 }
 
 function dogFrame(p: Playmates, seconds: number): number {
@@ -71,12 +71,12 @@ export function PlaymateSprites({
 }: PlaymateSpritesProps): JSX.Element | null {
   const p = state.playmates;
   const kidFrameSize = atlas.frame(kidKey('front'));
-  const dogFrameSize = atlas.frame(DOG_KEY);
+  const dogFrameSize = atlas.frame(dogKey('side'));
   const ballFrame = atlas.frame(BALL_KEY);
   const geometries = useMemo(
     () => ({
       kid: createSpriteGeometry(atlas.frame(kidKey('front'))),
-      dog: createSpriteGeometry(atlas.frame(DOG_KEY)),
+      dog: createSpriteGeometry(atlas.frame(dogKey('side'))),
       ball: createSpriteGeometry(atlas.frame(BALL_KEY)),
       shadow: createSpriteGeometry(atlas.frame(SHADOW_KEYS.small)),
       tinyShadow: createSpriteGeometry(atlas.frame(SHADOW_KEYS.tiny)),
@@ -114,6 +114,7 @@ export function PlaymateSprites({
   const bubble = useRef<Mesh>(null);
   const shownView = useRef<KidView>('front');
   const dogSide = useRef<'left' | 'right'>('left');
+  const shownDogView = useRef<DogView>('side');
 
   useFrame(({ clock }) => {
     if (!p || !kid.current || !dog.current || !ball.current) return;
@@ -146,8 +147,13 @@ export function PlaymateSprites({
     // The puppy: seen from the side, keeping its last sideways look when going up or down.
     const [dx, dy] = at(p.dog);
     if (p.dog.facing === 'left' || p.dog.facing === 'right') dogSide.current = p.dog.facing;
+    const dogView = dogViewOf(p);
+    if (dogView !== shownDogView.current) {
+      setSpriteGeometryFrame(geometries.dog, atlas.frame(dogKey(dogView)));
+      shownDogView.current = dogView;
+    }
     setAnimationFrame(materials.dog, dogFrame(p, seconds));
-    dog.current.scale.x = dogSide.current === 'right' ? -1 : 1;
+    dog.current.scale.x = dogView === 'side' && dogSide.current === 'right' ? -1 : 1;
     dog.current.position.set(
       dx,
       worldYFromMapPx(dy + FOOT_INSET_PX) + dogFrameSize.height / 2,
@@ -169,10 +175,11 @@ export function PlaymateSprites({
       lift = p.kid.pose === 'throw' ? HAND.raised : HAND.up;
       z = standingSpriteZ(ky) + (p.kid.facing === 'up' ? -IN_FRONT : IN_FRONT);
     } else if (b.holder === 'dog') {
-      bx = dx + dogFacing * MOUTH.side;
+      // In the mouth: to the side, or in front of (or hidden behind) the head.
+      bx = dogView === 'side' ? dx + dogFacing * MOUTH.side : dx;
       by = dy;
-      lift = MOUTH.up;
-      z = standingSpriteZ(dy) + IN_FRONT;
+      lift = dogView === 'side' ? MOUTH.up : MOUTH.upFront;
+      z = standingSpriteZ(dy) + (dogView === 'back' ? -IN_FRONT : IN_FRONT);
     } else if (b.flight) {
       lift = Math.round(Math.sin(Math.PI * b.flight.t) * BALL_ARC_PX);
     }

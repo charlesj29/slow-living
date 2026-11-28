@@ -1,8 +1,7 @@
-// The village kid, the puppy and their ball, soft and round like the rabbits.
+// The village kid and their ball, soft and round like the rabbits.
 // The kid (big round head, brown bob, yellow dress, red shoes) has three views
 // (front, back, side facing left) of five frames: stand, two walk steps, throw
-// (an arm up) and cheer (both arms up). The puppy is seen from the side facing
-// left: sit, wag, two trot steps, sniff (nose down) and asleep (curled up).
+// (an arm up) and cheer (both arms up). The puppy is in paintPuppy.ts.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import { hexToRgba, type Rgba } from '@/shared/render/pixelCanvas';
 import { capsule, ellipse, outline, put, softCanvas, softGrid, type SoftGrid } from './softShapes';
@@ -13,9 +12,6 @@ export const KID_VIEWS = ['front', 'back', 'side'] as const;
 export type KidView = (typeof KID_VIEWS)[number];
 export const kidKey = (view: KidView): string => `kid_${view}`;
 
-export const DOG_FRAMES = { sit: 0, wag: 1, trot: [2, 3], sniff: 4, sleep: 5 } as const;
-export const DOG_FRAME_COUNT = 6;
-export const DOG_KEY = 'dog_side';
 export const BALL_KEY = 'ball';
 
 const KID_W = 14;
@@ -134,67 +130,6 @@ const KID_COLORS: Readonly<Record<string, Rgba>> = {
   p: hexToRgba('#f7a3a0'),
 };
 
-const DOG_W = 17;
-const DOG_H = 13;
-
-/** The puppy facing left; paws on the bottom row. */
-function dog(frame: number): SoftGrid {
-  const g = softGrid(DOG_W, DOG_H);
-  if (frame === DOG_FRAMES.sleep) {
-    capsule(g, 13, 9.4, 11, 11.4, 1.1, 'w'); // the tail curled round
-    ellipse(g, 8.6, 9.4, 5.6, 2.6, 'w', 's');
-    ellipse(g, 4.4, 9.6, 3.1, 2.4, 'w');
-    capsule(g, 5.6, 8, 6.6, 10, 1, 'k');
-    ellipse(g, 2.6, 10.4, 1.5, 1.1, 'b');
-    put(g, 1.2, 10, 'n');
-    put(g, 3.4, 9.4, 'o'); // a closed eye
-    put(g, 4.2, 10.6, 'p');
-    outline(g);
-    return g;
-  }
-  const sitting = frame === DOG_FRAMES.sit || frame === DOG_FRAMES.wag;
-  const sniffing = frame === DOG_FRAMES.sniff;
-  // The tail: up and curled, swishing the other way when wagging.
-  const tailTip = frame === DOG_FRAMES.wag ? [15.4, 6.4] : [14.6, 3.8];
-  capsule(g, 12.6, sitting ? 8.6 : 7, tailTip[0] ?? 0, tailTip[1] ?? 0, 1.1, 'w');
-  if (sitting) {
-    ellipse(g, 11, 10.4, 2.6, 1.8, 'w', 's'); // the haunch
-    capsule(g, 6.8, 9, 6.8, 11.8, 0.9, 'w');
-    capsule(g, 8.4, 9, 8.4, 11.8, 0.9, 's');
-    ellipse(g, 9.4, 8.2, 3.6, 3.2, 'w', 's');
-    ellipse(g, 8.4, 9.6, 1.8, 1.6, 'b');
-  } else {
-    const step = frame === DOG_FRAMES.trot[0] ? 1 : frame === DOG_FRAMES.trot[1] ? -1 : 0;
-    capsule(g, 5.8, 9.5, 5.8 - step, 11.8, 0.9, 'w');
-    capsule(g, 7.4, 9.5, 7.4 + step, 11.8, 0.9, 's');
-    capsule(g, 11, 9.5, 11 + step, 11.8, 0.9, 's');
-    capsule(g, 12.6, 9.5, 12.6 - step, 11.8, 0.9, 'w');
-    ellipse(g, 9.2, 8.2, 4.8, 3, 'w', 's');
-    ellipse(g, 8.6, 9.6, 2.8, 1.3, 'b');
-  }
-  const hx = sitting ? 5.6 : sniffing ? 4 : 4.6;
-  const hy = sitting ? 4.6 : sniffing ? 8.2 : 5.8;
-  ellipse(g, hx, hy, 3.3, 3, 'w');
-  capsule(g, hx + 1.2, hy - 2, hx + 2, hy + 0.6, 1, 'k'); // a floppy ear
-  ellipse(g, hx - 2.2, hy + 1, 1.6, 1.2, 'b'); // the muzzle
-  put(g, hx - 3.4, hy + 0.4, 'n');
-  put(g, hx - 0.9, hy - 0.6, 'e');
-  put(g, hx - 0.2, hy + 1.2, 'p');
-  outline(g);
-  return g;
-}
-
-const DOG_COLORS: Readonly<Record<string, Rgba>> = {
-  o: hexToRgba('#5a3624'),
-  w: hexToRgba('#f0b878'),
-  s: hexToRgba('#d4955a'),
-  b: hexToRgba('#fff3e2'),
-  k: hexToRgba('#c47a44'),
-  e: hexToRgba('#2a1a14'),
-  n: hexToRgba('#3a2420'),
-  p: hexToRgba('#f5a6a0'),
-};
-
 function ball(): SoftGrid {
   const g = softGrid(6, 6);
   ellipse(g, 2.5, 2.5, 2, 2, 'r');
@@ -229,7 +164,6 @@ export function paintPlaymateSprites(): SpriteSource[] {
       frames: frames((f) => kidFrontOrBack(f, false), KID_FRAME_COUNT, KID_COLORS),
     },
     { key: kidKey('side'), frames: frames(kidSide, KID_FRAME_COUNT, KID_COLORS) },
-    { key: DOG_KEY, frames: frames(dog, DOG_FRAME_COUNT, DOG_COLORS) },
     { key: BALL_KEY, frames: [softCanvas(ball(), BALL_COLORS)] },
   ];
 }

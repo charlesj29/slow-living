@@ -10,7 +10,8 @@ import { RABBIT_FRAME_COUNT } from './paintRabbits';
 import { DUCK_FRAME_COUNT, DUCK_KEYS, DUCKLING_FRAME_COUNT } from './paintDucks';
 import { BUTTERFLY_FRAME_COUNT } from './paintInsects';
 import { BIRD_FRAME_COUNT } from './paintBirds';
-import { DOG_FRAME_COUNT, DOG_KEY, KID_FRAME_COUNT } from './paintPlaymates';
+import { KID_FRAME_COUNT } from './paintPlaymates';
+import { DOG_FRAME_COUNT } from './paintPuppy';
 import { SLEEPING_CAT_FRAME_COUNT, SLEEPING_CAT_KEY } from './paintCat';
 import { BROOM_FRAME_COUNT, CHORE_KEYS } from './paintChoreProps';
 import { LAUNDRY_FRAME_COUNT, LAUNDRY_KEY } from './paintLaundry';
@@ -110,7 +111,7 @@ describe('island sprites', () => {
                   ? RABBIT_FRAME_COUNT
                   : isKid
                     ? KID_FRAME_COUNT
-                    : source.key === DOG_KEY
+                    : source.key.startsWith('dog_')
                       ? DOG_FRAME_COUNT
                       : isBird
                         ? BIRD_FRAME_COUNT

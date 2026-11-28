@@ -89,6 +89,15 @@
 
 ## Session log
 
+### 2026-11-28 — The puppy faces every way (user request)
+
+- The puppy had only a side view; it now has a front view (coming towards you: round face, both
+  eyes, muzzle, paws) and a back view (going away: ears, curly tail over the back), each with the
+  same six frames (sit, wag, trot, sniff; asleep stays the curled-up side pose). The ball sits in
+  front of its face (or behind its head) when seen from the front or back. Art in
+  `assets/paintPuppy.ts` (moved out of `paintPlaymates.ts`).
+- **Verified:** typecheck, lint, tests, build; the three views previewed as a sprite sheet.
+
 ### 2026-11-28 — The kid plays outside the village (user request)
 
 - The kid and the puppy now play in a field of open land just outside the village (2–6 tiles past
