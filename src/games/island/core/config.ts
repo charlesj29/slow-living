@@ -162,6 +162,27 @@ export interface IslandConfig {
     readonly fleeRadiusTiles: number;
     readonly fleeHops: number;
   };
+  /**
+   * Little birds hopping and pecking round the village (they flutter off when you come close),
+   * and seagulls gliding over the sea. Out by day only.
+   */
+  readonly birds: {
+    readonly enabled: boolean;
+    readonly brown: number;
+    readonly blue: number;
+    /** The times of day they are out (0.25 = 6 AM, 0.75 = 6 PM). */
+    readonly awake: readonly [from: number, to: number];
+    readonly fleeRadiusTiles: number;
+    /** How far a startled bird flies (tiles), and how fast (map pixels per second). */
+    readonly flyTiles: Range;
+    readonly flySpeedPx: number;
+    readonly minIdleSeconds: number;
+    readonly maxIdleSeconds: number;
+    readonly gulls: number;
+    /** How wide a seagull's lazy loop is (map pixels), and how long one loop takes. */
+    readonly gullLoopPx: number;
+    readonly gullLoopSeconds: number;
+  };
   /** A mother duck and her ducklings on the lake. */
   readonly ducks: {
     readonly enabled: boolean;
@@ -632,6 +653,20 @@ export const ISLAND_CONFIG: IslandConfig = {
     maxIdleSeconds: 5,
     fleeRadiusTiles: 2.5,
     fleeHops: 3,
+  },
+  birds: {
+    enabled: true,
+    brown: 4,
+    blue: 2,
+    awake: [0.24, 0.8],
+    fleeRadiusTiles: 2.2,
+    flyTiles: { min: 4, max: 8 },
+    flySpeedPx: 70,
+    minIdleSeconds: 0.8,
+    maxIdleSeconds: 3,
+    gulls: 3,
+    gullLoopPx: 40,
+    gullLoopSeconds: 26,
   },
   ducks: {
     enabled: true,

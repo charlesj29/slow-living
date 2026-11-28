@@ -20,6 +20,7 @@ Change a value, save, and the page updates (`npm run dev`).
 | `debug.fpsOnly`                     | F3 shows only the FPS (`false`: also tile and camera).           |
 | `rabbits.enabled` / `ducks.enabled` | The rabbits near the village / the ducks on the lake.            |
 | `animals.enabled`                   | The village chickens and cat (off).                              |
+| `birds.enabled`                     | Little birds in the village and seagulls over the sea.           |
 
 ## Time, light and weather
 
@@ -55,6 +56,7 @@ Change a value, save, and the page updates (`npm run dev`).
 | `villagers.walkSpeedTilesPerSecond`                         | How fast villagers stroll.                                                            |
 | `rabbits`, `ducks`                                          | How many, how fast, and how shy they are.                                             |
 | `butterflies`, `fireflies`                                  | How many, and how they fly or blink.                                                  |
+| `birds`                                                     | How many birds and gulls, when they are out, how shy they are and how far they fly.   |
 | `player.walkSpeedTilesPerSecond` / `runSpeedTilesPerSecond` | How fast you walk and run.                                                            |
 | `tour.idleSeconds`                                          | How long without input before the tour starts.                                        |
 

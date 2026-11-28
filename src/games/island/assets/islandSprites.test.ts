@@ -9,6 +9,7 @@ import { ANIMAL_FRAME_COUNT } from './paintAnimals';
 import { RABBIT_FRAME_COUNT } from './paintRabbits';
 import { DUCK_FRAME_COUNT, DUCK_KEYS, DUCKLING_FRAME_COUNT } from './paintDucks';
 import { BUTTERFLY_FRAME_COUNT } from './paintInsects';
+import { BIRD_FRAME_COUNT } from './paintBirds';
 import { SLEEPING_CAT_FRAME_COUNT, SLEEPING_CAT_KEY } from './paintCat';
 import { BROOM_FRAME_COUNT, CHORE_KEYS } from './paintChoreProps';
 import { LAUNDRY_FRAME_COUNT, LAUNDRY_KEY } from './paintLaundry';
@@ -92,6 +93,7 @@ describe('island sprites', () => {
       const isAnimal = source.key.startsWith('animal_');
       const isRabbit = source.key.startsWith('rabbit_');
       const isButterfly = source.key.startsWith('butterfly_');
+      const isBird = source.key.startsWith('bird_');
       const expected = isWater
         ? WATER_FRAME_COUNT
         : isFlower
@@ -104,19 +106,21 @@ describe('island sprites', () => {
                 ? ANIMAL_FRAME_COUNT
                 : isRabbit
                   ? RABBIT_FRAME_COUNT
-                  : isButterfly
-                    ? BUTTERFLY_FRAME_COUNT
-                    : source.key === DUCK_KEYS.mother
-                      ? DUCK_FRAME_COUNT
-                      : source.key === DUCK_KEYS.duckling
-                        ? DUCKLING_FRAME_COUNT
-                        : source.key === SLEEPING_CAT_KEY
-                          ? SLEEPING_CAT_FRAME_COUNT
-                          : source.key === CHORE_KEYS.broom
-                            ? BROOM_FRAME_COUNT
-                            : source.key === LAUNDRY_KEY
-                              ? LAUNDRY_FRAME_COUNT
-                              : 1;
+                  : isBird
+                    ? BIRD_FRAME_COUNT
+                    : isButterfly
+                      ? BUTTERFLY_FRAME_COUNT
+                      : source.key === DUCK_KEYS.mother
+                        ? DUCK_FRAME_COUNT
+                        : source.key === DUCK_KEYS.duckling
+                          ? DUCKLING_FRAME_COUNT
+                          : source.key === SLEEPING_CAT_KEY
+                            ? SLEEPING_CAT_FRAME_COUNT
+                            : source.key === CHORE_KEYS.broom
+                              ? BROOM_FRAME_COUNT
+                              : source.key === LAUNDRY_KEY
+                                ? LAUNDRY_FRAME_COUNT
+                                : 1;
       expect(source.frames.length, source.key).toBe(expected);
     }
   });

@@ -89,6 +89,21 @@
 
 ## Session log
 
+### 2026-11-28 — Little birds and seagulls (user request)
+
+- Six little birds (four brown sparrows, two blue tits) peck, blink and hop about the village in
+  two small flocks, and now and then flit a short way. Walk close and they flutter off to land a
+  few tiles away from you. Three seagulls glide in lazy loops off the coast, flapping now and
+  then, their shadows on the water. Out by day only. `core/systems/birds.ts` (own rng, so the
+  rest of the island keeps its rhythm), `render/BirdSprites.tsx`, `render/gullFlight.ts`, settings
+  in `birds`.
+- Art in the rabbits' soft, round style (user request: cute and chill), drawn with a new shared
+  `assets/softShapes.ts` (ellipses, rounded strokes, automatic outline) that the dog and fish
+  will use too (D74).
+- **Verified:** typecheck, lint, tests (birds start and stay on village ground, flee the player
+  and land further away; gulls circle over the sea and flap now and then), build; browser: the
+  flock by the thatched house, a gull off the coast; console clean.
+
 ### 2026-11-28 — Night sky and light on the water (user request)
 
 - At night the stars and the moon are reflected on the water: a few dozen twinkling stars on the

@@ -41,6 +41,7 @@ import {
   updateRabbit,
   type Rabbit,
 } from '../systems/rabbits';
+import { birdGround, createBirds, updateBird, type Bird } from '../systems/birds';
 import { createDuckFamily, duckWater, updateDuckFamily, type DuckFamily } from '../systems/ducks';
 import { movePlayer } from '../systems/movement';
 import { followWalk, planTap, type AutoWalk } from '../systems/tapToWalk';
@@ -118,6 +119,11 @@ export interface GameState {
   /** A mother duck and her ducklings on the lake (island only), and the water they keep to. */
   readonly ducks: DuckFamily | null;
   readonly duckWater: ReadonlySet<number>;
+  /** Little birds round the village (island only), the ground they land on, and their own rng. */
+  readonly birds: readonly Bird[];
+  readonly birdGround: ReadonlySet<number>;
+  readonly birdGroundList: readonly number[];
+  readonly birdRng: Rng;
   /** Clear spells and rain showers, with their own rng. */
   readonly weather: Weather;
   readonly weatherRng: Rng;
@@ -138,6 +144,7 @@ const VILLAGER_LOOKS = 3;
 const BAKER_LOOK = 2;
 const WANDER_SEED_SALT = 0x5a11;
 const WEATHER_SEED_SALT = 0x3a1e;
+const BIRD_SEED_SALT = 0xb12d;
 
 function createVillagers(world: World, roam: ReadonlySet<number>, tileSizePx: number): Villager[] {
   if (!world.village) return [];
@@ -176,6 +183,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
   const home = wanderTiles(world);
   const meadow = rabbitMeadow(world, config.rabbits);
   const water = duckWater(world);
+  const ground = birdGround(world, home);
+  const birdRng = createRng(world.generationSeed ^ BIRD_SEED_SALT);
   const maps = new Map<string, World>([[ISLAND_MAP, world]]);
   for (const definition of Object.values(INTERIORS)) {
     maps.set(definition.id, buildInteriorWorld(definition));
@@ -207,6 +216,10 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     rabbitMeadow: meadow,
     ducks: createDuckFamily(world, water, wanderRng, config.ducks, config.map.tileSizePx),
     duckWater: water,
+    birds: createBirds(world, ground, birdRng, config.birds, config.map.tileSizePx),
+    birdGround: new Set(ground),
+    birdGroundList: ground,
+    birdRng,
     weather: createWeather(weatherRng, config.weather),
     weatherRng,
     idleSeconds: 0,
@@ -238,6 +251,7 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   stepAnimals(state, stepSeconds, config);
   stepRabbits(state, stepSeconds, config);
   stepDucks(state, stepSeconds, config);
+  stepBirds(state, stepSeconds, config);
   if (state.transition) {
     stepTransition(state, stepSeconds, config);
     player.moving = false;
@@ -311,6 +325,24 @@ function stepRabbits(state: GameState, stepSeconds: number, config: IslandConfig
       state.wanderRng,
       stepSeconds,
       config.rabbits,
+      config.map.tileSizePx,
+    );
+  }
+}
+
+function stepBirds(state: GameState, stepSeconds: number, config: IslandConfig): void {
+  const island = state.maps.get(ISLAND_MAP) ?? state.world;
+  const player = onIsland(state) ? state.player : null;
+  for (const bird of state.birds) {
+    updateBird(
+      bird,
+      island,
+      state.birdGround,
+      state.birdGroundList,
+      player,
+      state.birdRng,
+      stepSeconds,
+      config.birds,
       config.map.tileSizePx,
     );
   }

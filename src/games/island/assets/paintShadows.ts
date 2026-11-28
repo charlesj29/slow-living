@@ -46,6 +46,7 @@ export const SHADOW_KEYS = {
   large: 'shadow_large',
   medium: 'shadow_medium',
   small: 'shadow_small',
+  tiny: 'shadow_tiny',
   cabin: 'shadow_cabin',
   house: 'shadow_house',
   studio: 'shadow_studio',
@@ -65,6 +66,7 @@ export function paintShadowSprites(): SpriteSource[] {
     { key: SHADOW_KEYS.large, frames: [ellipseShadow(36, 13)] },
     { key: SHADOW_KEYS.medium, frames: [ellipseShadow(18, 8)] },
     { key: SHADOW_KEYS.small, frames: [ellipseShadow(13, 6)] },
+    { key: SHADOW_KEYS.tiny, frames: [ellipseShadow(8, 4)] },
     {
       key: SHADOW_KEYS.cabin,
       frames: [

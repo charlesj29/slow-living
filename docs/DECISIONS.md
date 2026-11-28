@@ -912,3 +912,11 @@ alternatives → consequences.
   rain. Spots come from a hash of the tiles, so an island always has the same stars; the lake gets
   its own share because it is where people look. Window reflections were dropped: no lit building
   stands within reach of water on the default island.
+
+## D74 — Soft shapes for small cute creatures
+
+- **Context:** the user wants new animals as cute and chill as the rabbits, not like the
+  pixel-by-pixel chicken.
+- **Decision:** `assets/softShapes.ts` draws creatures from ellipses and rounded strokes on a
+  letter grid with an automatic outline (the rabbits' method, generalised to any size). Birds,
+  and next the dog and fish, use it; the rabbits keep their own copy (unchanged).
