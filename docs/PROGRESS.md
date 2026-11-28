@@ -18,7 +18,7 @@
   refined explorer with idle breathing, props by the house, stumps and branches, rocky coastal
   ledges, warm palette. The user approved it.
 - **Portfolio roadmap (2026-11-21):** M6 Interiors ✅ (walk into the cottage; village house
-  doors are locked). M8 Compact island ✅ (96×96, default seed 46, R / dice / Home and
+  doors are locked). M8 Compact island ✅ (96×96, default seed 3068120830 since 2026-11-28, R / dice / Home and
   shareable `?seed=` links for everyone). M7 Developer's Studio ✅ (placeholder texts until
   the CV arrives). M9 Guidance ✅ (villager hints, signposts, studio marker). M5 Portfolio content ✅
   (Charles's CV in the studio's panels). M10 Phones + quick view ✅ (tap to walk, phone
@@ -88,6 +88,14 @@
   M2. A stream was rejected because the brief requires the lake not to touch the sea.
 
 ## Session log
+
+### 2026-11-28 — A new default island: seed 3068120830 (user request)
+
+- The default island is now seed 3068120830 (`generation.authoringSeed` in `config.ts`; change it
+  and run `npm run bake:island` to pick another). Re-baked: the lake and dock in the north-west,
+  the studio at the top, the cottage in the middle, the village below, the chicken run to the west.
+- **Verified:** typecheck, lint, tests (the baked map passes every validation rule), build;
+  browser: the new island loads, console clean.
 
 ### 2026-11-28 — Chickens in a coop and a village cat (user request)
 

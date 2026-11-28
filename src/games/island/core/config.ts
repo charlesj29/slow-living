@@ -629,7 +629,7 @@ const noise = (scale: number, octaves = 1): FractalNoiseOptions => ({
 
 export const ISLAND_CONFIG: IslandConfig = {
   map: { widthTiles: 96, heightTiles: 96, tileSizePx: 16, chunkSizeTiles: 32 },
-  generation: { maxAttempts: 10, authoringSeed: 46 },
+  generation: { maxAttempts: 10, authoringSeed: 3068120830 },
   island: { noise: noise(0.03, 4), radialWeight: 0.55, edgeWaterTiles: 6 },
   terrain: { deepSeaMax: 0.32, shallowSeaMax: 0.37, sandMax: 0.4 },
   lake: {
