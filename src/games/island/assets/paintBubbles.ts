@@ -60,6 +60,15 @@ const ICONS: Readonly<Record<BubbleKind, readonly (readonly [number, number, str
     [4, 6, 'f'], [5, 6, 'f'], [6, 6, 'f'], [7, 6, 'f'], [8, 6, 'f'], [9, 6, 'f'], [10, 6, 'f'],
     [5, 7, 'f'], [6, 7, 'f'], [7, 7, 'f'], [10, 7, 'f'],
   ],
+  // A little heart.
+  heart: [
+    [4, 3, 'r'], [5, 3, 'r'], [8, 3, 'r'], [9, 3, 'r'],
+    [3, 4, 'r'], [4, 4, 'r'], [5, 4, 'r'], [6, 4, 'r'], [7, 4, 'r'], [8, 4, 'r'], [9, 4, 'r'], [10, 4, 'r'],
+    [3, 5, 'r'], [4, 5, 'r'], [5, 5, 'r'], [6, 5, 'r'], [7, 5, 'r'], [8, 5, 'r'], [9, 5, 'r'], [10, 5, 'r'],
+    [4, 6, 'r'], [5, 6, 'r'], [6, 6, 'r'], [7, 6, 'r'], [8, 6, 'r'], [9, 6, 'r'],
+    [5, 7, 'r'], [6, 7, 'r'], [7, 7, 'r'], [8, 7, 'r'], [6, 8, 'r'], [7, 8, 'r'],
+    [4, 4, 'c'],
+  ],
   wave: [
     [5, 2, 'i'], [7, 2, 'i'], [9, 2, 'i'], [5, 3, 'i'], [7, 3, 'i'], [9, 3, 'i'],
     [5, 4, 'i'], [6, 4, 'i'], [7, 4, 'i'], [8, 4, 'i'], [9, 4, 'i'], [4, 5, 'i'],
@@ -83,7 +92,14 @@ function bubble(kind: BubbleKind): PixelCanvas {
   return canvas;
 }
 
-export const BUBBLE_KINDS: readonly BubbleKind[] = ['dots', 'smile', 'note', 'wave', 'fish'];
+export const BUBBLE_KINDS: readonly BubbleKind[] = [
+  'dots',
+  'smile',
+  'note',
+  'wave',
+  'fish',
+  'heart',
+];
 
 export function paintBubbleSprites(): SpriteSource[] {
   return BUBBLE_KINDS.map((kind) => ({ key: bubbleKey(kind), frames: [bubble(kind)] }));

@@ -41,6 +41,7 @@ import {
   updateRabbit,
   type Rabbit,
 } from '../systems/rabbits';
+import { createPlaymates, updatePlaymates, type Playmates } from '../systems/playmates';
 import { birdGround, createBirds, updateBird, type Bird } from '../systems/birds';
 import { createDuckFamily, duckWater, updateDuckFamily, type DuckFamily } from '../systems/ducks';
 import { movePlayer } from '../systems/movement';
@@ -124,6 +125,9 @@ export interface GameState {
   readonly birdGround: ReadonlySet<number>;
   readonly birdGroundList: readonly number[];
   readonly birdRng: Rng;
+  /** The village kid and their puppy (island only, null without a village), with their own rng. */
+  readonly playmates: Playmates | null;
+  readonly playRng: Rng;
   /** Clear spells and rain showers, with their own rng. */
   readonly weather: Weather;
   readonly weatherRng: Rng;
@@ -145,6 +149,7 @@ const BAKER_LOOK = 2;
 const WANDER_SEED_SALT = 0x5a11;
 const WEATHER_SEED_SALT = 0x3a1e;
 const BIRD_SEED_SALT = 0xb12d;
+const PLAY_SEED_SALT = 0x9a1d;
 
 function createVillagers(world: World, roam: ReadonlySet<number>, tileSizePx: number): Villager[] {
   if (!world.village) return [];
@@ -220,6 +225,8 @@ export function createGameState(world: World, config: IslandConfig): GameState {
     birdGround: new Set(ground),
     birdGroundList: ground,
     birdRng,
+    playmates: createPlaymates(world, roam, config.playmates, config.map.tileSizePx),
+    playRng: createRng(world.generationSeed ^ PLAY_SEED_SALT),
     weather: createWeather(weatherRng, config.weather),
     weatherRng,
     idleSeconds: 0,
@@ -252,6 +259,17 @@ export function stepGame(state: GameState, stepSeconds: number, config: IslandCo
   stepRabbits(state, stepSeconds, config);
   stepDucks(state, stepSeconds, config);
   stepBirds(state, stepSeconds, config);
+  if (state.playmates) {
+    const player = onIsland(state) ? state.player : null;
+    updatePlaymates(
+      state.playmates,
+      player,
+      villageTime(state),
+      state.playRng,
+      stepSeconds,
+      config.playmates,
+    );
+  }
   if (state.transition) {
     stepTransition(state, stepSeconds, config);
     player.moving = false;

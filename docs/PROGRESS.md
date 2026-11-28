@@ -89,6 +89,23 @@
 
 ## Session log
 
+### 2026-11-28 — A village kid and a puppy (user request)
+
+- A chibi kid (brown bob, yellow dress, red shoes) and a chubby tan puppy, both in the rabbits'
+  soft round style, play by the well by day: fetch (the kid throws a red ball, the puppy dashes
+  after it and brings it back, the kid cheers with a heart), chase (the kid runs about with the
+  puppy at their heels) and a rest (the puppy sits wagging). When you come near, the puppy trots
+  over, sniffs, wags and shows a heart, then goes back to play (then not again for a while). At
+  dusk the kid goes indoors at the house nearest the well and the puppy curls up asleep by the
+  door; they come out again in the morning. Not solid, so they never block a path.
+  `core/systems/playmates.ts` (own rng), `core/systems/playmateMotion.ts` (paths and steps),
+  `render/PlaymateSprites.tsx`, `assets/paintPlaymates.ts`, a `heart` bubble. Settings in
+  `playmates`.
+- **Verified:** typecheck, lint, tests (they go out and play fetch, the puppy greets the player
+  with a heart, home at night with the puppy asleep by the door and out again by day), build;
+  browser by day (the kid with the ball by the well, the puppy trotting) and at night (the puppy
+  asleep by the door); console clean.
+
 ### 2026-11-28 — Life on the lake (user request)
 
 - About every eight seconds a chubby orange fish (soft round style) leaps out of open lake water,

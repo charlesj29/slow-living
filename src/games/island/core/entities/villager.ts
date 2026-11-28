@@ -83,7 +83,7 @@ export interface Villager extends Player {
 }
 
 /** What a villager's speech bubble shows. */
-export type BubbleKind = 'dots' | 'smile' | 'note' | 'wave' | 'fish';
+export type BubbleKind = 'dots' | 'smile' | 'note' | 'wave' | 'fish' | 'heart';
 
 export type VillagerRole = 'baker' | 'keeper' | 'owl';
 

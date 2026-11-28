@@ -183,6 +183,29 @@ export interface IslandConfig {
     readonly gullLoopPx: number;
     readonly gullLoopSeconds: number;
   };
+  /**
+   * A village kid and a puppy who play by the well by day (fetch, chase, a rest) and go home at
+   * dusk; the puppy trots over to say hello when you come near.
+   */
+  readonly playmates: {
+    readonly enabled: boolean;
+    /** The times of day they are out playing (0.25 = 6 AM, 0.75 = 6 PM). */
+    readonly awake: readonly [from: number, to: number];
+    readonly kidSpeedTilesPerSecond: number;
+    readonly dogSpeedTilesPerSecond: number;
+    /** The puppy dashing after the ball. */
+    readonly dogRunSpeedTilesPerSecond: number;
+    /** How far the ball is thrown (tiles), and how many throws a game of fetch lasts. */
+    readonly throwTiles: Range;
+    readonly throwsPerGame: Range;
+    readonly chaseSeconds: number;
+    readonly restSeconds: number;
+    /** The puppy comes to say hello when you are this close (tiles), then not again for a while. */
+    readonly greetRangeTiles: number;
+    readonly greetCooldownSeconds: number;
+    /** How far from the well they play (tiles). */
+    readonly playRadiusTiles: number;
+  };
   /** A mother duck and her ducklings on the lake. */
   readonly ducks: {
     readonly enabled: boolean;
@@ -684,6 +707,20 @@ export const ISLAND_CONFIG: IslandConfig = {
     gulls: 3,
     gullLoopPx: 40,
     gullLoopSeconds: 26,
+  },
+  playmates: {
+    enabled: true,
+    awake: [0.3, 0.78],
+    kidSpeedTilesPerSecond: 1.8,
+    dogSpeedTilesPerSecond: 2.4,
+    dogRunSpeedTilesPerSecond: 4.5,
+    throwTiles: { min: 3, max: 5 },
+    throwsPerGame: { min: 2, max: 4 },
+    chaseSeconds: 12,
+    restSeconds: 8,
+    greetRangeTiles: 3,
+    greetCooldownSeconds: 30,
+    playRadiusTiles: 5,
   },
   ducks: {
     enabled: true,
