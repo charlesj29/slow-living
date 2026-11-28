@@ -89,6 +89,19 @@
 
 ## Session log
 
+### 2026-11-28 — Life on the lake (user request)
+
+- About every eight seconds a chubby orange fish (soft round style) leaps out of open lake water,
+  nose up, level, nose down, and dives back in; splash rings spread where it left and where it
+  landed (the rain's ring sprites). Paddling ducks leave a little V-shaped wake. The fisher on the
+  dock now and then shows a "caught one!" fish bubble instead of a hum. `render/LakeLife.tsx`,
+  `render/fishJumps.ts` (pure timing, two tiles clear of the shore), `assets/paintLakeLife.ts`
+  (the tilted fish are rotated letter grids, so they keep hard pixels), a `fish` bubble.
+  Settings in `lakeLife` and `social.catchShare`.
+- **Verified:** typecheck, lint, tests (leap spots on open water, one leap per stretch then a
+  splash, the fisher's catch bubble), build; browser with leaps made frequent: the fish mid-leap
+  with its rings, the ducklings' wake; console clean.
+
 ### 2026-11-28 — Villagers in the rain (user request)
 
 - When a shower gets going the keeper drops the chores and hurries home, the baker hurries under

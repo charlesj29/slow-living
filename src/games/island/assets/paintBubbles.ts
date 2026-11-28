@@ -19,6 +19,8 @@ const COLORS: Readonly<Record<string, Rgba>> = {
   c: hexToRgba('#fff6e0'),
   i: hexToRgba('#5a3a24'),
   r: hexToRgba('#d9675a'),
+  f: hexToRgba('#f08a3e'),
+  e: hexToRgba('#2a1a14'),
 };
 
 // The bubble: a rounded box (rows 0–9) and a tail (rows 10–11); icons go in rows 2–7.
@@ -50,6 +52,14 @@ const ICONS: Readonly<Record<BubbleKind, readonly (readonly [number, number, str
     [8, 2, 'i'], [9, 2, 'i'], [8, 3, 'i'], [10, 3, 'i'], [8, 4, 'i'], [8, 5, 'i'], [8, 6, 'i'],
     [5, 6, 'i'], [6, 6, 'i'], [7, 6, 'i'], [5, 7, 'i'], [6, 7, 'i'], [7, 7, 'i'],
   ],
+  // A little caught fish, nose to the left.
+  fish: [
+    [5, 3, 'f'], [6, 3, 'f'], [7, 3, 'f'], [10, 3, 'f'],
+    [4, 4, 'f'], [5, 4, 'e'], [6, 4, 'f'], [7, 4, 'f'], [8, 4, 'f'], [9, 4, 'f'], [10, 4, 'f'],
+    [3, 5, 'f'], [4, 5, 'f'], [5, 5, 'f'], [6, 5, 'f'], [7, 5, 'f'], [8, 5, 'f'], [9, 5, 'f'],
+    [4, 6, 'f'], [5, 6, 'f'], [6, 6, 'f'], [7, 6, 'f'], [8, 6, 'f'], [9, 6, 'f'], [10, 6, 'f'],
+    [5, 7, 'f'], [6, 7, 'f'], [7, 7, 'f'], [10, 7, 'f'],
+  ],
   wave: [
     [5, 2, 'i'], [7, 2, 'i'], [9, 2, 'i'], [5, 3, 'i'], [7, 3, 'i'], [9, 3, 'i'],
     [5, 4, 'i'], [6, 4, 'i'], [7, 4, 'i'], [8, 4, 'i'], [9, 4, 'i'], [4, 5, 'i'],
@@ -73,7 +83,7 @@ function bubble(kind: BubbleKind): PixelCanvas {
   return canvas;
 }
 
-export const BUBBLE_KINDS: readonly BubbleKind[] = ['dots', 'smile', 'note', 'wave'];
+export const BUBBLE_KINDS: readonly BubbleKind[] = ['dots', 'smile', 'note', 'wave', 'fish'];
 
 export function paintBubbleSprites(): SpriteSource[] {
   return BUBBLE_KINDS.map((kind) => ({ key: bubbleKey(kind), frames: [bubble(kind)] }));

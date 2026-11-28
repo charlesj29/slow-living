@@ -348,6 +348,14 @@ export interface IslandConfig {
     readonly humMinSeconds: number;
     readonly humMaxSeconds: number;
     readonly humSeconds: number;
+    /** Of the fisher's hums, the share that show off a caught fish instead (0..1). */
+    readonly catchShare: number;
+  };
+  /** Life on the lake: now and then a fish leaps out (about how often, how long, how high). */
+  readonly lakeLife: {
+    readonly fishJumpEverySeconds: number;
+    readonly fishJumpSeconds: number;
+    readonly fishJumpHeightPx: number;
   };
   readonly villagerDay: Readonly<
     Record<'baker' | 'keeper' | 'owl', readonly (readonly [start: number, activity: string])[]>
@@ -768,7 +776,9 @@ export const ISLAND_CONFIG: IslandConfig = {
     humMinSeconds: 8,
     humMaxSeconds: 20,
     humSeconds: 2.5,
+    catchShare: 0.5,
   },
+  lakeLife: { fishJumpEverySeconds: 8, fishJumpSeconds: 0.9, fishJumpHeightPx: 12 },
   villagerDay: {
     baker: [
       [0.22, 'wander'],

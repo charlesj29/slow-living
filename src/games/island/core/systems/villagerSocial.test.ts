@@ -72,6 +72,22 @@ describe('village social life', () => {
   });
 });
 
+describe('the fisher', () => {
+  it('sometimes shows off a caught fish instead of humming', () => {
+    const kinds = new Set<string>();
+    for (let i = 0; i < 20; i++) {
+      const v = villagerAt(0, 5, 5);
+      v.activity = 'fish';
+      v.atErrand = true;
+      v.humIn = 0.01;
+      const rng = createRng(i);
+      updateSocial([v], null, rng, STEP, settings, TILE);
+      if (v.bubble) kinds.add(v.bubble.kind);
+    }
+    expect(kinds).toEqual(new Set(['fish', 'note']));
+  });
+});
+
 describe('the evening gathering', () => {
   it('chats across the wider circle round the well', () => {
     const a = villagerAt(0, 5, 5);

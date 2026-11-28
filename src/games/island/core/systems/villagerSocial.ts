@@ -109,7 +109,9 @@ export function updateSocial(
     if (v.atErrand && HUMMING_CHORES.has(v.activity)) {
       v.humIn -= stepSeconds;
       if (v.humIn <= 0 && !v.bubble) {
-        say(v, 'note', settings.humSeconds);
+        // A fisher now and then shows off a catch instead.
+        const caught = v.activity === 'fish' && rng.chance(settings.catchShare);
+        say(v, caught ? 'fish' : 'note', settings.humSeconds);
         v.humIn = rng.range(settings.humMinSeconds, settings.humMaxSeconds);
       }
     }
