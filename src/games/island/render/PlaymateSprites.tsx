@@ -26,7 +26,7 @@ const WAG_FRAME_SECONDS = 0.15;
 /** Feet sit this far above the sprites' bottom edge (the outline row). */
 const FOOT_INSET_PX = 1;
 /** Where the ball sits in the kid's hand (raised when throwing) and the puppy's mouth. */
-const HAND = { side: 5, up: 8, raised: 14 } as const;
+const HAND = { side: 5, up: 2, raised: 9 } as const;
 const MOUTH = { side: 7, up: 5 } as const;
 /** Speech bubbles float above the head; bubbles draw over everything else. */
 const BUBBLE_ABOVE = { kid: 24, dog: 18 } as const;

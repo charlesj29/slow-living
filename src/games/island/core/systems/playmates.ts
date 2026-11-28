@@ -1,4 +1,4 @@
-// A village kid and a puppy. By day they play near the well: fetch (the kid
+// A village kid and a puppy. By day they play in a field just outside the village: fetch (the kid
 // throws the ball, the puppy dashes after it and brings it back, the kid
 // cheers), chase (the kid runs about, the puppy at their heels) and a rest
 // (the puppy sits wagging). When the player comes near, the puppy trots over,
@@ -9,7 +9,7 @@ import type { Rng } from '@/shared/engine/random';
 import type { IslandConfig } from '../config';
 import type { BubbleKind } from '../entities/villager';
 import type { Player } from '../entities/player';
-import { villagerSpawns, wanderTiles } from '../world/village';
+import { villagerSpawns } from '../world/village';
 import type { World } from '../world/world';
 import {
   besideTile,
@@ -22,6 +22,7 @@ import {
   type Ground,
   type Mate,
 } from './playmateMotion';
+import { playField } from './playField';
 
 type PlaySettings = IslandConfig['playmates'];
 
@@ -102,15 +103,14 @@ export function createPlaymates(
   const centre = well ? { x: well.x + 1, y: well.y + 1 } : null;
   const near = (tile: number, point: { x: number; y: number }): number =>
     Math.hypot((tile % world.width) - point.x, Math.floor(tile / world.width) - point.y);
-  const open = wanderTiles(world).filter((tile) => walkable.has(tile));
-  const playground = centre
-    ? open.filter((t) => near(t, centre) <= settings.playRadiusTiles)
-    : open;
+  // The kid lives in the house nearest the well, and plays in a field just outside the village.
   const doors = villagerSpawns(world)
     .map((p) => p.y * world.width + p.x)
     .filter((tile) => walkable.has(tile));
   const door = centre ? doors.sort((a, b) => near(a, centre) - near(b, centre))[0] : doors[0];
-  if (door === undefined || playground.length === 0) return null;
+  if (door === undefined) return null;
+  const playground = playField(world, walkable, door, settings);
+  if (playground.length === 0) return null;
   const doorCentre = centreOf(door, ground);
   const bed = besideTile(door, { x: doorCentre.x - tileSizePx, y: doorCentre.y }, ground) ?? door;
   const bedCentre = centreOf(bed, ground);

@@ -50,20 +50,20 @@ Change a value, save, and the page updates (`npm run dev`).
 
 ## Life on the island
 
-| Setting                                                     | What it does                                                                          |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `villagerDay`                                               | Each villager's day: from which time they bake, sweep, fish, read, gather or go home. |
-| `social`                                                    | How often villagers chat, wave at you and hum at their chores.                        |
-| `social.catchShare`                                         | How often the fisher shows off a caught fish instead of humming.                      |
-| `lakeLife`                                                  | How often a fish leaps out of the lake, and how high.                                 |
-| `villagers.walkSpeedTilesPerSecond`                         | How fast villagers stroll.                                                            |
-| `rainyDay`                                                  | How heavy the rain must be before villagers shelter, and how fast they hurry.         |
-| `rabbits`, `ducks`                                          | How many, how fast, and how shy they are.                                             |
-| `butterflies`, `fireflies`                                  | How many, and how they fly or blink.                                                  |
-| `birds`                                                     | How many birds and gulls, when they are out, how shy they are and how far they fly.   |
-| `playmates`                                                 | When the kid and puppy play, how fast they go, how far the ball flies, hellos to you. |
-| `player.walkSpeedTilesPerSecond` / `runSpeedTilesPerSecond` | How fast you walk and run.                                                            |
-| `tour.idleSeconds`                                          | How long without input before the tour starts.                                        |
+| Setting                                                     | What it does                                                                                       |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `villagerDay`                                               | Each villager's day: from which time they bake, sweep, fish, read, gather or go home.              |
+| `social`                                                    | How often villagers chat, wave at you and hum at their chores.                                     |
+| `social.catchShare`                                         | How often the fisher shows off a caught fish instead of humming.                                   |
+| `lakeLife`                                                  | How often a fish leaps out of the lake, and how high.                                              |
+| `villagers.walkSpeedTilesPerSecond`                         | How fast villagers stroll.                                                                         |
+| `rainyDay`                                                  | How heavy the rain must be before villagers shelter, and how fast they hurry.                      |
+| `rabbits`, `ducks`                                          | How many, how fast, and how shy they are.                                                          |
+| `butterflies`, `fireflies`                                  | How many, and how they fly or blink.                                                               |
+| `birds`                                                     | How many birds and gulls, when they are out, how shy they are and how far they fly.                |
+| `playmates`                                                 | When and where (a field outside the village) the kid and puppy play, their pace, the ball, hellos. |
+| `player.walkSpeedTilesPerSecond` / `runSpeedTilesPerSecond` | How fast you walk and run.                                                                         |
+| `tour.idleSeconds`                                          | How long without input before the tour starts.                                                     |
 
 ## The island's layout
 

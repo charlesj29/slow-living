@@ -6,6 +6,7 @@ import { generateValidWorld } from '../generation/testUtils';
 import { tileOf } from './playmateMotion';
 import { createPlaymates, updatePlaymates, type Playmates } from './playmates';
 import { roamTiles } from './routine';
+import { villageTiles } from '../world/village';
 
 const TILE = ISLAND_CONFIG.map.tileSizePx;
 const STEP = 1 / 30;
@@ -36,7 +37,7 @@ function run(
 }
 
 describe('the village kid and the puppy', () => {
-  it('go out to play by the well, and play fetch', () => {
+  it('go out to play in a field outside the village, and play fetch', () => {
     const p = playmates();
     let fetched = false;
     run(p, 180, DAY, null, () => {
@@ -44,6 +45,9 @@ describe('the village kid and the puppy', () => {
     });
     expect(p.kid.hidden).toBe(false);
     expect(fetched).toBe(true);
+    if (!world.village) throw new Error('no village');
+    const village = new Set(villageTiles(world.village, world));
+    expect(p.playground.some((tile) => village.has(tile))).toBe(false);
     for (const mate of [p.kid, p.dog]) expect(roam.has(tileOf(mate, p.ground))).toBe(true);
   });
 

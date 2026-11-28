@@ -89,6 +89,15 @@
 
 ## Session log
 
+### 2026-11-28 — The kid plays outside the village (user request)
+
+- The kid and the puppy now play in a field of open land just outside the village (2–6 tiles past
+  its edge, on the side nearest the kid's house), so the village stays calm; they still live in
+  the house nearest the well. `core/systems/playField.ts`; settings `playmates.fieldTiles` and
+  `playRadiusTiles`. The ball is held at hand height (it floated by the kid's face).
+- **Verified:** typecheck, lint, tests (the field has no village tiles), build; browser: the kid
+  and the puppy (ball in its mouth) in the meadow north of the village.
+
 ### 2026-11-28 — Studio: smaller phones, a tidier CV (user request)
 
 - The project phones on the studio shelf are smaller and more phone-like (8×14 instead of 11×21),

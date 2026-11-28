@@ -184,7 +184,8 @@ export interface IslandConfig {
     readonly gullLoopSeconds: number;
   };
   /**
-   * A village kid and a puppy who play by the well by day (fetch, chase, a rest) and go home at
+   * A village kid and a puppy who play in a field just outside the village by day (fetch, chase,
+   * a rest) and go home at
    * dusk; the puppy trots over to say hello when you come near.
    */
   readonly playmates: {
@@ -203,7 +204,8 @@ export interface IslandConfig {
     /** The puppy comes to say hello when you are this close (tiles), then not again for a while. */
     readonly greetRangeTiles: number;
     readonly greetCooldownSeconds: number;
-    /** How far from the well they play (tiles). */
+    /** Their field: how far outside the village edge (tiles), and how big (radius, tiles). */
+    readonly fieldTiles: Range;
     readonly playRadiusTiles: number;
   };
   /** A mother duck and her ducklings on the lake. */
@@ -720,7 +722,8 @@ export const ISLAND_CONFIG: IslandConfig = {
     restSeconds: 8,
     greetRangeTiles: 3,
     greetCooldownSeconds: 30,
-    playRadiusTiles: 5,
+    fieldTiles: { min: 2, max: 6 },
+    playRadiusTiles: 4,
   },
   ducks: {
     enabled: true,
