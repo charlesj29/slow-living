@@ -478,14 +478,13 @@ export interface IslandConfig {
   };
   /**
    * After a shower: puddles (on village paths and in the kid's field) that dry up over
-   * `drySeconds`, the kid splashing in them, a rainbow for `rainbowSeconds` (by day); the birds
-   * sing as they come out from under the trees (`birds.songSeconds`).
+   * `drySeconds`, and the kid splashing in them; the birds sing as they come out from under the
+   * trees (`birds.songSeconds`).
    */
   readonly afterRain: {
     readonly villagePuddles: number;
     readonly fieldPuddles: number;
     readonly drySeconds: number;
-    readonly rainbowSeconds: number;
   };
   /** A breeze through the island: trees, bushes and grass sway; a few leaves drift by day. */
   readonly breeze: {
@@ -929,7 +928,6 @@ export const ISLAND_CONFIG: IslandConfig = {
     villagePuddles: 7,
     fieldPuddles: 3,
     drySeconds: 80,
-    rainbowSeconds: 45,
   },
   breeze: { swayPx: 3, base: 0.7, rainBoost: 0.5, nightCalm: 0.5, leaves: 10, leafSpeedPx: 20 },
   clouds: { count: 5, speedPx: 4 },

@@ -89,6 +89,13 @@
 
 ## Session log
 
+### 2026-11-28 — No rainbow (user request)
+
+- The rainbow after a shower is gone (the user found it silly): its sprite, `afterRain.rainbowSeconds`
+  and its drawing. What stays after rain: puddles drying, the kid splashing, birds singing.
+  `render/AfterRain.tsx` became `render/Puddles.tsx`.
+- **Verified:** typecheck, lint, tests, build.
+
 ### 2026-11-28 — Fix: chickens stuck when rain starts (user report)
 
 - Two ways the chickens could freeze heading for shelter: two of them standing on each other's

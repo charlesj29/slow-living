@@ -183,30 +183,6 @@ function puddle(width: number, height: number): PixelCanvas {
   return canvas;
 }
 
-/** A soft rainbow arc for the sky after a shower (drawn faint, faded as a whole). */
-export const RAINBOW_KEY = 'rainbow';
-const RAINBOW = { width: 160, height: 60, band: 3 } as const;
-const RAINBOW_COLORS = ['#e8505a', '#f29a48', '#f6d24a', '#7cc45a', '#5aa0e0', '#9a78d0'].map(
-  (hex) => hexToRgba(hex),
-);
-
-function rainbow(): PixelCanvas {
-  const canvas = createPixelCanvas(RAINBOW.width, RAINBOW.height);
-  const cx = (RAINBOW.width - 1) / 2;
-  // The arc's middle sits below the sprite so its top just touches the first row.
-  const cy = RAINBOW.width / 2 + 1;
-  const outer = RAINBOW.width / 2;
-  for (let y = 0; y < RAINBOW.height; y++) {
-    for (let x = 0; x < RAINBOW.width; x++) {
-      const r = Math.hypot(x - cx, y - cy);
-      const band = Math.floor((outer - r) / RAINBOW.band);
-      const color = band >= 0 ? RAINBOW_COLORS[band] : undefined;
-      if (color) setPixel(canvas, x, y, color);
-    }
-  }
-  return canvas;
-}
-
 export function paintWeatherSprites(): SpriteSource[] {
   return [
     { key: RAIN_DROP_KEY, frames: [fromRows(DROP_ROWS, { h: DROP.head, t: DROP.tail })] },
@@ -223,7 +199,6 @@ export function paintWeatherSprites(): SpriteSource[] {
       const size = PUDDLE_SIZES[i] ?? PUDDLE_SIZES[0];
       return { key, frames: [puddle(size.width, size.height)] };
     }),
-    { key: RAINBOW_KEY, frames: [rainbow()] },
     ...MIST_SHAPES.map((shape, i) => ({
       key: MIST_KEYS[i] ?? 'mist_0',
       frames: [mistBank(shape.width, shape.height, shape.puffs)],
