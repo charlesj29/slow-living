@@ -89,6 +89,14 @@
 
 ## Session log
 
+### 2026-11-28 — Bigger, clearer speech bubbles (user request)
+
+- The bubbles over villagers, the kid and the puppy are bigger (18×15, were 14×12) with icons
+  redrawn on a 12×9 grid: the wave is now a clear open hand (peach palm, four fingers, a thumb, a
+  motion mark); chatting dots, a smile with rosy cheeks, two beamed notes, the caught fish and the
+  heart are larger too. `assets/paintBubbles.ts`.
+- **Verified:** typecheck, lint, tests, build; the bubbles previewed as a sprite sheet.
+
 ### 2026-11-28 — A new default island: seed 3068120830 (user request)
 
 - The default island is now seed 3068120830 (`generation.authoringSeed` in `config.ts`; change it
