@@ -131,7 +131,7 @@ export function GameCanvas({ game }: GameCanvasProps): JSX.Element {
     <Canvas flat linear gl={{ antialias: false }} onCreated={exposeRendererInDev}>
       <color attach="background" args={[background]} />
       <GameLoop state={game} />
-      <TapToWalk state={game} />
+      <TapToWalk state={game} atlas={atlas} />
       <DayNightLighting
         key={`light:${mapId}`}
         state={game}

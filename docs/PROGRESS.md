@@ -89,6 +89,23 @@
 
 ## Session log
 
+### 2026-11-28 — Follow your finger on phones (user request)
+
+- The fixed slide-stick is gone (feedback: a fixed spot is awkward). Now there are two kinds of
+  touch, anywhere on the screen: a quick tap walks there (or up to the villager, sign or door you
+  tapped, to use it), as before; a finger held down (`touch.holdMs`, 180 ms) or slid steers: the
+  player walks towards the point under it, following as it slides, and stops when it lets go (or
+  `touch.stopTiles` short of it). Four ways, keeping the current direction until lined up, so a
+  diagonal is a clean L, not a zig-zag. A soft ring on the ground shows where you are heading.
+  The small interact button stays. `core/systems/steer.ts`, `render/TapToWalk.tsx`; removed
+  `ui/SlideStick`, `ui/stickDirection` and `touch.tapToWalk` / `touch.deadZone`.
+- Found on the way: music and nature sounds started on the first `pointerdown`, which a phone
+  does not count as a gesture (only the finger's lift does), so sound could not start from a touch.
+  They now start on the first `pointerup`.
+- **Verified:** typecheck, lint, tests (steering: towards the finger, stops close, clean L), build;
+  phone emulation: a held finger walks the player along the path with the ring showing, a quick
+  tap walks there (into the studio when tapped by it); console clean.
+
 ### 2026-11-28 — No rainbow (user request)
 
 - The rainbow after a shower is gone (the user found it silly): its sprite, `afterRain.rainbowSeconds`

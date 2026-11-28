@@ -58,7 +58,7 @@ export function MusicToggle({ song }: { readonly song: Song }): JSX.Element {
       // A click on the button itself is handled by the toggle.
       if (event.target instanceof Element && event.target.closest('.island-music-toggle')) return;
       hasGestureRef.current = true;
-      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('pointerup', onFirstGesture);
       window.removeEventListener('keydown', onFirstGesture);
       if (!useIslandUiStore.getState().isMusicMuted) void player.start();
     };
@@ -66,11 +66,13 @@ export function MusicToggle({ song }: { readonly song: Song }): JSX.Element {
       if (event.code !== TOGGLE_KEY || event.repeat || event.ctrlKey || event.metaKey) return;
       useIslandUiStore.getState().toggleMusicMuted();
     };
-    window.addEventListener('pointerdown', onFirstGesture);
+    // On the finger's lift (or the mouse's release): a touch only counts as the gesture that may
+    // start sound when the finger comes up, so starting on the press is refused on phones.
+    window.addEventListener('pointerup', onFirstGesture);
     window.addEventListener('keydown', onFirstGesture);
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('pointerup', onFirstGesture);
       window.removeEventListener('keydown', onFirstGesture);
       window.removeEventListener('keydown', onKeyDown);
       player.dispose();

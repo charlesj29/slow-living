@@ -262,7 +262,11 @@ flowchart LR
   faced from the floor below.
 - **Tap to walk (D63):** `render/TapToWalk` unprojects a tap through the camera and calls
   `tapAt`; `core/systems/tapToWalk.ts` plans the route (`planTap`) and `followWalk` turns it
-  into movement intents each step (keys cancel it). `GameState.overlayOpen` (the Résumé, via
+  into movement intents each step (keys cancel it). On phones a finger held down (`touch.holdMs`)
+  or slid steers instead: every frame the point under it is unprojected again (the island scrolls
+  under a still finger) and `core/systems/steer.ts` picks the way (four ways, keeping the current
+  axis until lined up, stopping `touch.stopTiles` short), pressed as `TOUCH_KEYS`; a ring sprite
+  marks the spot. Sound starts on the first `pointerup` (a touch only counts as a gesture then). `GameState.overlayOpen` (the Résumé, via
   `setOverlayOpen` from `GameLoop`) pauses the player. `device.ts` (`isTouchFirst`) picks the
   phone camera framing (`render.touchTargetTilesAcross`) and phone-only UI.
 - **Portfolio panel (D61):** an interaction can be `{ panel, pagePerTile? }` instead of pages.

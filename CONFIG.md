@@ -11,8 +11,8 @@ Change a value, save, and the page updates (`npm run dev`).
 | Setting                             | What it does                                                                       |
 | ----------------------------------- | ---------------------------------------------------------------------------------- |
 | `render.zoomEnabled`                | Allow zooming with + / − (and the phone zoom buttons).                             |
-| `touch.controls`                    | Phones: the slide-stick (walk) and the small interact button.                      |
-| `touch.tapToWalk`                   | Phones: tapping the screen walks there too (off: stick only).                      |
+| `touch.controls`                    | Phones: the small interact button (walking is tap, or hold a finger to steer).     |
+| `touch.holdMs`, `touch.stopTiles`   | Phones: how long a hold before it steers; how close to the finger it stops.        |
 | `pointer.clickToWalk`               | Click the screen to walk there (phones always tap to walk).                        |
 | `tour.enabled`                      | The slow camera tour after a minute without input.                                 |
 | `debug.showClock`                   | The clock at the top right.                                                        |

@@ -68,9 +68,10 @@ Deploy: pushing `master` runs `.github/workflows/deploy.yml` (check, then GitHub
 - Input: key codes → actions in `core/systems/controls.ts`; DOM listeners only in
   `render/useKeyboardInput.ts`. Taps/clicks: `render/TapToWalk` → `tapAt` → `core/systems/tapToWalk.ts`. Mouse clicks walk only with
   `pointer.clickToWalk`; touch always does.
-  Phones (`device.ts`, `isTouchFirst`) get their own camera framing, a slide-stick and a small
-  interact button (`ui/TouchControls`; they press virtual `TOUCH_KEYS`, so input stays one path;
-  taps continue messages) and a settings gear (`ui/HudMenu`). Render reads interpolated positions and draws at whole pixels.
+  Phones (`device.ts`, `isTouchFirst`) get their own camera framing; walking is a quick tap
+  (walk there) or a held finger that the player follows (`render/TapToWalk` steers with
+  `core/systems/steer.ts`, pressing virtual `TOUCH_KEYS`, so input stays one path); a small
+  interact button (`ui/TouchControls`; taps continue messages) and a settings gear (`ui/HudMenu`). Render reads interpolated positions and draws at whole pixels.
 
 ## Content
 

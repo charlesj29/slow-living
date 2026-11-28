@@ -561,14 +561,17 @@ export interface IslandConfig {
     readonly mellowVolume: number;
     readonly mellowSeconds: number;
   };
-  /** Phones and tablets (touch first, no keys). */
+  /**
+   * Phones and tablets (touch first, no keys): a quick tap walks there (or up to what you tapped,
+   * to use it); a finger held down (or slid) steers: the player walks towards it until it lets go.
+   */
   readonly touch: {
-    /** The on-screen slide-stick (walk) and interact button. */
+    /** The small interact button that pops up when something is in reach. */
     readonly controls: boolean;
-    /** Tapping the screen walks there too. Without the stick, taps always walk (there are no keys). */
-    readonly tapToWalk: boolean;
-    /** A thumb this close to the slide-stick's middle (share of its reach) points nowhere: no walking. */
-    readonly deadZone: number;
+    /** Held this long (ms) without sliding, a touch steers instead of being a tap. */
+    readonly holdMs: number;
+    /** Steering stops this close to the finger (tiles). */
+    readonly stopTiles: number;
   };
   /** Clicking the screen to walk there (and on things, to walk up and use them). */
   readonly pointer: {
@@ -962,7 +965,7 @@ export const ISLAND_CONFIG: IslandConfig = {
     mellowVolume: 0.7,
     mellowSeconds: 2.5,
   },
-  touch: { controls: true, tapToWalk: false, deadZone: 0.25 },
+  touch: { controls: true, holdMs: 180, stopTiles: 0.4 },
   pointer: { clickToWalk: false },
   debug: {
     fpsSmoothingSharpness: 3,

@@ -48,14 +48,16 @@ export function AmbientSound({ game }: { readonly game: GameState }): null {
   useEffect(() => {
     const onFirstGesture = (): void => {
       hasGestureRef.current = true;
-      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('pointerup', onFirstGesture);
       window.removeEventListener('keydown', onFirstGesture);
       if (!useIslandUiStore.getState().isMusicMuted) void player.start();
     };
-    window.addEventListener('pointerdown', onFirstGesture);
+    // On the finger's lift (or the mouse's release): a touch only counts as the gesture that may
+    // start sound when the finger comes up, so starting on the press is refused on phones.
+    window.addEventListener('pointerup', onFirstGesture);
     window.addEventListener('keydown', onFirstGesture);
     return () => {
-      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('pointerup', onFirstGesture);
       window.removeEventListener('keydown', onFirstGesture);
       player.dispose();
     };

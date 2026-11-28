@@ -1,6 +1,7 @@
 // In-world UI sprites: the small arrow that bobs above things you can
 // interact with, pointing down at them like in classic RPGs, and the star
-// over the studio until the first visit.
+// over the studio until the first visit, and the soft ring under a steering
+// finger (phones), lying flat on the ground where the player is heading.
 import type { SpriteSource } from '@/shared/render/atlasLayout';
 import {
   createPixelCanvas,
@@ -59,10 +60,22 @@ function fromRows(rows: readonly string[]): PixelCanvas {
 export const PROMPT_KEY = 'prompt_interact';
 /** The gold star that floats over the studio until the first visit. */
 export const STUDIO_MARKER_KEY = 'marker_studio';
+/** The ring under a held finger: where the player is walking to. */
+export const STEER_RING_KEY = 'steer_ring';
+
+// prettier-ignore
+const RING_ROWS = [
+  '...ooooo...',
+  '.oowwwwwoo.',
+  'ow.......wo',
+  '.oowwwwwoo.',
+  '...ooooo...',
+] as const;
 
 export function paintUiSprites(): SpriteSource[] {
   return [
     { key: PROMPT_KEY, frames: [arrow()] },
     { key: STUDIO_MARKER_KEY, frames: [fromRows(STAR_ROWS)] },
+    { key: STEER_RING_KEY, frames: [fromRows(RING_ROWS)] },
   ];
 }

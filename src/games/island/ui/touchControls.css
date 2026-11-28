@@ -1,4 +1,4 @@
-/* Phones: the slide-stick, the small interact button, the hint, and the folded settings menu.
+/* Phones: the small interact button, the hint, and the folded settings menu.
    Same look as the clock and message box: cream paper, dark wood border. */
 
 .island-touch-controls {
@@ -7,49 +7,6 @@
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
-}
-
-/* ── Slide-stick (bottom left): see-through, resting faded; brighter while touched. ── */
-.island-stick {
-  position: absolute;
-  left: calc(1.25rem + env(safe-area-inset-left));
-  bottom: calc(1.5rem + env(safe-area-inset-bottom));
-  width: 7rem;
-  height: 7rem;
-  border: 2px solid rgb(255 255 255 / 45%);
-  border-radius: 50%;
-  background: rgb(255 255 255 / 12%);
-  opacity: 0.65;
-  pointer-events: auto;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.3s ease;
-}
-
-.island-stick.is-active {
-  opacity: 1;
-}
-
-.island-stick.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.island-stick-knob {
-  position: absolute;
-  top: calc(50% - 1.25rem);
-  left: calc(50% - 1.25rem);
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 2px solid rgb(58 36 22 / 35%);
-  border-radius: 50%;
-  background: rgb(255 246 224 / 80%);
-  box-shadow: 0 2px 0 rgb(0 0 0 / 15%);
-}
-
-/* Springing back to the middle when the thumb lets go (no lag while sliding). */
-.island-stick-knob.is-springing {
-  transition: transform 0.15s ease-out;
 }
 
 /* ── Interact (bottom right): a small, soft round button with the word, only when needed. ── */
